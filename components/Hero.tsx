@@ -3,6 +3,13 @@ import BookNowButton from "./BookNowButton";
 import { HEADLINE, SUBHEAD, CREDIBILITY_STATS } from "@/lib/siteData";
 import type { HomeVariantContent } from "@/lib/variant";
 
+const GALLERY_PHOTOS = [
+  { src: "/images/nailart1.jpg", alt: "Hand-painted nail art by AK.LUX.NAILS" },
+  { src: "/images/customer1.jpg", alt: "A happy AK.LUX.NAILS client showing off her manicure" },
+  { src: "/images/milkynails.jpg", alt: "Milky white gel manicure by AK.LUX.NAILS" },
+  { src: "/images/nudemani1.jpg", alt: "Nude gel manicure by AK.LUX.NAILS" },
+];
+
 export default function Hero({ variant }: { variant: HomeVariantContent }) {
   return (
     <section className="mx-auto max-w-5xl px-4 pt-10 pb-8 sm:px-6 sm:pt-16">
@@ -33,15 +40,24 @@ export default function Hero({ variant }: { variant: HomeVariantContent }) {
           </dl>
         </div>
 
-        <div className="overflow-hidden rounded-[var(--radius-xl)] shadow-lg">
-          <Image
-            src="/images/mani1.jpg"
-            alt="Russian hard-gel manicure by AK.LUX.NAILS"
-            width={600}
-            height={720}
-            className="h-full w-full object-cover"
-            priority
-          />
+        {/* A gallery grid, not a single hero shot — this is the range-of-work homepage view for
+            returning clients browsing, distinct from mani.akluxnails.com's single-service hero. */}
+        <div className="grid grid-cols-2 gap-3">
+          {GALLERY_PHOTOS.map((photo, i) => (
+            <div
+              key={photo.src}
+              className={`overflow-hidden rounded-[var(--radius-xl)] shadow-lg ${i === 0 ? "col-span-2" : ""}`}
+            >
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                width={i === 0 ? 600 : 290}
+                height={i === 0 ? 340 : 290}
+                className="h-full w-full object-cover"
+                priority={i === 0}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
