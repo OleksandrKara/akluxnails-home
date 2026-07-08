@@ -186,12 +186,14 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
       </div>
 
       {selectedServices.length > 0 && (
-        <div className="sticky bottom-0 mt-6 -mx-6 border-t border-[var(--color-border)] bg-[var(--color-card)] px-6 py-4">
+        <div className="sticky bottom-0 mt-6 -mx-6 border-t border-[var(--color-border)] bg-[var(--color-card)] px-6 py-4 will-change-transform">
           <div className="flex items-center justify-between text-sm">
             <span className="text-[var(--color-muted)]">
               {selectedServices.length} service{selectedServices.length > 1 ? "s" : ""}
             </span>
-            <span className="font-semibold text-[var(--color-ink)]">Total: {formatPrice(flow.totalCents)}</span>
+            <span key={flow.totalCents} className="font-semibold text-[var(--color-ink)]">
+              Total: {formatPrice(flow.totalCents)}
+            </span>
           </div>
           <button
             type="button"
