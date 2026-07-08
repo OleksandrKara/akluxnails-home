@@ -9,7 +9,6 @@ export default function Footer() {
           <span>© {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.</span>
           <nav className="flex gap-4">
             <Link href="/blog" className="hover:text-[var(--color-ink)]">Blog</Link>
-            <Link href="/#location" className="hover:text-[var(--color-ink)]">Location</Link>
           </nav>
         </div>
       </div>

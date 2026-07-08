@@ -11,32 +11,44 @@
  * "1st Visit Specials" category items are excluded categorically in catalog.ts itself — never
  * list one here, but even if one were mistakenly added, it would still be filtered out there.
  *
- * Add-ons are scoped per group (not one global list) — e.g. nail removal only makes sense
- * alongside a manicure, not a men's no-polish service. When a visitor has services selected from
- * more than one group, the booking flow shows the union of each selected group's add-ons.
+ * Add-ons are modeled as radio-button groups, not a checklist — each group is mutually exclusive
+ * (you have one nail finish, one type of product being removed, not several at once), shown right
+ * under each selected service in a group that has any. A group with zero add-on groups (Men's
+ * Services, 4-Hand Appointments) shows none.
  */
+
+export interface AddOnGroup {
+  /** Shown as the radio group's label, e.g. "Nail art" or "Removing old product". */
+  label: string;
+  /** Real Square catalog item names, radio-style — "None" is always the implicit first option. */
+  options: string[];
+}
 
 export interface ServiceGroup {
   title: string;
   /** Real Square catalog item names, in display order. */
   items: string[];
-  /** Real Square catalog item names offered as add-ons for services in this group. */
-  addOns: string[];
+  addOnGroups: AddOnGroup[];
 }
 
-const MANICURE_ADD_ONS = [
-  "Design",
-  "Ombre (design)",
-  "Removal Acrylic",
-  "Removal Gel",
-  "Removal Gel X (only removal without manicure, includes filing and shaping of the nail)",
-];
+const NAIL_ART_ADD_ON_GROUP: AddOnGroup = {
+  label: "Nail art",
+  options: ["Design", "Ombre (design)"],
+};
 
-const PEDICURE_ADD_ONS = ["Design", "Ombre (design)"];
+const REMOVAL_ADD_ON_GROUP: AddOnGroup = {
+  label: "Removing old product",
+  options: [
+    "Removal Acrylic",
+    "Removal Gel",
+    "Removal Gel X (only removal without manicure, includes filing and shaping of the nail)",
+  ],
+};
 
-/** The $0 lead-capture placeholder item for 4-hand appointments (need manual staff coordination,
- * so they're not self-service bookable — see catalog.ts's availableForBooking filter). Booked at
- * the next open slot as a placeholder; staff follow up to schedule the real appointment. */
+/** The $0 lead-capture placeholder item for 4-hand appointments (need manual staff coordination
+ * to run two techs at once) — real Square availability search still works on it normally (it's
+ * bookable), it's just not a real priced service, so the booking flow skips the card-on-file step
+ * for it and frames the confirmation as "we'll follow up" rather than a firm appointment. */
 export const FOUR_HANDS_REQUEST_ITEM_NAME = "Request for 4-Hands Manicure & Pedicure Gel Overlay";
 
 export const SERVICE_GROUPS: ServiceGroup[] = [
@@ -50,7 +62,7 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
       "Japanese manicure",
       "Japanese manicure Deluxe (with massage & spa hand care)",
     ],
-    addOns: MANICURE_ADD_ONS,
+    addOnGroups: [NAIL_ART_ADD_ON_GROUP, REMOVAL_ADD_ON_GROUP],
   },
   {
     title: "Pedicures",
@@ -58,7 +70,7 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
       "Regular Pedicure Gel-Overlay",
       "Pedicure (No Polish)",
     ],
-    addOns: PEDICURE_ADD_ONS,
+    addOnGroups: [NAIL_ART_ADD_ON_GROUP],
   },
   {
     title: "Men's Services",
@@ -66,6 +78,11 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
       "Men’s Regular Manicure (No Polish)",
       "Men’s Regular Pedicure (No Polish)",
     ],
-    addOns: [],
+    addOnGroups: [],
+  },
+  {
+    title: "4-Hand Appointments",
+    items: [FOUR_HANDS_REQUEST_ITEM_NAME],
+    addOnGroups: [],
   },
 ];

@@ -2,6 +2,7 @@
 
 import type { BookingFlow } from "../useBookingFlow";
 import { googleCalendarUrl, icsDataUrl } from "../calendarLinks";
+import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
@@ -39,15 +40,20 @@ function CalendarDownloadIcon() {
 }
 
 export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose: () => void }) {
-  const { selectedServices, addOns, slot, technicianName } = flow.state;
+  const { selectedServices, slot, technicianName } = flow.state;
   if (selectedServices.length === 0 || !slot) return null;
 
-  const title = `${selectedServices.map((sel) => sel.service.name).join(" + ")} at AK.LUX.NAILS`;
+  const isFourHandsRequest =
+    selectedServices.length === 1 && selectedServices[0].service.name === FOUR_HANDS_REQUEST_ITEM_NAME;
+
+  const title = isFourHandsRequest
+    ? "4-Hand Appointment Request at AK.LUX.NAILS"
+    : `${selectedServices.map((sel) => sel.service.name).join(" + ")} at AK.LUX.NAILS`;
   const description = [
     ...selectedServices.map((sel) => `${sel.service.name} (${sel.variation.name})`),
-    ...addOns.map((a) => `+ ${a.name}`),
+    ...selectedServices.flatMap((sel) => sel.addOns.map((a) => `+ ${a.name}`)),
     technicianName ? `With ${technicianName}` : null,
-    `Total: ${formatPrice(flow.totalCents)}`,
+    isFourHandsRequest ? null : `Total: ${formatPrice(flow.totalCents)}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -61,23 +67,29 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
         ✓
       </div>
       <h3 className="mt-3 text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
-        You&apos;re booked!
+        {isFourHandsRequest ? "Request received!" : "You're booked!"}
       </h3>
-      <p className="mt-1 text-sm text-[var(--color-muted)]">We&apos;ll text or email you a confirmation shortly.</p>
+      <p className="mt-1 text-sm text-[var(--color-muted)]">
+        {isFourHandsRequest
+          ? "We'll contact you to confirm the exact time works for two technicians."
+          : "We'll text or email you a confirmation shortly."}
+      </p>
 
       <dl className="mt-5 space-y-2 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-4 text-left text-sm">
         {selectedServices.map((sel) => (
-          <div key={sel.service.itemId} className="flex justify-between">
-            <dt className="text-[var(--color-muted)]">Service</dt>
-            <dd className="text-[var(--color-ink)]">
-              {sel.service.name} ({sel.variation.name})
-            </dd>
-          </div>
-        ))}
-        {addOns.map((a) => (
-          <div key={a.itemId} className="flex justify-between">
-            <dt className="text-[var(--color-muted)]">Add-on</dt>
-            <dd className="text-[var(--color-ink)]">{a.name}</dd>
+          <div key={sel.service.itemId}>
+            <div className="flex justify-between">
+              <dt className="text-[var(--color-muted)]">Service</dt>
+              <dd className="text-[var(--color-ink)]">
+                {sel.service.name} ({sel.variation.name})
+              </dd>
+            </div>
+            {sel.addOns.map((a) => (
+              <div key={a.itemId} className="flex justify-between">
+                <dt className="text-[var(--color-muted)]">Add-on</dt>
+                <dd className="text-[var(--color-ink)]">{a.name}</dd>
+              </div>
+            ))}
           </div>
         ))}
         {technicianName && (
@@ -87,13 +99,15 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
           </div>
         )}
         <div className="flex justify-between">
-          <dt className="text-[var(--color-muted)]">When</dt>
+          <dt className="text-[var(--color-muted)]">{isFourHandsRequest ? "Preferred time" : "When"}</dt>
           <dd className="text-[var(--color-ink)]">{formatDateTime(slot.startAt)}</dd>
         </div>
-        <div className="flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold">
-          <dt className="text-[var(--color-ink)]">Total</dt>
-          <dd className="text-[var(--color-ink)]">{formatPrice(flow.totalCents)}</dd>
-        </div>
+        {!isFourHandsRequest && (
+          <div className="flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold">
+            <dt className="text-[var(--color-ink)]">Total</dt>
+            <dd className="text-[var(--color-ink)]">{formatPrice(flow.totalCents)}</dd>
+          </div>
+        )}
       </dl>
 
       <div className="mt-4 grid grid-cols-2 gap-3">

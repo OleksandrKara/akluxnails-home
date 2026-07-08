@@ -6,7 +6,6 @@ import type { BookingStep, ContactInfo, SelectedService, WireServiceItem, WireSl
 export interface BookingFlowState {
   step: BookingStep;
   selectedServices: SelectedService[];
-  addOns: WireServiceItem[];
   slot: WireSlot | null;
   contact: ContactInfo;
   smsOptIn: boolean;
@@ -25,8 +24,9 @@ export interface Preselection {
 export function useBookingFlow(preselection?: Preselection) {
   const [state, setState] = useState<BookingFlowState>({
     step: "services",
-    selectedServices: preselection ? [{ service: preselection.service, variation: preselection.variation }] : [],
-    addOns: [],
+    selectedServices: preselection
+      ? [{ service: preselection.service, variation: preselection.variation, addOns: [] }]
+      : [],
     slot: null,
     contact: initialContact,
     smsOptIn: false,
@@ -41,8 +41,12 @@ export function useBookingFlow(preselection?: Preselection) {
 
   function addService(service: WireServiceItem, variation: WireVariation) {
     setState((s) => {
+      const existing = s.selectedServices.find((sel) => sel.service.itemId === service.itemId);
       const withoutThisItem = s.selectedServices.filter((sel) => sel.service.itemId !== service.itemId);
-      return { ...s, selectedServices: [...withoutThisItem, { service, variation }] };
+      return {
+        ...s,
+        selectedServices: [...withoutThisItem, { service, variation, addOns: existing?.addOns ?? [] }],
+      };
     });
   }
 
@@ -54,11 +58,17 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, step: "datetime" }));
   }
 
-  function toggleAddOn(addOn: WireServiceItem) {
-    setState((s) => {
-      const exists = s.addOns.some((a) => a.itemId === addOn.itemId);
-      return { ...s, addOns: exists ? s.addOns.filter((a) => a.itemId !== addOn.itemId) : [...s.addOns, addOn] };
-    });
+  /** Radio-style: picking an option for a group replaces whatever was already picked from that
+   * same group for this service (pass null to clear it back to "None"). */
+  function setServiceAddOn(itemId: string, groupOptionIds: string[], addOn: WireServiceItem | null) {
+    setState((s) => ({
+      ...s,
+      selectedServices: s.selectedServices.map((sel) => {
+        if (sel.service.itemId !== itemId) return sel;
+        const withoutGroup = sel.addOns.filter((a) => !groupOptionIds.includes(a.itemId));
+        return { ...sel, addOns: addOn ? [...withoutGroup, addOn] : withoutGroup };
+      }),
+    }));
   }
 
   function selectSlot(slot: WireSlot) {
@@ -81,9 +91,10 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, bookingId, technicianName, step: "done" }));
   }
 
-  const servicesTotalCents = state.selectedServices.reduce((sum, sel) => sum + sel.variation.priceCents, 0);
-  const addOnTotalCents = state.addOns.reduce((sum, a) => sum + (a.variations[0]?.priceCents ?? 0), 0);
-  const totalCents = servicesTotalCents + addOnTotalCents;
+  const totalCents = state.selectedServices.reduce((sum, sel) => {
+    const addOnCents = sel.addOns.reduce((s2, a) => s2 + (a.variations[0]?.priceCents ?? 0), 0);
+    return sum + sel.variation.priceCents + addOnCents;
+  }, 0);
 
   return {
     state,
@@ -92,7 +103,7 @@ export function useBookingFlow(preselection?: Preselection) {
     addService,
     removeService,
     proceedToDateTime,
-    toggleAddOn,
+    setServiceAddOn,
     selectSlot,
     setContact,
     setSmsOptIn,

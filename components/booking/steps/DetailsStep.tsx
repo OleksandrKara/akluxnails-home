@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
+import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { useSquareCard } from "../useSquarePayments";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
@@ -23,8 +24,15 @@ function formatDateTime(iso: string): string {
 
 /** One screen: contact details + order summary + card-on-file, ending in a single "Confirm &
  * Book" action — fewer taps than a separate contact/card/confirm sequence, which matters for
- * conversion. The whole booking (customer, card, appointment) is created in one submit. */
+ * conversion. The whole booking (customer, card, appointment) is created in one submit.
+ *
+ * The 4-hand placeholder item is a request, not a real priced/confirmed service — no card or
+ * cancellation-policy agreement is needed for it, just contact info and the same SMS opt-in. */
 export default function DetailsStep({ flow }: { flow: BookingFlow }) {
+  const { selectedServices, slot, smsOptIn, cancellationAgreed } = flow.state;
+  const isFourHandsRequest =
+    selectedServices.length === 1 && selectedServices[0].service.name === FOUR_HANDS_REQUEST_ITEM_NAME;
+
   const { card, error: sdkError } = useSquareCard(CARD_CONTAINER_ID);
   const [givenName, setGivenName] = useState(flow.state.contact.givenName);
   const [familyName, setFamilyName] = useState(flow.state.contact.familyName);
@@ -34,12 +42,13 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const [error, setError] = useState<string | null>(null);
   const [showPolicy, setShowPolicy] = useState(false);
 
-  const { selectedServices, addOns, slot, smsOptIn, cancellationAgreed } = flow.state;
   if (selectedServices.length === 0 || !slot) return null;
+
+  const canSubmit = isFourHandsRequest ? true : Boolean(card) && cancellationAgreed;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!card || !cancellationAgreed) return;
+    if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -54,34 +63,36 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       if (!customerRes.ok) throw new Error("Couldn't save your details. Please try again.");
       const { customerId } = await customerRes.json();
 
-      const tokenResult = await card.tokenize({
-        billingContact: { givenName, familyName, email: emailAddress || undefined, phone: phoneNumber, countryCode: "US" },
-        intent: "STORE",
-        customerInitiated: true,
-        sellerKeyedIn: false,
-      });
-      if (tokenResult.status !== "OK" || !tokenResult.token) {
-        throw new Error(tokenResult.errors?.[0]?.message ?? "Card verification failed. Please check your card details.");
+      if (!isFourHandsRequest && card) {
+        const tokenResult = await card.tokenize({
+          billingContact: { givenName, familyName, email: emailAddress || undefined, phone: phoneNumber, countryCode: "US" },
+          intent: "STORE",
+          customerInitiated: true,
+          sellerKeyedIn: false,
+        });
+        if (tokenResult.status !== "OK" || !tokenResult.token) {
+          throw new Error(tokenResult.errors?.[0]?.message ?? "Card verification failed. Please check your card details.");
+        }
+
+        const cardRes = await fetch("/api/booking/card", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sourceId: tokenResult.token, customerId, cardholderName: `${givenName} ${familyName}`.trim() }),
+        });
+        if (!cardRes.ok) {
+          const { error } = await cardRes.json().catch(() => ({ error: null }));
+          throw new Error(error ?? "This card couldn't be saved. Please double-check the details or try a different card.");
+        }
       }
 
-      const cardRes = await fetch("/api/booking/card", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceId: tokenResult.token, customerId, cardholderName: `${givenName} ${familyName}`.trim() }),
-      });
-      if (!cardRes.ok) {
-        const { error } = await cardRes.json().catch(() => ({ error: null }));
-        throw new Error(error ?? "This card couldn't be saved. Please double-check the details or try a different card.");
-      }
+      const addOnVariationIds = selectedServices.flatMap((sel) =>
+        sel.addOns.map((a) => a.variations[0]?.variationId).filter((id): id is string => Boolean(id)),
+      );
 
       const bookingRes = await fetch("/api/booking/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerId,
-          slot,
-          addOnVariationIds: addOns.map((a) => a.variations[0]?.variationId).filter(Boolean),
-        }),
+        body: JSON.stringify({ customerId, slot, addOnVariationIds }),
       });
       if (!bookingRes.ok) throw new Error("Couldn't finish booking your appointment. Please try again.");
       const { bookingId, technicianName } = await bookingRes.json();
@@ -98,32 +109,44 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   return (
     <form onSubmit={onSubmit}>
       <h3 className="text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
-        Your details
+        {isFourHandsRequest ? "Request your 4-hand appointment" : "Your details"}
       </h3>
+      {isFourHandsRequest && (
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          We&apos;ll confirm this exact time works for two technicians and follow up to finalize.
+        </p>
+      )}
       <button type="button" onClick={() => flow.goTo("datetime")} className="mt-1 text-xs text-[var(--color-accent)] underline">
         Back to date/time
       </button>
 
       <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-3 text-sm">
         {selectedServices.map((sel) => (
-          <div key={sel.service.itemId} className="flex justify-between">
-            <span className="text-[var(--color-ink)]">
-              {sel.service.name} ({sel.variation.name})
-            </span>
-            <span className="text-[var(--color-ink)]">{formatPrice(sel.variation.priceCents)}</span>
+          <div key={sel.service.itemId}>
+            <div className="flex justify-between">
+              <span className="text-[var(--color-ink)]">
+                {sel.service.name} ({sel.variation.name})
+              </span>
+              <span className="text-[var(--color-ink)]">{formatPrice(sel.variation.priceCents)}</span>
+            </div>
+            {sel.addOns.map((a) => (
+              <div key={a.itemId} className="mt-1 flex justify-between text-[var(--color-muted)]">
+                <span>+ {a.name}</span>
+                <span>{formatPrice(a.variations[0]?.priceCents ?? 0)}</span>
+              </div>
+            ))}
           </div>
         ))}
-        {addOns.map((a) => (
-          <div key={a.itemId} className="mt-1 flex justify-between text-[var(--color-muted)]">
-            <span>+ {a.name}</span>
-            <span>{formatPrice(a.variations[0]?.priceCents ?? 0)}</span>
-          </div>
-        ))}
-        <div className="mt-1 text-[var(--color-muted)]">{formatDateTime(slot.startAt)}</div>
-        <div className="mt-2 flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold text-[var(--color-ink)]">
-          <span>Total</span>
-          <span>{formatPrice(flow.totalCents)}</span>
+        <div className="mt-1 text-[var(--color-muted)]">
+          {isFourHandsRequest ? "Preferred time: " : ""}
+          {formatDateTime(slot.startAt)}
         </div>
+        {!isFourHandsRequest && (
+          <div className="mt-2 flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold text-[var(--color-ink)]">
+            <span>Total</span>
+            <span>{formatPrice(flow.totalCents)}</span>
+          </div>
+        )}
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -195,49 +218,58 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         </span>
       </label>
 
-      {/* Cancellation policy: required to book, matching the $25 no-show/late-cancellation policy
-          the card on file protects against. */}
-      <label
-        className={`mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-3 transition ${
-          cancellationAgreed ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "border-[var(--color-border)]"
-        }`}
-      >
-        <input
-          required
-          type="checkbox"
-          checked={cancellationAgreed}
-          onChange={(e) => flow.setCancellationAgreed(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0"
-        />
-        <span className="text-sm text-[var(--color-muted)]">
-          I agree to the{" "}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              setShowPolicy(true);
-            }}
-            className="font-medium text-[var(--color-accent)] underline"
+      {!isFourHandsRequest && (
+        <>
+          {/* Cancellation policy: required to book, matching the $25 no-show/late-cancellation
+              policy the card on file protects against. */}
+          <label
+            className={`mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-3 transition ${
+              cancellationAgreed ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "border-[var(--color-border)]"
+            }`}
           >
-            Cancellation Policy
-          </button>{" "}
-          — reschedule or cancel at least 24 hours ahead, or a <strong>$25 fee</strong> may apply.
-        </span>
-      </label>
+            <input
+              required
+              type="checkbox"
+              checked={cancellationAgreed}
+              onChange={(e) => flow.setCancellationAgreed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0"
+            />
+            <span className="text-sm text-[var(--color-muted)]">
+              I agree to the{" "}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowPolicy(true);
+                }}
+                className="font-medium text-[var(--color-accent)] underline"
+              >
+                Cancellation Policy
+              </button>{" "}
+              — reschedule or cancel at least 24 hours ahead, or a <strong>$25 fee</strong> may apply.
+            </span>
+          </label>
 
-      <p className="mt-4 text-xs text-[var(--color-muted)]">{NO_SHOW_POLICY_SUMMARY}</p>
-      <div className="mt-2">
-        <div id={CARD_CONTAINER_ID} />
-      </div>
+          <p className="mt-4 text-xs text-[var(--color-muted)]">{NO_SHOW_POLICY_SUMMARY}</p>
+          <div className="mt-2">
+            <div id={CARD_CONTAINER_ID} />
+          </div>
+        </>
+      )}
 
-      {(sdkError || error) && <p className="mt-3 text-sm text-red-600">{sdkError ?? error}</p>}
+      {sdkError && !isFourHandsRequest && <p className="mt-3 text-sm text-red-600">{sdkError}</p>}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       <button
         type="submit"
-        disabled={!card || !cancellationAgreed || submitting}
+        disabled={!canSubmit || submitting}
         className="mt-5 w-full rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-base font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-60"
       >
-        {submitting ? "Booking your appointment…" : `Confirm & Book — ${formatPrice(flow.totalCents)}`}
+        {submitting
+          ? "Submitting…"
+          : isFourHandsRequest
+            ? "Submit Request"
+            : `Confirm & Book — ${formatPrice(flow.totalCents)}`}
       </button>
 
       {showPolicy && <CancellationPolicyModal onClose={() => setShowPolicy(false)} />}

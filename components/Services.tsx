@@ -1,9 +1,9 @@
 import BookNowButton from "./BookNowButton";
-import FourHandsRequestButton from "./booking/FourHandsRequestButton";
 import { getCuratedMenu } from "@/lib/square/catalog";
 import { toWireItem } from "@/lib/square/wire";
 
 function formatPrice(cents: number): string {
+  if (cents === 0) return "Request";
   return `$${(cents / 100).toFixed(0)}`;
 }
 
@@ -66,20 +66,19 @@ export default async function Services() {
                 );
               })}
             </div>
-            {group.addOns.length > 0 && (
+            {group.addOnGroups.length > 0 && (
               <p className="mt-2 text-xs text-[var(--color-muted)]">
-                Add-ons: {group.addOns.map((a) => a.name).join(" · ")} — added at checkout when you book.
+                Add-ons: {group.addOnGroups.flatMap((g) => g.options.map((o) => o.name)).join(" · ")} — choose when you book.
               </p>
             )}
           </div>
         ))}
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center gap-3">
+      <div className="mt-8">
         <BookNowButton className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]">
           Book an Appointment
         </BookNowButton>
-        <FourHandsRequestButton className="inline-block rounded-[var(--radius-pill)] px-6 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]" />
       </div>
     </section>
   );

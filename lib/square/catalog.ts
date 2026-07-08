@@ -97,11 +97,17 @@ async function getCatalogSnapshot(): Promise<CatalogSnapshot> {
   return global.__catalogSnapshot;
 }
 
+export interface CuratedAddOnGroup {
+  label: string;
+  /** Real, resolved options for this radio group — "None" is implicit, not listed here. */
+  options: CatalogServiceItem[];
+}
+
 export interface CuratedServiceGroup {
   title: string;
   services: CatalogServiceItem[];
-  /** Real add-ons for this group's services (e.g. nail removal only makes sense for manicures). */
-  addOns: CatalogServiceItem[];
+  /** Add-on radio groups for this group's services (e.g. nail removal only for manicures). */
+  addOnGroups: CuratedAddOnGroup[];
 }
 
 export interface CuratedMenu {
@@ -121,9 +127,14 @@ export async function getCuratedMenu(): Promise<CuratedMenu> {
     services: group.items
       .map((name) => snapshot.itemsByName.get(name))
       .filter((item): item is CatalogServiceItem => Boolean(item)),
-    addOns: group.addOns
-      .map((name) => snapshot.itemsByName.get(name))
-      .filter((item): item is CatalogServiceItem => Boolean(item)),
+    addOnGroups: group.addOnGroups
+      .map((addOnGroup) => ({
+        label: addOnGroup.label,
+        options: addOnGroup.options
+          .map((name) => snapshot.itemsByName.get(name))
+          .filter((item): item is CatalogServiceItem => Boolean(item)),
+      }))
+      .filter((addOnGroup) => addOnGroup.options.length > 0),
   })).filter((group) => group.services.length > 0);
 
   return { groups };

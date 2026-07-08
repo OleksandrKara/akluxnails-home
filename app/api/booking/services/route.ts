@@ -9,7 +9,10 @@ export async function GET() {
       groups: menu.groups.map((g) => ({
         title: g.title,
         services: g.services.map(toWireItem),
-        addOns: g.addOns.map(toWireItem),
+        addOnGroups: g.addOnGroups.map((addOnGroup) => ({
+          label: addOnGroup.label,
+          options: addOnGroup.options.map(toWireItem),
+        })),
       })),
     });
   } catch (err) {
