@@ -36,4 +36,4 @@ export interface ContactInfo {
   emailAddress: string;
 }
 
-export type BookingStep = "services" | "datetime" | "contact" | "card" | "confirm" | "done";
+export type BookingStep = "services" | "datetime" | "details" | "done";

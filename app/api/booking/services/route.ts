@@ -1,20 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCuratedMenu, type CatalogServiceItem } from "@/lib/square/catalog";
-
-// bigint (variation version) isn't JSON-serializable — send it as a string, parsed back to
-// bigint server-side (see app/api/booking/create/route.ts) when the booking is actually created.
-function toWireItem(item: CatalogServiceItem) {
-  return {
-    itemId: item.itemId,
-    name: item.name,
-    variations: item.variations.map((v) => ({
-      variationId: v.variationId,
-      variationVersion: v.variationVersion.toString(),
-      name: v.name,
-      priceCents: v.priceCents,
-    })),
-  };
-}
+import { getCuratedMenu } from "@/lib/square/catalog";
+import { toWireItem } from "@/lib/square/wire";
 
 export async function GET() {
   try {

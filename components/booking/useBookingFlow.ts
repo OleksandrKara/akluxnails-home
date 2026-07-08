@@ -10,36 +10,26 @@ export interface BookingFlowState {
   addOns: WireServiceItem[];
   slot: WireSlot | null;
   contact: ContactInfo;
-  customerId: string | null;
   bookingId: string | null;
 }
 
 const initialContact: ContactInfo = { givenName: "", familyName: "", phoneNumber: "", emailAddress: "" };
 
-export function useBookingFlow() {
+export interface Preselection {
+  service: WireServiceItem;
+  variation: WireVariation;
+}
+
+export function useBookingFlow(preselection?: Preselection) {
   const [state, setState] = useState<BookingFlowState>({
-    step: "services",
-    service: null,
-    variation: null,
+    step: preselection ? "datetime" : "services",
+    service: preselection?.service ?? null,
+    variation: preselection?.variation ?? null,
     addOns: [],
     slot: null,
     contact: initialContact,
-    customerId: null,
     bookingId: null,
   });
-
-  function reset() {
-    setState({
-      step: "services",
-      service: null,
-      variation: null,
-      addOns: [],
-      slot: null,
-      contact: initialContact,
-      customerId: null,
-      bookingId: null,
-    });
-  }
 
   function goTo(step: BookingStep) {
     setState((s) => ({ ...s, step }));
@@ -65,15 +55,11 @@ export function useBookingFlow() {
   }
 
   function selectSlot(slot: WireSlot) {
-    setState((s) => ({ ...s, slot, step: "contact" }));
+    setState((s) => ({ ...s, slot, step: "details" }));
   }
 
-  function submitContact(contact: ContactInfo, customerId: string) {
-    setState((s) => ({ ...s, contact, customerId, step: "card" }));
-  }
-
-  function cardStored() {
-    setState((s) => ({ ...s, step: "confirm" }));
+  function setContact(contact: ContactInfo) {
+    setState((s) => ({ ...s, contact }));
   }
 
   function bookingCreated(bookingId: string) {
@@ -89,15 +75,13 @@ export function useBookingFlow() {
   return {
     state,
     totalCents,
-    reset,
     goTo,
     selectService,
     clearService,
     proceedToDateTime,
     toggleAddOn,
     selectSlot,
-    submitContact,
-    cardStored,
+    setContact,
     bookingCreated,
   };
 }

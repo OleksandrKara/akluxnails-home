@@ -6,6 +6,7 @@ import TrustGrid from "@/components/TrustGrid";
 import ReviewsSection from "@/components/ReviewsSection";
 import LocationSection from "@/components/LocationSection";
 import Footer from "@/components/Footer";
+import StickyBookBar from "@/components/StickyBookBar";
 import { getVariantById } from "@/lib/variant";
 import { recordPageView } from "@/lib/tracking";
 import { accentPaletteToCssVars, deriveAccentPalette } from "@/lib/theme";
@@ -49,7 +50,7 @@ export default async function HomePage({
     : {};
 
   return (
-    <div style={themeStyle} className="flex min-h-screen flex-col">
+    <div style={themeStyle} className="flex min-h-screen flex-col pb-16 sm:pb-0">
       <Header />
       <main>
         <Hero variant={content} />
@@ -59,6 +60,7 @@ export default async function HomePage({
         <LocationSection />
       </main>
       <Footer />
+      <StickyBookBar />
     </div>
   );
 }

@@ -1,12 +1,22 @@
 "use client";
 
 import { useBookingModal } from "./booking/BookingModalProvider";
+import type { Preselection } from "./booking/useBookingFlow";
 
 /** Opens this page's own native booking flow (services/add-ons, date/time, contact, card-on-file
  * for no-show protection) — unlike mani.akluxnails.com's ads funnel, this page's mostly-returning
- * audience books here directly rather than being sent to a separate site.
+ * audience books here directly rather than being sent to a separate site. Pass `preselection` to
+ * jump straight to the date/time step for a specific service (e.g. clicking a service card).
  */
-export default function BookNowButton({ className, children }: { className?: string; children: React.ReactNode }) {
+export default function BookNowButton({
+  className,
+  children,
+  preselection,
+}: {
+  className?: string;
+  children: React.ReactNode;
+  preselection?: Preselection;
+}) {
   const { open } = useBookingModal();
 
   function onClick() {
@@ -15,7 +25,7 @@ export default function BookNowButton({ className, children }: { className?: str
     } catch {
       // best-effort only — never block opening the modal on this
     }
-    open();
+    open(preselection);
   }
 
   return (

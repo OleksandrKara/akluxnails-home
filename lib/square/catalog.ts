@@ -71,6 +71,10 @@ async function fetchCatalogSnapshot(): Promise<CatalogSnapshot> {
 
     const variations: ServiceVariationOption[] = (data.variations ?? [])
       .filter(isItemVariation)
+      // Square marks some variations (e.g. 4-hand combos, which need manual staff coordination)
+      // as not self-service bookable — never surface those for online booking, regardless of
+      // what's listed in services-config.ts.
+      .filter((v) => v.itemVariationData?.availableForBooking !== false)
       .map((v) => ({
         variationId: v.id,
         variationVersion: v.version ?? BigInt(0),
@@ -78,6 +82,7 @@ async function fetchCatalogSnapshot(): Promise<CatalogSnapshot> {
         priceCents: Number(v.itemVariationData?.priceMoney?.amount ?? BigInt(0)),
       }));
 
+    if (variations.length === 0) continue;
     itemsByName.set(data.name, { itemId: obj.id, name: data.name, variations });
   }
 

@@ -38,13 +38,6 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
     ],
   },
   {
-    title: "Mani + Pedi Combos (4 Hands)",
-    items: [
-      "Pedicure Gel-Overlay and Manicure Gel-Overlay in 4 hands",
-      "Pedicure Gel-Overlay and Japanese manicure in 4 hands",
-    ],
-  },
-  {
     title: "Men's Services",
     items: [
       "Men’s Regular Manicure (No Polish)",
@@ -57,5 +50,4 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
 export const ADD_ONS: string[] = [
   "Design",
   "Ombre (design)",
-  "Extra strengthening gel",
 ];
