@@ -284,13 +284,13 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       {!isFourHandsRequest && (
         <>
           {/* Cancellation policy: required to book, matching the $25 no-show/late-cancellation
-              policy the card on file protects against. Same card treatment as the SMS opt-in above
-              for visual consistency, with "Required"/"✓ Agreed" in place of "Recommended"/"✓ On". */}
+              policy the card on file protects against. Kept as a plain checkbox, distinct from
+              the SMS opt-in's highlighted card treatment above — this one's a required formality,
+              not something we want competing for attention with the SMS opt-in we actually want
+              visitors to notice and click. */}
           <label
-            className={`mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border-2 p-3.5 transition ${
-              cancellationAgreed
-                ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]"
-                : "border-[var(--color-accent-border-soft)] bg-[var(--color-accent-tint-2)]/40"
+            className={`mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-3 transition ${
+              cancellationAgreed ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "border-[var(--color-border)]"
             }`}
           >
             <input
@@ -298,38 +298,21 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
               type="checkbox"
               checked={cancellationAgreed}
               onChange={(e) => flow.setCancellationAgreed(e.target.checked)}
-              className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
+              className="mt-0.5 h-4 w-4 shrink-0"
             />
-            <span className="min-w-0 flex-1">
-              <span className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-[var(--color-ink)]">Cancellation policy</span>
-                <span
-                  className={`shrink-0 whitespace-nowrap rounded-[var(--radius-pill)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                    cancellationAgreed
-                      ? "bg-[var(--color-accent)] text-white"
-                      : "bg-[var(--color-accent-tint)] text-[var(--color-accent-dark)]"
-                  }`}
-                >
-                  {cancellationAgreed ? "✓ Agreed" : "Required"}
-                </span>
-              </span>
-              <span className="mt-1 block text-xs font-medium text-[var(--color-accent-dark)]">
-                Reschedule or cancel at least 24 hours ahead, or a $25 fee may apply.
-              </span>
-              <span className="mt-2 block text-[11px] leading-relaxed text-[var(--color-muted-2)]">
-                I agree to the{" "}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowPolicy(true);
-                  }}
-                  className="font-medium text-[var(--color-accent)] underline"
-                >
-                  full Cancellation Policy
-                </button>
-                .
-              </span>
+            <span className="text-sm text-[var(--color-muted)]">
+              I agree to the{" "}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowPolicy(true);
+                }}
+                className="font-medium text-[var(--color-accent)] underline"
+              >
+                Cancellation Policy
+              </button>{" "}
+              — reschedule or cancel at least 24 hours ahead, or a <strong>$25 fee</strong> may apply.
             </span>
           </label>
 
