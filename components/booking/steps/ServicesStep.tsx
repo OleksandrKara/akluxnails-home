@@ -8,10 +8,29 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
 }
 
+function RemoveIcon({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-label="Remove from booking"
+      className="ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-muted)] hover:bg-red-50 hover:text-red-600"
+    >
+      ×
+    </button>
+  );
+}
+
 export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   const [data, setData] = useState<ServicesResponse | null>(null);
   const [error, setError] = useState(false);
-  const [pendingService, setPendingService] = useState<WireServiceItem | null>(null);
+  // undefined = "not yet touched by the visitor" — falls back to the flow's initial
+  // pendingServiceId (homepage card click on a multi-tier service) until they open/close a panel
+  // themselves. Derived during render rather than via an effect + setState.
+  const [pendingServiceId, setPendingServiceId] = useState<string | null | undefined>(undefined);
   const { selectedServices } = flow.state;
 
   useEffect(() => {
@@ -21,6 +40,11 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
       .catch(() => setError(true));
   }, []);
 
+  const effectivePendingId = pendingServiceId !== undefined ? pendingServiceId : flow.state.pendingServiceId;
+  const pendingService = data && effectivePendingId
+    ? (data.groups.flatMap((g) => g.services).find((s) => s.itemId === effectivePendingId) ?? null)
+    : null;
+
   if (error) {
     return <p className="text-sm text-[var(--color-muted)]">Couldn&apos;t load services. Please try again shortly.</p>;
   }
@@ -28,9 +52,18 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
     return <p className="text-sm text-[var(--color-muted)]">Loading services…</p>;
   }
 
+  /** Multi-tier services (e.g. "Nail Artist" vs "Top Nail Artist") represent which provider does
+   * the work — once one selected service has picked a provider tier, every other tiered service
+   * in the same visit must use the same one, since it's the same tech doing the whole visit.
+   * Matched generically by variation name so it isn't hardcoded to specific service names. */
+  function lockedTierName(forItemId: string): string | null {
+    const other = selectedServices.find((sel) => sel.service.itemId !== forItemId && sel.service.variations.length > 1);
+    return other?.variation.name ?? null;
+  }
+
   function pickVariation(svc: WireServiceItem, v: WireVariation) {
     flow.addService(svc, v);
-    setPendingService(null);
+    setPendingServiceId(null);
   }
 
   /** A single-variation service has nothing to actually choose — tapping it should add/remove it
@@ -44,7 +77,23 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
       }
       return;
     }
-    setPendingService(pendingService?.itemId === svc.itemId ? null : svc);
+
+    const lock = lockedTierName(svc.itemId);
+    if (isSelected) {
+      // Already selected and locked by another tiered service in the cart — nothing to change,
+      // only the × can remove it.
+      if (lock) return;
+      setPendingServiceId(pendingService?.itemId === svc.itemId ? null : svc.itemId);
+      return;
+    }
+    if (lock) {
+      const matching = svc.variations.find((v) => v.name === lock);
+      if (matching) {
+        flow.addService(svc, matching);
+        return;
+      }
+    }
+    setPendingServiceId(pendingService?.itemId === svc.itemId ? null : svc.itemId);
   }
 
   /** Add-ons live on their own step next, shown only if at least one selected service belongs to
@@ -76,6 +125,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
             <div className="mt-2 space-y-2">
               {group.services.map((svc) => {
                 const selected = selectedServices.find((sel) => sel.service.itemId === svc.itemId);
+                const locked = svc.variations.length > 1 && Boolean(lockedTierName(svc.itemId));
                 return (
                   <div
                     key={svc.itemId}
@@ -83,26 +133,29 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
                       selected ? "ring-2 ring-[var(--color-accent)]" : "ring-[var(--color-border)]"
                     }`}
                   >
-                    <button
-                      type="button"
-                      onClick={() => onServiceClick(svc, Boolean(selected))}
-                      className="flex w-full items-center justify-between px-4 py-3 text-left"
-                    >
-                      <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
-                        {selected && <span className="text-[var(--color-accent)]">✓</span>}
-                        {svc.name}
-                        {selected && svc.variations.length > 1 && (
-                          <span className="text-xs font-normal text-[var(--color-muted)]">({selected.variation.name})</span>
-                        )}
-                      </span>
-                      <span className="text-sm text-[var(--color-muted)]">
-                        {selected
-                          ? formatPrice(selected.variation.priceCents)
-                          : svc.variations.length === 1
-                            ? formatPrice(svc.variations[0].priceCents)
-                            : `from ${formatPrice(Math.min(...svc.variations.map((v) => v.priceCents)))}`}
-                      </span>
-                    </button>
+                    <div className="flex w-full items-center justify-between px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => onServiceClick(svc, Boolean(selected))}
+                        className="flex flex-1 items-center justify-between text-left"
+                      >
+                        <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
+                          {selected && <span className="text-[var(--color-accent)]">✓</span>}
+                          {svc.name}
+                          {selected && svc.variations.length > 1 && (
+                            <span className="text-xs font-normal text-[var(--color-muted)]">({selected.variation.name})</span>
+                          )}
+                        </span>
+                        <span className="text-sm text-[var(--color-muted)]">
+                          {selected
+                            ? formatPrice(selected.variation.priceCents)
+                            : svc.variations.length === 1
+                              ? formatPrice(svc.variations[0].priceCents)
+                              : `from ${formatPrice(Math.min(...svc.variations.map((v) => v.priceCents)))}`}
+                        </span>
+                      </button>
+                      {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
+                    </div>
                     {svc.variations.length > 1 && pendingService?.itemId === svc.itemId && (
                       <div className="space-y-1 border-t border-[var(--color-border)] px-4 py-3">
                         {svc.variations.map((v) => (
@@ -116,19 +169,13 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
                             <span className="font-medium text-[var(--color-accent)]">{formatPrice(v.priceCents)}</span>
                           </button>
                         ))}
-                        {selected && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              flow.removeService(svc.itemId);
-                              setPendingService(null);
-                            }}
-                            className="w-full rounded-[var(--radius-sm)] px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                          >
-                            Remove from booking
-                          </button>
-                        )}
                       </div>
+                    )}
+                    {selected && locked && svc.variations.length > 1 && (
+                      <p className="border-t border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-muted)]">
+                        Matched to the {selected.variation.name} you picked for your other service — the same provider does
+                        your whole visit.
+                      </p>
                     )}
                   </div>
                 );

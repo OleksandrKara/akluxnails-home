@@ -49,10 +49,16 @@ export default async function Services() {
                 const cheapest = service.variations.reduce((min, v) => (v.priceCents < min.priceCents ? v : min));
                 const wireService = toWireItem(service);
                 const wireVariation = wireService.variations.find((v) => v.variationId === cheapest.variationId)!;
+                // Multi-tier services (different providers) open straight to the picker instead
+                // of silently booking the cheapest tier — the visitor should choose their provider.
+                const preselection =
+                  wireService.variations.length === 1
+                    ? { service: wireService, variation: wireVariation }
+                    : { service: wireService, variation: null };
                 return (
                   <BookNowButton
                     key={service.itemId}
-                    preselection={{ service: wireService, variation: wireVariation }}
+                    preselection={preselection}
                     className="flex w-full items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-4 text-left ring-1 ring-[var(--color-border)] transition hover:ring-[var(--color-accent)] hover:shadow-md"
                   >
                     <ServiceIcon />

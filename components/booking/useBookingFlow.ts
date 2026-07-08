@@ -6,6 +6,9 @@ import type { BookingStep, ContactInfo, SelectedService, WireServiceItem, WireSl
 export interface BookingFlowState {
   step: BookingStep;
   selectedServices: SelectedService[];
+  /** A service to open the tier picker for on mount (homepage card click on a multi-tier
+   * service) — never pre-picks a tier, so the visitor always chooses their own provider. */
+  pendingServiceId: string | null;
   slot: WireSlot | null;
   contact: ContactInfo;
   smsOptIn: boolean;
@@ -16,17 +19,22 @@ export interface BookingFlowState {
 
 const initialContact: ContactInfo = { givenName: "", familyName: "", phoneNumber: "", emailAddress: "" };
 
+/** `variation` is only set for single-tier services, which have nothing to actually choose —
+ * multi-tier services are passed with `variation: null` so the visitor is asked to pick their
+ * provider instead of silently getting the cheapest one. */
 export interface Preselection {
   service: WireServiceItem;
-  variation: WireVariation;
+  variation: WireVariation | null;
 }
 
 export function useBookingFlow(preselection?: Preselection) {
   const [state, setState] = useState<BookingFlowState>({
     step: "services",
-    selectedServices: preselection
-      ? [{ service: preselection.service, variation: preselection.variation, addOns: [] }]
-      : [],
+    selectedServices:
+      preselection && preselection.variation
+        ? [{ service: preselection.service, variation: preselection.variation, addOns: [] }]
+        : [],
+    pendingServiceId: preselection && !preselection.variation ? preselection.service.itemId : null,
     slot: null,
     contact: initialContact,
     smsOptIn: false,
