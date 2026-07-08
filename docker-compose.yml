@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build: .
+    container_name: akluxnails-home-frontend
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "127.0.0.1:3002:3000"
+    networks:
+      - default
+      - salaryreview_default
+
+networks:
+  default: {}
+  # Reach the shared Postgres `marketing` schema (owned by salonLandings) the same way
+  # salonLandings' own backend does — join its external network rather than exposing the DB
+  # anywhere new.
+  salaryreview_default:
+    external: true

@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/**
+ * Exact palette/typography ported from salonLandings' tokens.css (the mani funnel's design file)
+ * for visual consistency between the ads funnel and this homepage. Do not tweak these against
+ * taste. --color-accent* are overridden inline per-variant (see lib/theme.ts's deriveAccentPalette,
+ * applied as a style attribute on the page root) when a variant supplies its own accentColor.
+ */
+:root {
+  --color-bg-from: #fbf6f2;
+  --color-bg-mid: #f3e7df;
+  --color-bg-to: #eaddd4;
+  --color-card: #fffdfb;
+  --color-ink: #2a211d;
+  --color-ink-soft: #4a3d36;
+  --color-muted: #6b5d55;
+  --color-muted-2: #8a7c73;
+  --color-muted-3: #a5978f;
+  --color-border: #ecdbd3;
+  --color-border-2: #ecdcd3;
+  --color-border-3: #e6d5cc;
+  --color-accent: #9e5a63;
+  --color-accent-dark: #8a4c55;
+  --color-accent-hover: #8a4c55;
+  --color-accent-tint: #f4ddd7;
+  --color-accent-tint-2: #f7ece7;
+  --color-accent-border-soft: #dbb3b8;
+  --color-gold: #e9b949;
+  --color-gold-text: #9e7a3d;
+  --color-success: #2f7d5b;
+  --color-success-bg: #eef6f0;
+
+  --font-heading: var(--font-playfair), serif;
+  --font-body: var(--font-jost), system-ui, sans-serif;
+
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 20px;
+}
+
+@theme inline {
+  --color-bg-from: var(--color-bg-from);
+  --color-bg-mid: var(--color-bg-mid);
+  --color-bg-to: var(--color-bg-to);
+  --color-card: var(--color-card);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-muted: var(--color-muted);
+  --color-muted-2: var(--color-muted-2);
+  --color-muted-3: var(--color-muted-3);
+  --color-border: var(--color-border);
+  --color-accent: var(--color-accent);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-accent-tint: var(--color-accent-tint);
+  --color-accent-tint-2: var(--color-accent-tint-2);
+  --color-accent-border-soft: var(--color-accent-border-soft);
+  --color-gold: var(--color-gold);
+  --color-gold-text: var(--color-gold-text);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: radial-gradient(120% 80% at 50% 0%, var(--color-bg-from) 0%, var(--color-bg-mid) 55%, var(--color-bg-to) 100%);
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}

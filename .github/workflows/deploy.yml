@@ -1,0 +1,81 @@
+name: CI / Deploy
+
+# Run tests on every push and PR; deploy to the VPS only when main passes. Fully independent of
+# the salonLandings and salaryReview deploy pipelines — this repo's own containers, own port
+# (3002), own nginx config. A deploy here can never restart mani-frontend/mani-backend or the
+# salaryReview containers.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Typecheck, lint, and production build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          # Dummy DB creds — CI never talks to a real database. lib/db.ts only connects lazily
+          # (inside request handlers), and next build doesn't invoke them for this app's routes
+          # (the one dynamic route, `/`, isn't statically rendered at build time).
+          MARKETING_DB_HOST: localhost
+          MARKETING_DB_PORT: '5432'
+          MARKETING_DB_NAME: ci
+          MARKETING_DB_USER: ci
+          MARKETING_DB_PASSWORD: ci
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npm run lint
+          npm run build
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          HOST: ${{ secrets.VPS_HOST }}
+          USER: ${{ secrets.VPS_USER }}
+          PORT: ${{ secrets.VPS_PORT }}        # optional, defaults to 22
+          APP_DIR: ${{ secrets.VPS_APP_DIR }}  # optional, defaults to ~/akluxnails-home
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${PORT:-22}" -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh -i ~/.ssh/deploy_key -p "${PORT:-22}" "$USER@$HOST" bash -se <<EOF
+            set -euo pipefail
+            cd "${APP_DIR:-\$HOME/akluxnails-home}"
+            git fetch origin main
+            # Match main exactly; the gitignored .env (secrets) is untouched.
+            git reset --hard origin/main
+            # 'ubuntu' needs sudo for docker on this host (passwordless sudo is enabled).
+            sudo docker compose up -d --build
+            sudo docker image prune -f
+            # Wait for the frontend health check to report healthy (up to ~90s).
+            for i in \$(seq 1 30); do
+              if [ "\$(sudo docker inspect -f '{{.State.Health.Status}}' akluxnails-home-frontend 2>/dev/null)" = "healthy" ]; then
+                echo "frontend healthy"; break
+              fi
+              sleep 3
+            done
+            sudo docker compose ps
+          EOF
