@@ -159,21 +159,47 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       </div>
 
       {/* SMS opt-in: unchecked by default, plain-language, no dark patterns — required for CA/TCPA
-          compliant marketing consent. Purely optional, never blocks booking. */}
+          compliant marketing consent. Purely optional, never blocks booking. Styled to actually
+          invite a yes (icon, badge, benefit-led copy that changes once checked) rather than just
+          sitting there as a bare checkbox. */}
       <label
-        className={`mt-4 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-3 transition ${
-          smsOptIn ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "border-[var(--color-border)]"
+        className={`mt-4 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border-2 p-3.5 transition ${
+          smsOptIn
+            ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]"
+            : "border-[var(--color-accent-border-soft)] bg-[var(--color-accent-tint-2)]/40"
         }`}
       >
         <input
           type="checkbox"
           checked={smsOptIn}
           onChange={(e) => flow.setSmsOptIn(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0"
+          className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
         />
-        <span>
-          <span className="block text-sm font-medium text-[var(--color-ink)]">Text me reminders &amp; exclusive offers</span>
-          <span className="mt-1 block text-xs leading-relaxed text-[var(--color-muted-2)]">{SMS_CONSENT_TEXT}</span>
+        <span
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base transition ${
+            smsOptIn ? "bg-[var(--color-accent)] text-white" : "bg-[var(--color-card)] text-[var(--color-accent)]"
+          }`}
+          aria-hidden
+        >
+          💬
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center justify-between gap-2">
+            <span className="text-sm font-semibold text-[var(--color-ink)]">Text me reminders &amp; exclusive offers</span>
+            <span
+              className={`shrink-0 whitespace-nowrap rounded-[var(--radius-pill)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                smsOptIn ? "bg-[var(--color-accent)] text-white" : "bg-[var(--color-accent-tint)] text-[var(--color-accent-dark)]"
+              }`}
+            >
+              {smsOptIn ? "✓ On" : "Recommended"}
+            </span>
+          </span>
+          <span className="mt-1 block text-xs font-medium text-[var(--color-accent-dark)]">
+            {smsOptIn
+              ? "You're in — VIP offers and booking reminders headed your way."
+              : "Never miss your slot + first access to text-only offers"}
+          </span>
+          <span className="mt-2 block text-[11px] leading-relaxed text-[var(--color-muted-2)]">{SMS_CONSENT_TEXT}</span>
         </span>
       </label>
 

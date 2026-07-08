@@ -33,6 +33,20 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
     setPendingService(null);
   }
 
+  /** A single-variation service has nothing to actually choose — tapping it should add/remove it
+   * directly instead of expanding a panel that just asks you to confirm the only option again. */
+  function onServiceClick(svc: WireServiceItem, isSelected: boolean) {
+    if (svc.variations.length === 1) {
+      if (isSelected) {
+        flow.removeService(svc.itemId);
+      } else {
+        flow.addService(svc, svc.variations[0]);
+      }
+      return;
+    }
+    setPendingService(pendingService?.itemId === svc.itemId ? null : svc);
+  }
+
   return (
     <div>
       <h3 className="text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
@@ -56,13 +70,15 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
                   >
                     <button
                       type="button"
-                      onClick={() => setPendingService(pendingService?.itemId === svc.itemId ? null : svc)}
+                      onClick={() => onServiceClick(svc, Boolean(selected))}
                       className="flex w-full items-center justify-between px-4 py-3 text-left"
                     >
                       <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
                         {selected && <span className="text-[var(--color-accent)]">✓</span>}
                         {svc.name}
-                        {selected && <span className="text-xs font-normal text-[var(--color-muted)]">({selected.variation.name})</span>}
+                        {selected && svc.variations.length > 1 && (
+                          <span className="text-xs font-normal text-[var(--color-muted)]">({selected.variation.name})</span>
+                        )}
                       </span>
                       <span className="text-sm text-[var(--color-muted)]">
                         {selected
@@ -72,7 +88,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
                             : `from ${formatPrice(Math.min(...svc.variations.map((v) => v.priceCents)))}`}
                       </span>
                     </button>
-                    {pendingService?.itemId === svc.itemId && (
+                    {svc.variations.length > 1 && pendingService?.itemId === svc.itemId && (
                       <div className="space-y-1 border-t border-[var(--color-border)] px-4 py-3">
                         {svc.variations.map((v) => (
                           <button
