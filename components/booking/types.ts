@@ -55,4 +55,4 @@ export interface SelectedService {
   addOns: WireServiceItem[];
 }
 
-export type BookingStep = "services" | "datetime" | "details" | "done";
+export type BookingStep = "services" | "addons" | "datetime" | "details" | "done";

@@ -54,6 +54,10 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, selectedServices: s.selectedServices.filter((sel) => sel.service.itemId !== itemId) }));
   }
 
+  function proceedToAddOns() {
+    setState((s) => ({ ...s, step: "addons" }));
+  }
+
   function proceedToDateTime() {
     setState((s) => ({ ...s, step: "datetime" }));
   }
@@ -102,6 +106,7 @@ export function useBookingFlow(preselection?: Preselection) {
     goTo,
     addService,
     removeService,
+    proceedToAddOns,
     proceedToDateTime,
     setServiceAddOn,
     selectSlot,

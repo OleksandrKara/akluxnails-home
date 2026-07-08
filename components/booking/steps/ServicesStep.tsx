@@ -1,60 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ServicesResponse, WireAddOnGroup, WireServiceItem, WireVariation } from "../types";
+import type { ServicesResponse, WireServiceItem, WireVariation } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
-}
-
-function AddOnRadioGroup({
-  group,
-  itemId,
-  selectedAddOns,
-  onChange,
-}: {
-  group: WireAddOnGroup;
-  itemId: string;
-  selectedAddOns: WireServiceItem[];
-  onChange: (groupOptionIds: string[], addOn: WireServiceItem | null) => void;
-}) {
-  const groupOptionIds = group.options.map((o) => o.itemId);
-  const picked = selectedAddOns.find((a) => groupOptionIds.includes(a.itemId));
-  const name = `addon-${itemId}-${group.label}`;
-
-  return (
-    <div className="mt-2">
-      <p className="text-xs font-medium text-[var(--color-muted-2)]">{group.label}</p>
-      <div className="mt-1 flex flex-wrap gap-2">
-        <label className="flex items-center gap-1.5 rounded-[var(--radius-pill)] px-3 py-1.5 text-xs ring-1 ring-[var(--color-border)] has-[:checked]:bg-[var(--color-accent-tint-2)] has-[:checked]:ring-[var(--color-accent)]">
-          <input
-            type="radio"
-            name={name}
-            checked={!picked}
-            onChange={() => onChange(groupOptionIds, null)}
-            className="accent-[var(--color-accent)]"
-          />
-          None
-        </label>
-        {group.options.map((option) => (
-          <label
-            key={option.itemId}
-            className="flex items-center gap-1.5 rounded-[var(--radius-pill)] px-3 py-1.5 text-xs ring-1 ring-[var(--color-border)] has-[:checked]:bg-[var(--color-accent-tint-2)] has-[:checked]:ring-[var(--color-accent)]"
-          >
-            <input
-              type="radio"
-              name={name}
-              checked={picked?.itemId === option.itemId}
-              onChange={() => onChange(groupOptionIds, option)}
-              className="accent-[var(--color-accent)]"
-            />
-            {option.name} (+{formatPrice(option.variations[0]?.priceCents ?? 0)})
-          </label>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 export default function ServicesStep({ flow }: { flow: BookingFlow }) {
@@ -96,7 +47,20 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
     setPendingService(pendingService?.itemId === svc.itemId ? null : svc);
   }
 
-  const totalAddOns = selectedServices.reduce((sum, sel) => sum + sel.addOns.length, 0);
+  /** Add-ons live on their own step next, shown only if at least one selected service belongs to
+   * a group that actually has add-on options (e.g. skip it entirely for a Men's-only booking). */
+  function onContinue() {
+    const hasApplicableAddOns = data!.groups.some(
+      (group) =>
+        group.addOnGroups.length > 0 &&
+        group.services.some((svc) => selectedServices.some((sel) => sel.service.itemId === svc.itemId)),
+    );
+    if (hasApplicableAddOns) {
+      flow.proceedToAddOns();
+    } else {
+      flow.proceedToDateTime();
+    }
+  }
 
   return (
     <div>
@@ -166,19 +130,6 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
                         )}
                       </div>
                     )}
-                    {selected && group.addOnGroups.length > 0 && (
-                      <div className="border-t border-[var(--color-border)] px-4 py-3">
-                        {group.addOnGroups.map((addOnGroup) => (
-                          <AddOnRadioGroup
-                            key={addOnGroup.label}
-                            group={addOnGroup}
-                            itemId={svc.itemId}
-                            selectedAddOns={selected.addOns}
-                            onChange={(groupOptionIds, addOn) => flow.setServiceAddOn(svc.itemId, groupOptionIds, addOn)}
-                          />
-                        ))}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -192,16 +143,15 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
           <div className="flex items-center justify-between text-sm">
             <span className="text-[var(--color-muted)]">
               {selectedServices.length} service{selectedServices.length > 1 ? "s" : ""}
-              {totalAddOns > 0 ? ` + ${totalAddOns} add-on${totalAddOns > 1 ? "s" : ""}` : ""}
             </span>
             <span className="font-semibold text-[var(--color-ink)]">Total: {formatPrice(flow.totalCents)}</span>
           </div>
           <button
             type="button"
-            onClick={flow.proceedToDateTime}
+            onClick={onContinue}
             className="mt-3 w-full rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
           >
-            Choose a time
+            Continue
           </button>
         </div>
       )}
