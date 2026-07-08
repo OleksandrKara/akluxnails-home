@@ -11,6 +11,7 @@ export interface BookingFlowState {
   slot: WireSlot | null;
   contact: ContactInfo;
   bookingId: string | null;
+  technicianName: string | null;
 }
 
 const initialContact: ContactInfo = { givenName: "", familyName: "", phoneNumber: "", emailAddress: "" };
@@ -29,6 +30,7 @@ export function useBookingFlow(preselection?: Preselection) {
     slot: null,
     contact: initialContact,
     bookingId: null,
+    technicianName: null,
   });
 
   function goTo(step: BookingStep) {
@@ -62,8 +64,8 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, contact }));
   }
 
-  function bookingCreated(bookingId: string) {
-    setState((s) => ({ ...s, bookingId, step: "done" }));
+  function bookingCreated(bookingId: string, technicianName: string | null) {
+    setState((s) => ({ ...s, bookingId, technicianName, step: "done" }));
   }
 
   const addOnTotalCents = state.addOns.reduce(

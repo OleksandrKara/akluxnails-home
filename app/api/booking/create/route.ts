@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createBooking } from "@/lib/square/bookings";
+import { createBooking, getTeamMemberName } from "@/lib/square/bookings";
 import { resolveBookingIdentity } from "@/lib/bookingIdentity";
 import { recordEvent } from "@/lib/tracking";
 
@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ bookingId });
+    const technicianName = await getTeamMemberName(wireSlot.teamMemberId);
+
+    return NextResponse.json({ bookingId, technicianName });
   } catch (err) {
     console.error("Failed to create booking", err);
     return NextResponse.json({ error: "Failed to create booking" }, { status: 502 });

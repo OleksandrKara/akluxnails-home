@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { storeCardOnFile } from "@/lib/square/cards";
+import { friendlyCardErrorMessage } from "@/lib/square/cardErrors";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -13,6 +14,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ cardId });
   } catch (err) {
     console.error("Failed to store card on file", err);
-    return NextResponse.json({ error: "Failed to save card" }, { status: 502 });
+    return NextResponse.json({ error: friendlyCardErrorMessage(err) }, { status: 502 });
   }
 }

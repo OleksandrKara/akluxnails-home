@@ -42,3 +42,16 @@ export async function createBooking(input: CreateBookingInput): Promise<string> 
   }
   return response.booking.id;
 }
+
+/** Best-effort display name for the confirmation screen — never blocks booking success on this. */
+export async function getTeamMemberName(teamMemberId: string): Promise<string | null> {
+  try {
+    const client = getSquareClient();
+    const response = await client.teamMembers.get({ teamMemberId });
+    const givenName = response.teamMember?.givenName;
+    return givenName ?? null;
+  } catch (err) {
+    console.error("Failed to look up team member name", err);
+    return null;
+  }
+}

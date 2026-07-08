@@ -67,7 +67,10 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceId: tokenResult.token, customerId, cardholderName: `${givenName} ${familyName}`.trim() }),
       });
-      if (!cardRes.ok) throw new Error("Couldn't save your card. Please try again.");
+      if (!cardRes.ok) {
+        const { error } = await cardRes.json().catch(() => ({ error: null }));
+        throw new Error(error ?? "This card couldn't be saved. Please double-check the details or try a different card.");
+      }
 
       const bookingRes = await fetch("/api/booking/create", {
         method: "POST",
@@ -79,9 +82,9 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         }),
       });
       if (!bookingRes.ok) throw new Error("Couldn't finish booking your appointment. Please try again.");
-      const { bookingId } = await bookingRes.json();
+      const { bookingId, technicianName } = await bookingRes.json();
 
-      flow.bookingCreated(bookingId);
+      flow.bookingCreated(bookingId, technicianName ?? null);
     } catch (err) {
       console.error("Booking submission failed", err);
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
