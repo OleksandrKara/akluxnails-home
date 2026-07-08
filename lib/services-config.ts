@@ -86,3 +86,25 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
     addOnGroups: [],
   },
 ];
+
+export type ExclusivityBucket = "hands" | "feet" | "fourHands";
+
+/** Explicit overrides for the one group that mixes hands/feet items — every other group's items
+ * all share one bucket. */
+const ITEM_BUCKET_OVERRIDES: Record<string, ExclusivityBucket> = {
+  "Men’s Regular Manicure (No Polish)": "hands",
+  "Men’s Regular Pedicure (No Polish)": "feet",
+};
+
+/** A customer gets one manicure and one pedicure per visit, and the 4-hand request is its own
+ * flow that doesn't mix with anything else (see useBookingFlow's addService, which enforces this).
+ * Resolved by real group membership, not name-guessing — not every item name actually says
+ * "manicure"/"pedicure" (e.g. "Gel Nail Extension") or matches case ("Japanese manicure"). */
+export function exclusivityBucketForItem(itemName: string): ExclusivityBucket | null {
+  if (itemName === FOUR_HANDS_REQUEST_ITEM_NAME) return "fourHands";
+  const override = ITEM_BUCKET_OVERRIDES[itemName];
+  if (override) return override;
+  if (SERVICE_GROUPS.find((g) => g.title === "Manicures")?.items.includes(itemName)) return "hands";
+  if (SERVICE_GROUPS.find((g) => g.title === "Pedicures")?.items.includes(itemName)) return "feet";
+  return null;
+}

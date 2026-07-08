@@ -90,6 +90,9 @@ export const LOCATION = {
   // Google's "universal" directions URL (api=1) — opens turn-by-turn navigation in the Maps app
   // on mobile or maps.google.com on desktop, unlike a plain `?q=` search-pin link.
   mapsUrl: "https://www.google.com/maps/dir/?api=1&destination=1357+Seventh+Ave+Ste+C+San+Diego+CA+92101",
+  // "?&body=" works across both iOS and Android SMS apps, unlike either alone.
+  groupBookingSmsHref:
+    "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20book%20for%20a%20group%20at%20AK.LUX.NAILS.%20We%20are%20___%20people%2C%20looking%20for%20___.",
 };
 
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";

@@ -1,6 +1,7 @@
 import BookNowButton from "./BookNowButton";
 import { getCuratedMenu } from "@/lib/square/catalog";
 import { toWireItem } from "@/lib/square/wire";
+import { LOCATION } from "@/lib/siteData";
 
 function formatPrice(cents: number): string {
   if (cents === 0) return "Request";
@@ -81,10 +82,16 @@ export default async function Services() {
         ))}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 flex flex-wrap items-center gap-3">
         <BookNowButton className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]">
           Book an Appointment
         </BookNowButton>
+        <a
+          href={LOCATION.groupBookingSmsHref}
+          className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-6 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]"
+        >
+          💬 Booking for a group? Text us
+        </a>
       </div>
     </section>
   );

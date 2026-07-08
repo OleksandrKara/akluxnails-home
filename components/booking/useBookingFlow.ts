@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { exclusivityBucketForItem } from "@/lib/services-config";
 import type { BookingStep, ContactInfo, SelectedService, WireServiceItem, WireSlot, WireVariation } from "./types";
 
 export interface BookingFlowState {
@@ -49,8 +50,21 @@ export function useBookingFlow(preselection?: Preselection) {
 
   function addService(service: WireServiceItem, variation: WireVariation) {
     setState((s) => {
+      const bucket = exclusivityBucketForItem(service.name);
       const existing = s.selectedServices.find((sel) => sel.service.itemId === service.itemId);
-      const withoutThisItem = s.selectedServices.filter((sel) => sel.service.itemId !== service.itemId);
+
+      const withoutConflicts =
+        bucket === "fourHands"
+          ? []
+          : s.selectedServices.filter((sel) => {
+              if (sel.service.itemId === service.itemId) return true;
+              const selBucket = exclusivityBucketForItem(sel.service.name);
+              if (selBucket === "fourHands") return false;
+              if (bucket && selBucket === bucket) return false;
+              return true;
+            });
+
+      const withoutThisItem = withoutConflicts.filter((sel) => sel.service.itemId !== service.itemId);
       return {
         ...s,
         selectedServices: [...withoutThisItem, { service, variation, addOns: existing?.addOns ?? [] }],
