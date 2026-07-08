@@ -31,8 +31,11 @@ const LOCATION_ID = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
 
 /** Loads the Web Payments SDK script once and attaches a card element to #card-container.
  * Card data never touches this app's server — only the resulting token does (see CardStep).
- */
-export function useSquareCard(containerId: string) {
+ *
+ * `enabled` (default true) skips loading the SDK/attaching entirely — used when a returning
+ * customer already has a card on file, so there's no card element in the DOM to attach to and no
+ * need to load the SDK at all. */
+export function useSquareCard(containerId: string, enabled = true) {
   const [card, setCard] = useState<SquareCard | null>(null);
   const [error, setError] = useState<string | null>(
     !APP_ID || !LOCATION_ID ? "Card payments are not configured yet." : null,
@@ -40,7 +43,7 @@ export function useSquareCard(containerId: string) {
   const attachedRef = useRef(false);
 
   useEffect(() => {
-    if (!APP_ID || !LOCATION_ID) return;
+    if (!enabled || !APP_ID || !LOCATION_ID) return;
     let cancelled = false;
 
     async function setup() {
@@ -73,7 +76,7 @@ export function useSquareCard(containerId: string) {
     return () => {
       cancelled = true;
     };
-  }, [containerId]);
+  }, [containerId, enabled]);
 
   return { card, error };
 }

@@ -3,7 +3,7 @@ import { getSquareClient } from "./client";
 // Same lookup order as salonLandings' SquareCustomerGateway: exact phone match first, then exact
 // email match, create only if neither is found. Keeps one customer profile per real person across
 // both this homepage and mani's booking flow, since they share the same Square account.
-function normalizePhoneE164(raw: string): string {
+export function normalizePhoneE164(raw: string): string {
   const digits = raw.replace(/[^\d+]/g, "");
   if (digits.startsWith("+")) return digits;
   if (digits.length === 10) return `+1${digits}`;
@@ -19,8 +19,10 @@ export interface FindOrCreateCustomerInput {
   smsOptIn: boolean;
 }
 
+const SMS_OPT_IN_NOTE_MARKER = "SMS marketing opt-in";
+
 function consentLine(): string {
-  return `SMS marketing opt-in via akluxnails.com booking on ${new Date().toISOString().slice(0, 10)}.`;
+  return `${SMS_OPT_IN_NOTE_MARKER} via akluxnails.com booking on ${new Date().toISOString().slice(0, 10)}.`;
 }
 
 /** Appends an SMS opt-in record to an existing customer's note without touching whatever staff
@@ -29,10 +31,51 @@ function consentLine(): string {
  * repeat bookings. */
 async function recordSmsOptIn(customerId: string, existingNote: string | null | undefined) {
   const line = consentLine();
-  if (existingNote?.includes("SMS marketing opt-in")) return;
+  if (existingNote?.includes(SMS_OPT_IN_NOTE_MARKER)) return;
   const client = getSquareClient();
   const note = existingNote ? `${existingNote}\n${line}` : line;
   await client.customers.update({ customerId, note });
+}
+
+export interface ExistingCustomerInfo {
+  givenName: string | null;
+  hasSmsOptIn: boolean;
+  hasCardOnFile: boolean;
+}
+
+/** Read-only lookup used to recognize a returning visitor as soon as they've entered enough
+ * contact info to match — lets the booking form skip re-asking for SMS consent or a new card if
+ * we already have them, rather than only finding out at submit time. Same phone-then-email
+ * matching order as findOrCreateCustomer, so it always agrees with what submitting would find. */
+export async function lookupExistingCustomer(
+  phoneNumber: string | undefined,
+  emailAddress: string | undefined,
+): Promise<ExistingCustomerInfo | null> {
+  const client = getSquareClient();
+
+  let match = null;
+  if (phoneNumber) {
+    const byPhone = await client.customers.search({
+      query: { filter: { phoneNumber: { exact: normalizePhoneE164(phoneNumber) } } },
+    });
+    match = byPhone.customers?.[0] ?? null;
+  }
+  if (!match && emailAddress) {
+    const byEmail = await client.customers.search({ query: { filter: { emailAddress: { exact: emailAddress } } } });
+    match = byEmail.customers?.[0] ?? null;
+  }
+  if (!match?.id) return null;
+
+  // The SDK's default omits sortOrder as "" rather than leaving it unset, which Square's API
+  // rejects outright (INVALID_ENUM_VALUE) — pass a real value explicitly to avoid that.
+  const cardsPage = await client.cards.list({ customerId: match.id, sortOrder: "DESC" });
+  const hasCardOnFile = !(await cardsPage[Symbol.asyncIterator]().next()).done;
+
+  return {
+    givenName: match.givenName ?? null,
+    hasSmsOptIn: match.note?.includes(SMS_OPT_IN_NOTE_MARKER) ?? false,
+    hasCardOnFile,
+  };
 }
 
 export async function findOrCreateCustomer(input: FindOrCreateCustomerInput): Promise<string> {

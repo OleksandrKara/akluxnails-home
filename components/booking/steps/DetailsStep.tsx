@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { useSquareCard } from "../useSquarePayments";
@@ -8,6 +8,13 @@ import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
 
 const CARD_CONTAINER_ID = "sq-card-container";
+const LOOKUP_DEBOUNCE_MS = 600;
+
+interface ReturningCustomer {
+  givenName: string | null;
+  hasSmsOptIn: boolean;
+  hasCardOnFile: boolean;
+}
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
@@ -22,18 +29,28 @@ function formatDateTime(iso: string): string {
   });
 }
 
+function looksLikeCompletePhone(value: string): boolean {
+  return value.replace(/\D/g, "").length >= 10;
+}
+function looksLikeCompleteEmail(value: string): boolean {
+  return /\S+@\S+\.\S+/.test(value);
+}
+
 /** One screen: contact details + order summary + card-on-file, ending in a single "Confirm &
  * Book" action — fewer taps than a separate contact/card/confirm sequence, which matters for
  * conversion. The whole booking (customer, card, appointment) is created in one submit.
  *
  * The 4-hand placeholder item is a request, not a real priced/confirmed service — no card or
- * cancellation-policy agreement is needed for it, just contact info and the same SMS opt-in. */
+ * cancellation-policy agreement is needed for it, just contact info and the same SMS opt-in.
+ *
+ * As soon as contact info matches an existing Square customer, the form recognizes them and skips
+ * re-asking for anything already on file (SMS consent, card) rather than only finding out at
+ * submit time. */
 export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const { selectedServices, slot, smsOptIn, cancellationAgreed } = flow.state;
   const isFourHandsRequest =
     selectedServices.length === 1 && selectedServices[0].service.name === FOUR_HANDS_REQUEST_ITEM_NAME;
 
-  const { card, error: sdkError } = useSquareCard(CARD_CONTAINER_ID);
   const [givenName, setGivenName] = useState(flow.state.contact.givenName);
   const [familyName, setFamilyName] = useState(flow.state.contact.familyName);
   const [phoneNumber, setPhoneNumber] = useState(flow.state.contact.phoneNumber);
@@ -41,10 +58,37 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPolicy, setShowPolicy] = useState(false);
+  const [returningCustomer, setReturningCustomer] = useState<ReturningCustomer | null>(null);
+
+  const needsCard = !isFourHandsRequest && !returningCustomer?.hasCardOnFile;
+  const { card, error: sdkError } = useSquareCard(CARD_CONTAINER_ID, needsCard);
+
+  useEffect(() => {
+    const phoneReady = looksLikeCompletePhone(phoneNumber);
+    const emailReady = looksLikeCompleteEmail(emailAddress);
+    const timer = setTimeout(() => {
+      if (!phoneReady && !emailReady) {
+        setReturningCustomer(null);
+        return;
+      }
+      fetch("/api/booking/customer-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phoneNumber: phoneReady ? phoneNumber : undefined,
+          emailAddress: emailReady ? emailAddress : undefined,
+        }),
+      })
+        .then((r) => r.json())
+        .then((data) => setReturningCustomer(data.found ? data : null))
+        .catch(() => setReturningCustomer(null));
+    }, LOOKUP_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [phoneNumber, emailAddress]);
 
   if (selectedServices.length === 0 || !slot) return null;
 
-  const canSubmit = isFourHandsRequest ? true : Boolean(card) && cancellationAgreed;
+  const canSubmit = isFourHandsRequest ? true : Boolean(!needsCard || card) && cancellationAgreed;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,7 +107,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       if (!customerRes.ok) throw new Error("Couldn't save your details. Please try again.");
       const { customerId } = await customerRes.json();
 
-      if (!isFourHandsRequest && card) {
+      if (needsCard && card) {
         const tokenResult = await card.tokenize({
           billingContact: { givenName, familyName, email: emailAddress || undefined, phone: phoneNumber, countryCode: "US" },
           intent: "STORE",
@@ -105,6 +149,17 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       setSubmitting(false);
     }
   }
+
+  const skippedThings: string[] = [];
+  if (returningCustomer?.hasCardOnFile) skippedThings.push("your card");
+  if (returningCustomer?.hasSmsOptIn) skippedThings.push("your texting preferences");
+  const welcomeBackMessage = returningCustomer
+    ? `Welcome back${returningCustomer.givenName ? `, ${returningCustomer.givenName}` : ""}! 🎉${
+        skippedThings.length > 0
+          ? ` We already have ${skippedThings.join(" and ")} on file, so there's nothing extra to fill out — thank you for being a returning client.`
+          : " Great to see you again."
+      }`
+    : null;
 
   return (
     <form onSubmit={onSubmit}>
@@ -181,50 +236,61 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         />
       </div>
 
+      {welcomeBackMessage && (
+        <div className="mt-4 rounded-[var(--radius-lg)] border-2 border-[var(--color-accent)] bg-[var(--color-accent-tint-2)] p-3.5 text-sm font-medium text-[var(--color-accent-dark)]">
+          {welcomeBackMessage}
+        </div>
+      )}
+
       {/* SMS opt-in: unchecked by default, plain-language, no dark patterns — required for CA/TCPA
           compliant marketing consent. Purely optional, never blocks booking. Styled to actually
           invite a yes (badge, benefit-led copy that changes once checked) rather than just
-          sitting there as a bare checkbox. */}
-      <label
-        className={`mt-4 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border-2 p-3.5 transition ${
-          smsOptIn
-            ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]"
-            : "border-[var(--color-accent-border-soft)] bg-[var(--color-accent-tint-2)]/40"
-        }`}
-      >
-        <input
-          type="checkbox"
-          checked={smsOptIn}
-          onChange={(e) => flow.setSmsOptIn(e.target.checked)}
-          className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center justify-between gap-2">
-            <span className="text-sm font-semibold text-[var(--color-ink)]">Text me reminders &amp; exclusive offers</span>
-            <span
-              className={`shrink-0 whitespace-nowrap rounded-[var(--radius-pill)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                smsOptIn ? "bg-[var(--color-accent)] text-white" : "bg-[var(--color-accent-tint)] text-[var(--color-accent-dark)]"
-              }`}
-            >
-              {smsOptIn ? "✓ On" : "Recommended"}
+          sitting there as a bare checkbox. Skipped entirely once we already have consent on file. */}
+      {!returningCustomer?.hasSmsOptIn && (
+        <label
+          className={`mt-4 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border-2 p-3.5 transition ${
+            smsOptIn
+              ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]"
+              : "border-[var(--color-accent-border-soft)] bg-[var(--color-accent-tint-2)]/40"
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={smsOptIn}
+            onChange={(e) => flow.setSmsOptIn(e.target.checked)}
+            className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold text-[var(--color-ink)]">Text me reminders &amp; exclusive offers</span>
+              <span
+                className={`shrink-0 whitespace-nowrap rounded-[var(--radius-pill)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                  smsOptIn ? "bg-[var(--color-accent)] text-white" : "bg-[var(--color-accent-tint)] text-[var(--color-accent-dark)]"
+                }`}
+              >
+                {smsOptIn ? "✓ On" : "Recommended"}
+              </span>
             </span>
+            <span className="mt-1 block text-xs font-medium text-[var(--color-accent-dark)]">
+              {smsOptIn
+                ? "You're in — VIP offers and booking reminders headed your way."
+                : "Never miss your slot + first access to text-only offers"}
+            </span>
+            <span className="mt-2 block text-[11px] leading-relaxed text-[var(--color-muted-2)]">{SMS_CONSENT_TEXT}</span>
           </span>
-          <span className="mt-1 block text-xs font-medium text-[var(--color-accent-dark)]">
-            {smsOptIn
-              ? "You're in — VIP offers and booking reminders headed your way."
-              : "Never miss your slot + first access to text-only offers"}
-          </span>
-          <span className="mt-2 block text-[11px] leading-relaxed text-[var(--color-muted-2)]">{SMS_CONSENT_TEXT}</span>
-        </span>
-      </label>
+        </label>
+      )}
 
       {!isFourHandsRequest && (
         <>
           {/* Cancellation policy: required to book, matching the $25 no-show/late-cancellation
-              policy the card on file protects against. */}
+              policy the card on file protects against. Same card treatment as the SMS opt-in above
+              for visual consistency, with "Required"/"✓ Agreed" in place of "Recommended"/"✓ On". */}
           <label
-            className={`mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-3 transition ${
-              cancellationAgreed ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "border-[var(--color-border)]"
+            className={`mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border-2 p-3.5 transition ${
+              cancellationAgreed
+                ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]"
+                : "border-[var(--color-accent-border-soft)] bg-[var(--color-accent-tint-2)]/40"
             }`}
           >
             <input
@@ -232,32 +298,51 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
               type="checkbox"
               checked={cancellationAgreed}
               onChange={(e) => flow.setCancellationAgreed(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0"
+              className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
             />
-            <span className="text-sm text-[var(--color-muted)]">
-              I agree to the{" "}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowPolicy(true);
-                }}
-                className="font-medium text-[var(--color-accent)] underline"
-              >
-                Cancellation Policy
-              </button>{" "}
-              — reschedule or cancel at least 24 hours ahead, or a <strong>$25 fee</strong> may apply.
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-[var(--color-ink)]">Cancellation policy</span>
+                <span
+                  className={`shrink-0 whitespace-nowrap rounded-[var(--radius-pill)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                    cancellationAgreed
+                      ? "bg-[var(--color-accent)] text-white"
+                      : "bg-[var(--color-accent-tint)] text-[var(--color-accent-dark)]"
+                  }`}
+                >
+                  {cancellationAgreed ? "✓ Agreed" : "Required"}
+                </span>
+              </span>
+              <span className="mt-1 block text-xs font-medium text-[var(--color-accent-dark)]">
+                Reschedule or cancel at least 24 hours ahead, or a $25 fee may apply.
+              </span>
+              <span className="mt-2 block text-[11px] leading-relaxed text-[var(--color-muted-2)]">
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowPolicy(true);
+                  }}
+                  className="font-medium text-[var(--color-accent)] underline"
+                >
+                  full Cancellation Policy
+                </button>
+                .
+              </span>
             </span>
           </label>
 
           <p className="mt-4 text-xs text-[var(--color-muted)]">{NO_SHOW_POLICY_SUMMARY}</p>
-          <div className="mt-2">
-            <div id={CARD_CONTAINER_ID} />
-          </div>
+          {needsCard && (
+            <div className="mt-2">
+              <div id={CARD_CONTAINER_ID} />
+            </div>
+          )}
         </>
       )}
 
-      {sdkError && !isFourHandsRequest && <p className="mt-3 text-sm text-red-600">{sdkError}</p>}
+      {sdkError && needsCard && <p className="mt-3 text-sm text-red-600">{sdkError}</p>}
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       <button
