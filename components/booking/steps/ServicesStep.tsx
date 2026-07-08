@@ -21,6 +21,27 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
       .catch(() => setError(true));
   }, []);
 
+  // Add-ons are scoped per group (e.g. nail removal only makes sense with a manicure) — show the
+  // union of add-ons for every group that has a currently-selected service in it.
+  const applicableAddOns = new Map<string, WireServiceItem>();
+  for (const group of data?.groups ?? []) {
+    const hasSelectionInGroup = group.services.some((svc) =>
+      selectedServices.some((sel) => sel.service.itemId === svc.itemId),
+    );
+    if (!hasSelectionInGroup) continue;
+    for (const addOn of group.addOns) applicableAddOns.set(addOn.itemId, addOn);
+  }
+  const addOnsToShow = [...applicableAddOns.values()];
+
+  // If removing a service makes a previously-picked add-on no longer applicable (e.g. the only
+  // manicure in the cart gets removed), drop it too rather than silently keeping a stale add-on.
+  useEffect(() => {
+    for (const addOn of addOns) {
+      if (!applicableAddOns.has(addOn.itemId)) flow.toggleAddOn(addOn);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedServices]);
+
   if (error) {
     return <p className="text-sm text-[var(--color-muted)]">Couldn&apos;t load services. Please try again shortly.</p>;
   }
@@ -122,11 +143,11 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
           </div>
         ))}
 
-        {data.addOns.length > 0 && (
+        {addOnsToShow.length > 0 && (
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted-2)]">Add-ons (optional)</h4>
             <div className="mt-2 space-y-2">
-              {data.addOns.map((addOn) => {
+              {addOnsToShow.map((addOn) => {
                 const checked = addOns.some((a) => a.itemId === addOn.itemId);
                 return (
                   <label

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LOCATION } from "@/lib/siteData";
 import type { WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 
@@ -33,14 +34,32 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
     };
   }, [variationIds]);
 
-  if (error) {
-    return <p className="text-sm text-[var(--color-muted)]">Couldn&apos;t load availability. Please try again shortly.</p>;
-  }
   if (!slots) {
     return <p className="text-sm text-[var(--color-muted)]">Loading available times…</p>;
   }
-  if (slots.length === 0) {
-    return <p className="text-sm text-[var(--color-muted)]">No openings in the next few weeks — please call us to book.</p>;
+  if (error || slots.length === 0) {
+    return (
+      <div className="rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-5 text-center">
+        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-card)] text-xl" aria-hidden>
+          📅
+        </div>
+        <p className="mt-3 text-sm font-medium text-[var(--color-ink)]">
+          {error ? "Couldn't load availability right now" : "No openings for this combination in the next few weeks"}
+        </p>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          Give us a call and we&apos;ll find a time that works for you.
+        </p>
+        <a
+          href={LOCATION.phoneHref}
+          className="mt-4 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-base font-medium text-white hover:bg-[var(--color-accent-hover)]"
+        >
+          📞 Call {LOCATION.phone}
+        </a>
+        <button type="button" onClick={() => flow.goTo("services")} className="mt-3 block w-full text-xs text-[var(--color-accent)] underline">
+          Back to services
+        </button>
+      </div>
+    );
   }
 
   const byDay = new Map<string, WireSlot[]>();

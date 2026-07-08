@@ -1,6 +1,6 @@
 import type { Square } from "square";
 import { getSquareClient } from "./client";
-import { SERVICE_GROUPS, ADD_ONS } from "../services-config";
+import { SERVICE_GROUPS } from "../services-config";
 
 // "1st Visit Specials" is a real category in the live Square catalog covering every first-time-
 // client service (e.g. "1st Time Regular Manicure Gel-Overlay"). Excluded categorically here, plus
@@ -100,11 +100,12 @@ async function getCatalogSnapshot(): Promise<CatalogSnapshot> {
 export interface CuratedServiceGroup {
   title: string;
   services: CatalogServiceItem[];
+  /** Real add-ons for this group's services (e.g. nail removal only makes sense for manicures). */
+  addOns: CatalogServiceItem[];
 }
 
 export interface CuratedMenu {
   groups: CuratedServiceGroup[];
-  addOns: CatalogServiceItem[];
 }
 
 /**
@@ -120,13 +121,12 @@ export async function getCuratedMenu(): Promise<CuratedMenu> {
     services: group.items
       .map((name) => snapshot.itemsByName.get(name))
       .filter((item): item is CatalogServiceItem => Boolean(item)),
+    addOns: group.addOns
+      .map((name) => snapshot.itemsByName.get(name))
+      .filter((item): item is CatalogServiceItem => Boolean(item)),
   })).filter((group) => group.services.length > 0);
 
-  const addOns = ADD_ONS
-    .map((name) => snapshot.itemsByName.get(name))
-    .filter((item): item is CatalogServiceItem => Boolean(item));
-
-  return { groups, addOns };
+  return { groups };
 }
 
 /** Reverse lookup used when a booking request only carries a variation id (from the client). */
@@ -139,4 +139,11 @@ export async function getServiceVariation(
     if (variation) return { item, variation };
   }
   return null;
+}
+
+/** Direct by-name lookup, bypassing the curated groups — used for the 4-hands request
+ * placeholder item, which is intentionally not part of the regular curated menu. */
+export async function getItemByName(name: string): Promise<CatalogServiceItem | null> {
+  const snapshot = await getCatalogSnapshot();
+  return snapshot.itemsByName.get(name) ?? null;
 }

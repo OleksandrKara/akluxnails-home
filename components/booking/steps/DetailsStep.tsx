@@ -160,7 +160,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
 
       {/* SMS opt-in: unchecked by default, plain-language, no dark patterns — required for CA/TCPA
           compliant marketing consent. Purely optional, never blocks booking. Styled to actually
-          invite a yes (icon, badge, benefit-led copy that changes once checked) rather than just
+          invite a yes (badge, benefit-led copy that changes once checked) rather than just
           sitting there as a bare checkbox. */}
       <label
         className={`mt-4 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border-2 p-3.5 transition ${
@@ -175,14 +175,6 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           onChange={(e) => flow.setSmsOptIn(e.target.checked)}
           className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-accent)]"
         />
-        <span
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base transition ${
-            smsOptIn ? "bg-[var(--color-accent)] text-white" : "bg-[var(--color-card)] text-[var(--color-accent)]"
-          }`}
-          aria-hidden
-        >
-          💬
-        </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-center justify-between gap-2">
             <span className="text-sm font-semibold text-[var(--color-ink)]">Text me reminders &amp; exclusive offers</span>

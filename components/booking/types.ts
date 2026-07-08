@@ -14,11 +14,12 @@ export interface WireServiceItem {
 export interface WireServiceGroup {
   title: string;
   services: WireServiceItem[];
+  /** Add-ons applicable to this group's services only (e.g. removal add-ons for manicures). */
+  addOns: WireServiceItem[];
 }
 
 export interface ServicesResponse {
   groups: WireServiceGroup[];
-  addOns: WireServiceItem[];
 }
 
 export interface WireSlotSegment {

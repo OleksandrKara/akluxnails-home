@@ -1,4 +1,5 @@
 import BookNowButton from "./BookNowButton";
+import FourHandsRequestButton from "./booking/FourHandsRequestButton";
 import { getCuratedMenu } from "@/lib/square/catalog";
 import { toWireItem } from "@/lib/square/wire";
 
@@ -65,23 +66,20 @@ export default async function Services() {
                 );
               })}
             </div>
+            {group.addOns.length > 0 && (
+              <p className="mt-2 text-xs text-[var(--color-muted)]">
+                Add-ons: {group.addOns.map((a) => a.name).join(" · ")} — added at checkout when you book.
+              </p>
+            )}
           </div>
         ))}
-
-        {menu.addOns.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted-2)]">Add-ons</h3>
-            <p className="mt-1 text-sm text-[var(--color-muted)]">
-              {menu.addOns.map((a) => a.name).join(" · ")} — added at checkout when you book.
-            </p>
-          </div>
-        )}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 flex flex-wrap items-center gap-3">
         <BookNowButton className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]">
           Book an Appointment
         </BookNowButton>
+        <FourHandsRequestButton className="inline-block rounded-[var(--radius-pill)] px-6 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]" />
       </div>
     </section>
   );

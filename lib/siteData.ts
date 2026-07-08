@@ -85,9 +85,11 @@ export const LOCATION = {
   name: BUSINESS_NAME,
   address: "1357 Seventh Ave, Ste C, San Diego, CA 92101",
   note: "Street parking available on 7th Ave · Open 7 days a week by appointment",
-  // TODO(owner): fill in the real phone number and precise hours — placeholder for now.
-  phone: "",
-  mapsUrl: "https://maps.google.com/?q=1357+Seventh+Ave+Ste+C+San+Diego+CA+92101",
+  phone: "619-323-1185",
+  phoneHref: "tel:+16193231185",
+  // Google's "universal" directions URL (api=1) — opens turn-by-turn navigation in the Maps app
+  // on mobile or maps.google.com on desktop, unlike a plain `?q=` search-pin link.
+  mapsUrl: "https://www.google.com/maps/dir/?api=1&destination=1357+Seventh+Ave+Ste+C+San+Diego+CA+92101",
 };
 
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";

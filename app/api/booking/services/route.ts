@@ -6,8 +6,11 @@ export async function GET() {
   try {
     const menu = await getCuratedMenu();
     return NextResponse.json({
-      groups: menu.groups.map((g) => ({ title: g.title, services: g.services.map(toWireItem) })),
-      addOns: menu.addOns.map(toWireItem),
+      groups: menu.groups.map((g) => ({
+        title: g.title,
+        services: g.services.map(toWireItem),
+        addOns: g.addOns.map(toWireItem),
+      })),
     });
   } catch (err) {
     console.error("Failed to load curated service menu", err);

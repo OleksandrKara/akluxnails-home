@@ -10,13 +10,34 @@
  *
  * "1st Visit Specials" category items are excluded categorically in catalog.ts itself — never
  * list one here, but even if one were mistakenly added, it would still be filtered out there.
+ *
+ * Add-ons are scoped per group (not one global list) — e.g. nail removal only makes sense
+ * alongside a manicure, not a men's no-polish service. When a visitor has services selected from
+ * more than one group, the booking flow shows the union of each selected group's add-ons.
  */
 
 export interface ServiceGroup {
   title: string;
   /** Real Square catalog item names, in display order. */
   items: string[];
+  /** Real Square catalog item names offered as add-ons for services in this group. */
+  addOns: string[];
 }
+
+const MANICURE_ADD_ONS = [
+  "Design",
+  "Ombre (design)",
+  "Removal Acrylic",
+  "Removal Gel",
+  "Removal Gel X (only removal without manicure, includes filing and shaping of the nail)",
+];
+
+const PEDICURE_ADD_ONS = ["Design", "Ombre (design)"];
+
+/** The $0 lead-capture placeholder item for 4-hand appointments (need manual staff coordination,
+ * so they're not self-service bookable — see catalog.ts's availableForBooking filter). Booked at
+ * the next open slot as a placeholder; staff follow up to schedule the real appointment. */
+export const FOUR_HANDS_REQUEST_ITEM_NAME = "Request for 4-Hands Manicure & Pedicure Gel Overlay";
 
 export const SERVICE_GROUPS: ServiceGroup[] = [
   {
@@ -29,6 +50,7 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
       "Japanese manicure",
       "Japanese manicure Deluxe (with massage & spa hand care)",
     ],
+    addOns: MANICURE_ADD_ONS,
   },
   {
     title: "Pedicures",
@@ -36,6 +58,7 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
       "Regular Pedicure Gel-Overlay",
       "Pedicure (No Polish)",
     ],
+    addOns: PEDICURE_ADD_ONS,
   },
   {
     title: "Men's Services",
@@ -43,11 +66,6 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
       "Men’s Regular Manicure (No Polish)",
       "Men’s Regular Pedicure (No Polish)",
     ],
+    addOns: [],
   },
-];
-
-/** Real Square catalog item names offered as add-ons on top of any service above. */
-export const ADD_ONS: string[] = [
-  "Design",
-  "Ombre (design)",
 ];

@@ -13,14 +13,22 @@ export default function LocationSection() {
         <p className="font-medium text-[var(--color-ink)]">{LOCATION.name}</p>
         <p className="mt-1 text-sm text-[var(--color-muted)]">{LOCATION.address}</p>
         <p className="mt-1 text-sm text-[var(--color-muted-2)]">{LOCATION.note}</p>
-        <a
-          href={LOCATION.mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline"
-        >
-          Get directions →
-        </a>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <a
+            href={LOCATION.mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]"
+          >
+            Get directions →
+          </a>
+          <a
+            href={LOCATION.phoneHref}
+            className="inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] px-4 py-2 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]"
+          >
+            📞 {LOCATION.phone}
+          </a>
+        </div>
       </div>
     </section>
   );
