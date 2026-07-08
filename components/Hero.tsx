@@ -1,6 +1,6 @@
 import Image from "next/image";
 import BookNowButton from "./BookNowButton";
-import { HEADLINE, SUBHEAD, CREDIBILITY_STATS } from "@/lib/siteData";
+import { HEADLINE, SUBHEAD, CREDIBILITY_STATS, LOCATION } from "@/lib/siteData";
 import type { HomeVariantContent } from "@/lib/variant";
 
 const GALLERY_PHOTOS = [
@@ -9,6 +9,19 @@ const GALLERY_PHOTOS = [
   { src: "/images/milkynails.jpg", alt: "Milky white gel manicure by AK.LUX.NAILS" },
   { src: "/images/nudemani1.jpg", alt: "Nude gel manicure by AK.LUX.NAILS" },
 ];
+
+function MessageIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 4.5h16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1H9l-4.5 4V16H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export default function Hero({ variant }: { variant: HomeVariantContent }) {
   return (
@@ -23,10 +36,18 @@ export default function Hero({ variant }: { variant: HomeVariantContent }) {
           </h1>
           <p className="mt-4 text-lg text-[var(--color-muted)]">{variant.heroSubheadline ?? SUBHEAD}</p>
 
-          <div className="mt-6">
+          <div className="mt-6 flex items-center gap-3">
             <BookNowButton className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-base font-medium text-white hover:bg-[var(--color-accent-hover)]">
               {variant.ctaText ?? "Book Your Appointment"}
             </BookNowButton>
+            <a
+              href={LOCATION.smsHref}
+              aria-label="Text us"
+              title="Text us"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]"
+            >
+              <MessageIcon />
+            </a>
           </div>
 
           <dl className="mt-8 flex flex-wrap gap-6">

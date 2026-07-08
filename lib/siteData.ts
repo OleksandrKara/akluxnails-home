@@ -91,6 +91,7 @@ export const LOCATION = {
   // on mobile or maps.google.com on desktop, unlike a plain `?q=` search-pin link.
   mapsUrl: "https://www.google.com/maps/dir/?api=1&destination=1357+Seventh+Ave+Ste+C+San+Diego+CA+92101",
   // "?&body=" works across both iOS and Android SMS apps, unlike either alone.
+  smsHref: "sms:+16193231185?&body=Hi!%20I%20have%20a%20question%20for%20AK.LUX.NAILS.%20",
   groupBookingSmsHref:
     "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20book%20for%20a%20group%20at%20AK.LUX.NAILS.%20We%20are%20___%20people%2C%20looking%20for%20___.",
 };
