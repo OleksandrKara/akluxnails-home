@@ -7,16 +7,6 @@ export const HEADLINE = "Nail Care, Done Right — Downtown San Diego";
 export const SUBHEAD =
   "Russian manicures, gel, and nail art in a clean, modern studio. Nail-health first, no acrylics, ever.";
 
-export const SERVICES = [
-  {
-    name: "Russian Hard Gel Manicure",
-    desc: "Precise dry-cuticle work, chip-free wear up to 4 weeks. Our signature service.",
-  },
-  { name: "Gel Polish", desc: "Long-lasting color with a high-gloss, chip-resistant finish." },
-  { name: "Nail Art", desc: "Hand-painted custom designs, your choice of style and detail." },
-  { name: "4-Hand Service", desc: "Two techs, one appointment — for when you're short on time." },
-];
-
 export const CREDIBILITY_STATS = [
   { value: "4.7★", label: "113 Google reviews" },
   { value: "4 wks", label: "chip-free wear" },
@@ -72,3 +62,10 @@ export const LOCATION = {
 };
 
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";
+
+// Reused from salonLandings' CANCELLATION_POLICY_TEXT (frontend/src/data/designCopy.ts) — same
+// $25 no-show/late-cancellation policy, shown at the card-on-file step so it's clear why a card is
+// being collected before the appointment.
+export const NO_SHOW_POLICY_SUMMARY =
+  "A card on file protects your reserved time. It's only charged if you miss your appointment " +
+  "or cancel with less than 24 hours' notice ($25 fee) — never for the service itself.";

@@ -59,7 +59,7 @@ export async function recordEvent(params: {
   visitorId: string;
   landingPageId: string;
   variantId: string;
-  eventType: "click" | "page_view";
+  eventType: "click" | "page_view" | "booking_started" | "booking_completed";
   metadata?: Record<string, unknown>;
 }): Promise<void> {
   try {

@@ -1,23 +1,26 @@
 "use client";
 
-import { BOOKING_URL } from "@/lib/siteData";
+import { useBookingModal } from "./booking/BookingModalProvider";
 
-/** Links out to the existing, already-live mani.akluxnails.com booking funnel — no duplicate
- * Square integration on this page (see the plan: booking stays a single, well-tested funnel).
- * Fires a best-effort, non-blocking click event before navigating; never delays the click.
+/** Opens this page's own native booking flow (services/add-ons, date/time, contact, card-on-file
+ * for no-show protection) — unlike mani.akluxnails.com's ads funnel, this page's mostly-returning
+ * audience books here directly rather than being sent to a separate site.
  */
 export default function BookNowButton({ className, children }: { className?: string; children: React.ReactNode }) {
+  const { open } = useBookingModal();
+
   function onClick() {
     try {
       navigator.sendBeacon?.("/api/track-click", JSON.stringify({ target: "book_now" }));
     } catch {
-      // best-effort only — never block navigation on this
+      // best-effort only — never block opening the modal on this
     }
+    open();
   }
 
   return (
-    <a href={BOOKING_URL} onClick={onClick} className={className}>
+    <button type="button" onClick={onClick} className={className}>
       {children}
-    </a>
+    </button>
   );
 }

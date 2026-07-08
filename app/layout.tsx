@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Jost } from "next/font/google";
+import BookingModalProvider from "@/components/booking/BookingModalProvider";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -38,7 +39,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${jost.variable} antialiased`}>
-      <body className="min-h-screen flex flex-col">{children}</body>
+      <body className="min-h-screen flex flex-col">
+        <BookingModalProvider>{children}</BookingModalProvider>
+      </body>
     </html>
   );
 }
