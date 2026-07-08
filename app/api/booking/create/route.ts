@@ -3,19 +3,23 @@ import { createBooking, getTeamMemberName } from "@/lib/square/bookings";
 import { resolveBookingIdentity } from "@/lib/bookingIdentity";
 import { recordEvent } from "@/lib/tracking";
 
-interface WireSlot {
-  startAt: string;
+interface WireSegment {
   teamMemberId: string;
   serviceVariationId: string;
   serviceVariationVersion: string;
   durationMinutes: number;
 }
 
+interface WireSlot {
+  startAt: string;
+  segments: WireSegment[];
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { customerId, slot, addOnVariationIds, customerNote } = body ?? {};
   const wireSlot = slot as WireSlot | undefined;
-  if (!customerId || !wireSlot?.startAt || !wireSlot.teamMemberId || !wireSlot.serviceVariationId) {
+  if (!customerId || !wireSlot?.startAt || !wireSlot.segments?.length) {
     return NextResponse.json({ error: "customerId and slot are required" }, { status: 400 });
   }
 
@@ -24,10 +28,12 @@ export async function POST(request: NextRequest) {
       customerId,
       slot: {
         startAt: wireSlot.startAt,
-        teamMemberId: wireSlot.teamMemberId,
-        serviceVariationId: wireSlot.serviceVariationId,
-        serviceVariationVersion: BigInt(wireSlot.serviceVariationVersion),
-        durationMinutes: wireSlot.durationMinutes,
+        segments: wireSlot.segments.map((seg) => ({
+          teamMemberId: seg.teamMemberId,
+          serviceVariationId: seg.serviceVariationId,
+          serviceVariationVersion: BigInt(seg.serviceVariationVersion),
+          durationMinutes: seg.durationMinutes,
+        })),
       },
       addOnVariationIds,
       customerNote,
@@ -44,7 +50,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const technicianName = await getTeamMemberName(wireSlot.teamMemberId);
+    const technicianName = await getTeamMemberName(wireSlot.segments[0].teamMemberId);
 
     return NextResponse.json({ bookingId, technicianName });
   } catch (err) {

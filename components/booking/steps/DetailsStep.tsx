@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { NO_SHOW_POLICY_SUMMARY } from "@/lib/siteData";
+import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
 import { useSquareCard } from "../useSquarePayments";
 import type { BookingFlow } from "../useBookingFlow";
+import CancellationPolicyModal from "../CancellationPolicyModal";
 
 const CARD_CONTAINER_ID = "sq-card-container";
 
@@ -31,13 +32,14 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const [emailAddress, setEmailAddress] = useState(flow.state.contact.emailAddress);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPolicy, setShowPolicy] = useState(false);
 
-  const { service, variation, addOns, slot } = flow.state;
-  if (!service || !variation || !slot) return null;
+  const { selectedServices, addOns, slot, smsOptIn, cancellationAgreed } = flow.state;
+  if (selectedServices.length === 0 || !slot) return null;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!card) return;
+    if (!card || !cancellationAgreed) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -47,7 +49,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       const customerRes = await fetch("/api/booking/customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(contact),
+        body: JSON.stringify({ ...contact, smsOptIn }),
       });
       if (!customerRes.ok) throw new Error("Couldn't save your details. Please try again.");
       const { customerId } = await customerRes.json();
@@ -103,12 +105,14 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       </button>
 
       <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-3 text-sm">
-        <div className="flex justify-between">
-          <span className="text-[var(--color-ink)]">
-            {service.name} ({variation.name})
-          </span>
-          <span className="text-[var(--color-ink)]">{formatPrice(variation.priceCents)}</span>
-        </div>
+        {selectedServices.map((sel) => (
+          <div key={sel.service.itemId} className="flex justify-between">
+            <span className="text-[var(--color-ink)]">
+              {sel.service.name} ({sel.variation.name})
+            </span>
+            <span className="text-[var(--color-ink)]">{formatPrice(sel.variation.priceCents)}</span>
+          </div>
+        ))}
         {addOns.map((a) => (
           <div key={a.itemId} className="mt-1 flex justify-between text-[var(--color-muted)]">
             <span>+ {a.name}</span>
@@ -154,6 +158,55 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         />
       </div>
 
+      {/* SMS opt-in: unchecked by default, plain-language, no dark patterns — required for CA/TCPA
+          compliant marketing consent. Purely optional, never blocks booking. */}
+      <label
+        className={`mt-4 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-3 transition ${
+          smsOptIn ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "border-[var(--color-border)]"
+        }`}
+      >
+        <input
+          type="checkbox"
+          checked={smsOptIn}
+          onChange={(e) => flow.setSmsOptIn(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0"
+        />
+        <span>
+          <span className="block text-sm font-medium text-[var(--color-ink)]">Text me reminders &amp; exclusive offers</span>
+          <span className="mt-1 block text-xs leading-relaxed text-[var(--color-muted-2)]">{SMS_CONSENT_TEXT}</span>
+        </span>
+      </label>
+
+      {/* Cancellation policy: required to book, matching the $25 no-show/late-cancellation policy
+          the card on file protects against. */}
+      <label
+        className={`mt-3 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border p-3 transition ${
+          cancellationAgreed ? "border-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "border-[var(--color-border)]"
+        }`}
+      >
+        <input
+          required
+          type="checkbox"
+          checked={cancellationAgreed}
+          onChange={(e) => flow.setCancellationAgreed(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0"
+        />
+        <span className="text-sm text-[var(--color-muted)]">
+          I agree to the{" "}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowPolicy(true);
+            }}
+            className="font-medium text-[var(--color-accent)] underline"
+          >
+            Cancellation Policy
+          </button>{" "}
+          — reschedule or cancel at least 24 hours ahead, or a <strong>$25 fee</strong> may apply.
+        </span>
+      </label>
+
       <p className="mt-4 text-xs text-[var(--color-muted)]">{NO_SHOW_POLICY_SUMMARY}</p>
       <div className="mt-2">
         <div id={CARD_CONTAINER_ID} />
@@ -163,11 +216,13 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
 
       <button
         type="submit"
-        disabled={!card || submitting}
+        disabled={!card || !cancellationAgreed || submitting}
         className="mt-5 w-full rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-base font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-60"
       >
         {submitting ? "Booking your appointment…" : `Confirm & Book — ${formatPrice(flow.totalCents)}`}
       </button>
+
+      {showPolicy && <CancellationPolicyModal onClose={() => setShowPolicy(false)} />}
     </form>
   );
 }

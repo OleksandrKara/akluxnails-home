@@ -21,12 +21,16 @@ export interface ServicesResponse {
   addOns: WireServiceItem[];
 }
 
-export interface WireSlot {
-  startAt: string;
+export interface WireSlotSegment {
   teamMemberId: string;
   serviceVariationId: string;
   serviceVariationVersion: string;
   durationMinutes: number;
+}
+
+export interface WireSlot {
+  startAt: string;
+  segments: WireSlotSegment[];
 }
 
 export interface ContactInfo {
@@ -34,6 +38,12 @@ export interface ContactInfo {
   familyName: string;
   phoneNumber: string;
   emailAddress: string;
+}
+
+/** One service + the tier the visitor picked for it — the unit of selection in the cart. */
+export interface SelectedService {
+  service: WireServiceItem;
+  variation: WireVariation;
 }
 
 export type BookingStep = "services" | "datetime" | "details" | "done";

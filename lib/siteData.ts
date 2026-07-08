@@ -7,8 +7,11 @@ export const HEADLINE = "Nail Care, Done Right — Downtown San Diego";
 export const SUBHEAD =
   "Russian manicures, gel, and nail art in a clean, modern studio. Nail-health first, no acrylics, ever.";
 
+export const GOOGLE_REVIEW_COUNT = 113;
+export const GOOGLE_REVIEW_RATING = "4.7";
+
 export const CREDIBILITY_STATS = [
-  { value: "4.7★", label: "113 Google reviews" },
+  { value: "4.7★", label: `${GOOGLE_REVIEW_COUNT} Google reviews` },
   { value: "4 wks", label: "chip-free wear" },
   { value: "100%", label: "acrylic-free" },
 ];
@@ -52,6 +55,32 @@ export const REVIEWS: Review[] = [
   },
 ];
 
+// Reused (and lightly trimmed of ads-specific framing) from salonLandings' MORE_REVIEWS — shown
+// on "show more reviews" expansion, both for social proof depth and SEO content.
+export const MORE_REVIEWS: Review[] = [
+  {
+    initial: "M",
+    name: "Marisol T.",
+    date: "2 months ago",
+    stars: "★★★★★",
+    text: "The attention to detail is unreal. My nails have never looked this clean and healthy.",
+  },
+  {
+    initial: "S",
+    name: "Sophia L.",
+    date: "2 months ago",
+    stars: "★★★★★",
+    text: "Booked from Instagram and it looked exactly like the photos. Lasted almost 4 weeks with zero lifting. Highly recommend.",
+  },
+  {
+    initial: "V",
+    name: "Valeria P.",
+    date: "3 months ago",
+    stars: "★★★★★",
+    text: "Beautiful studio, spotless tools, and the most precise cuticle work I've seen. My new go-to in Downtown SD.",
+  },
+];
+
 export const LOCATION = {
   name: BUSINESS_NAME,
   address: "1357 Seventh Ave, Ste C, San Diego, CA 92101",
@@ -69,3 +98,36 @@ export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.
 export const NO_SHOW_POLICY_SUMMARY =
   "A card on file protects your reserved time. It's only charged if you miss your appointment " +
   "or cancel with less than 24 hours' notice ($25 fee) — never for the service itself.";
+
+// Verbatim from salonLandings' designCopy.ts — the same policy text and SMS consent language
+// already in use (and legally reviewed) for the mani funnel's booking flow.
+export const CANCELLATION_POLICY_TEXT = `We ask that you please reschedule or cancel at least 24 hours before your appointment, or you may be charged a cancellation fee of $25.00.
+
+CANCELLATION & NO-SHOW
+• Missed appointments or cancellations made with less than 24 hours' notice will incur a $25 fee.
+• This policy helps us respect the time of our nail technicians and accommodate other clients waiting for an opening.
+
+We understand that emergencies happen, and we will always do our best to accommodate when possible. Thank you for respecting our time and the time of our masters.
+
+SERVICE SATISFACTION & NO REFUND
+At AK.LUX.NAILS, we take great pride in the quality of our work and stand behind every service we provide. Please note:
+• All services are non-refundable once completed.
+• By booking, you agree that results are subjective and may vary based on personal preference.
+• We strongly encourage clients to communicate their preferences during the appointment to ensure the desired result.
+
+If you are not fully satisfied:
+• You must notify us within 48 hours of your appointment.
+• We offer a complimentary fix within 14 days.
+
+Refunds will not be issued for dissatisfaction after the service has been completed.
+
+IMPORTANT
+Failure to contact us within the specified time frame or refusal of a correction appointment will void any service guarantee.
+
+By booking an appointment, you agree to our cancellation and no-refund policy.
+
+Warmly,
+AK.LUX.NAILS`;
+
+export const SMS_CONSENT_TEXT =
+  "By checking this box, I agree to receive recurring automated marketing & appointment text messages (offers, promotions & reminders) from AK.LUX.NAILS at the number I provided. Consent is not a condition of purchase. Message frequency varies. Msg & data rates may apply. Reply STOP to cancel, HELP for help.";

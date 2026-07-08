@@ -6,6 +6,27 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
 }
 
+function ServiceIcon() {
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-tint)] text-[var(--color-accent-dark)]">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path
+          d="M12 2.5c.9 2.3 2.2 3.6 4.5 4.5-2.3.9-3.6 2.2-4.5 4.5-.9-2.3-2.2-3.6-4.5-4.5 2.3-.9 3.6-2.2 4.5-4.5z"
+          fill="currentColor"
+        />
+        <path
+          d="M6 13c.5 1.4 1.3 2.2 2.7 2.7C7.3 16.2 6.5 17 6 18.4c-.5-1.4-1.3-2.2-2.7-2.7C4.7 15.2 5.5 14.4 6 13z"
+          fill="currentColor"
+        />
+        <path
+          d="M18 12.5c.6 1.7 1.6 2.7 3.3 3.3-1.7.6-2.7 1.6-3.3 3.3-.6-1.7-1.6-2.7-3.3-3.3 1.7-.6 2.7-1.6 3.3-3.3z"
+          fill="currentColor"
+        />
+      </svg>
+    </span>
+  );
+}
+
 export default async function Services() {
   const menu = await getCuratedMenu();
 
@@ -31,15 +52,11 @@ export default async function Services() {
                   <BookNowButton
                     key={service.itemId}
                     preselection={{ service: wireService, variation: wireVariation }}
-                    className="group flex w-full items-center justify-between rounded-[var(--radius-lg)] bg-[var(--color-card)] p-5 text-left ring-1 ring-[var(--color-border)] transition hover:ring-[var(--color-accent)] hover:shadow-md"
+                    className="flex w-full items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-4 text-left ring-1 ring-[var(--color-border)] transition hover:ring-[var(--color-accent)] hover:shadow-md"
                   >
-                    <div>
-                      <h4 className="font-medium text-[var(--color-ink)]">{service.name}</h4>
-                      <span className="mt-1 inline-block text-xs font-medium text-[var(--color-accent)] opacity-0 transition group-hover:opacity-100">
-                        Book this →
-                      </span>
-                    </div>
-                    <span className="shrink-0 pl-3 text-sm text-[var(--color-accent)]">
+                    <ServiceIcon />
+                    <span className="min-w-0 flex-1 font-medium leading-snug text-[var(--color-ink)]">{service.name}</span>
+                    <span className="shrink-0 text-sm font-medium text-[var(--color-accent)]">
                       {service.variations.length === 1
                         ? formatPrice(service.variations[0].priceCents)
                         : `from ${formatPrice(cheapest.priceCents)}`}

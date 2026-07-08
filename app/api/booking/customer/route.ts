@@ -5,13 +5,19 @@ import { recordEvent } from "@/lib/tracking";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { givenName, familyName, phoneNumber, emailAddress } = body ?? {};
+  const { givenName, familyName, phoneNumber, emailAddress, smsOptIn } = body ?? {};
   if (!givenName || !phoneNumber) {
     return NextResponse.json({ error: "givenName and phoneNumber are required" }, { status: 400 });
   }
 
   try {
-    const customerId = await findOrCreateCustomer({ givenName, familyName, phoneNumber, emailAddress });
+    const customerId = await findOrCreateCustomer({
+      givenName,
+      familyName,
+      phoneNumber,
+      emailAddress,
+      smsOptIn: Boolean(smsOptIn),
+    });
 
     const identity = await resolveBookingIdentity(request);
     if (identity.visitorId && identity.landingPageId && identity.variantId) {

@@ -1,20 +1,26 @@
 import { getSquareClient, locationId } from "./client";
 
-export interface AvailableSlot {
-  startAt: string;
+export interface SlotSegment {
   teamMemberId: string;
   serviceVariationId: string;
   serviceVariationVersion: bigint;
   durationMinutes: number;
 }
 
+export interface AvailableSlot {
+  startAt: string;
+  segments: SlotSegment[];
+}
+
 /**
- * Searches availability for a single service variation, letting any qualified team member fill
- * the slot (no team_member_id_filter) — the resolved team member for each slot comes back on the
- * availability itself and is what gets passed straight through to booking creation.
+ * Searches availability for one or more service variations together — Square's own API supports
+ * multi-segment search natively (one segment_filter per service), returning slots where every
+ * segment is covered by a mutually-available team member back-to-back. This is how a visitor
+ * booking, say, a manicure + pedicure in one visit gets a single real appointment instead of two
+ * separately-booked ones.
  */
 export async function searchAvailability(
-  serviceVariationId: string,
+  serviceVariationIds: string[],
   daysAhead = 21,
 ): Promise<AvailableSlot[]> {
   const client = getSquareClient();
@@ -29,22 +35,30 @@ export async function searchAvailability(
           endAt: end.toISOString(),
         },
         locationId: locationId(),
-        segmentFilters: [{ serviceVariationId }],
+        segmentFilters: serviceVariationIds.map((serviceVariationId) => ({ serviceVariationId })),
       },
     },
   });
 
   const slots: AvailableSlot[] = [];
   for (const availability of response.availabilities ?? []) {
-    const segment = availability.appointmentSegments?.[0];
-    if (!availability.startAt || !segment?.teamMemberId || !segment.serviceVariationId) continue;
-    slots.push({
-      startAt: availability.startAt,
-      teamMemberId: segment.teamMemberId,
-      serviceVariationId: segment.serviceVariationId,
-      serviceVariationVersion: segment.serviceVariationVersion ?? BigInt(0),
-      durationMinutes: segment.durationMinutes ?? 60,
-    });
+    if (!availability.startAt || !availability.appointmentSegments?.length) continue;
+    const segments: SlotSegment[] = [];
+    for (const segment of availability.appointmentSegments) {
+      if (!segment.teamMemberId || !segment.serviceVariationId) {
+        segments.length = 0;
+        break;
+      }
+      segments.push({
+        teamMemberId: segment.teamMemberId,
+        serviceVariationId: segment.serviceVariationId,
+        serviceVariationVersion: segment.serviceVariationVersion ?? BigInt(0),
+        durationMinutes: segment.durationMinutes ?? 60,
+      });
+    }
+    if (segments.length === serviceVariationIds.length) {
+      slots.push({ startAt: availability.startAt, segments });
+    }
   }
   return slots;
 }

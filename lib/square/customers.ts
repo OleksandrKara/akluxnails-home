@@ -16,6 +16,23 @@ export interface FindOrCreateCustomerInput {
   familyName?: string;
   phoneNumber: string;
   emailAddress?: string;
+  smsOptIn: boolean;
+}
+
+function consentLine(): string {
+  return `SMS marketing opt-in via akluxnails.com booking on ${new Date().toISOString().slice(0, 10)}.`;
+}
+
+/** Appends an SMS opt-in record to an existing customer's note without touching whatever staff
+ * may already have written there (allergies, preferences, etc.) — never overwrites. Only called
+ * when the visitor actually opted in, and skipped if already recorded, to avoid note spam across
+ * repeat bookings. */
+async function recordSmsOptIn(customerId: string, existingNote: string | null | undefined) {
+  const line = consentLine();
+  if (existingNote?.includes("SMS marketing opt-in")) return;
+  const client = getSquareClient();
+  const note = existingNote ? `${existingNote}\n${line}` : line;
+  await client.customers.update({ customerId, note });
 }
 
 export async function findOrCreateCustomer(input: FindOrCreateCustomerInput): Promise<string> {
@@ -26,14 +43,20 @@ export async function findOrCreateCustomer(input: FindOrCreateCustomerInput): Pr
     query: { filter: { phoneNumber: { exact: phoneE164 } } },
   });
   const phoneMatch = byPhone.customers?.[0];
-  if (phoneMatch?.id) return phoneMatch.id;
+  if (phoneMatch?.id) {
+    if (input.smsOptIn) await recordSmsOptIn(phoneMatch.id, phoneMatch.note);
+    return phoneMatch.id;
+  }
 
   if (input.emailAddress) {
     const byEmail = await client.customers.search({
       query: { filter: { emailAddress: { exact: input.emailAddress } } },
     });
     const emailMatch = byEmail.customers?.[0];
-    if (emailMatch?.id) return emailMatch.id;
+    if (emailMatch?.id) {
+      if (input.smsOptIn) await recordSmsOptIn(emailMatch.id, emailMatch.note);
+      return emailMatch.id;
+    }
   }
 
   const created = await client.customers.create({
@@ -42,6 +65,7 @@ export async function findOrCreateCustomer(input: FindOrCreateCustomerInput): Pr
     phoneNumber: phoneE164,
     emailAddress: input.emailAddress,
     referenceId: "akluxnails-home",
+    note: input.smsOptIn ? consentLine() : undefined,
   });
   if (!created.customer?.id) {
     throw new Error("Square did not return a customer id");

@@ -11,18 +11,19 @@ export interface CreateBookingInput {
 
 export async function createBooking(input: CreateBookingInput): Promise<string> {
   const client = getSquareClient();
+  const primaryTeamMemberId = input.slot.segments[0]?.teamMemberId;
 
   const appointmentSegments = [
-    {
-      durationMinutes: input.slot.durationMinutes,
-      serviceVariationId: input.slot.serviceVariationId,
-      serviceVariationVersion: input.slot.serviceVariationVersion,
-      teamMemberId: input.slot.teamMemberId,
-    },
+    ...input.slot.segments.map((segment) => ({
+      durationMinutes: segment.durationMinutes,
+      serviceVariationId: segment.serviceVariationId,
+      serviceVariationVersion: segment.serviceVariationVersion,
+      teamMemberId: segment.teamMemberId,
+    })),
     ...(input.addOnVariationIds ?? []).map((variationId) => ({
       durationMinutes: 0,
       serviceVariationId: variationId,
-      teamMemberId: input.slot.teamMemberId,
+      teamMemberId: primaryTeamMemberId,
     })),
   ];
 

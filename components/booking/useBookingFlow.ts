@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import type { BookingStep, ContactInfo, WireServiceItem, WireSlot, WireVariation } from "./types";
+import type { BookingStep, ContactInfo, SelectedService, WireServiceItem, WireSlot, WireVariation } from "./types";
 
 export interface BookingFlowState {
   step: BookingStep;
-  service: WireServiceItem | null;
-  variation: WireVariation | null;
+  selectedServices: SelectedService[];
   addOns: WireServiceItem[];
   slot: WireSlot | null;
   contact: ContactInfo;
+  smsOptIn: boolean;
+  cancellationAgreed: boolean;
   bookingId: string | null;
   technicianName: string | null;
 }
@@ -23,12 +24,13 @@ export interface Preselection {
 
 export function useBookingFlow(preselection?: Preselection) {
   const [state, setState] = useState<BookingFlowState>({
-    step: preselection ? "datetime" : "services",
-    service: preselection?.service ?? null,
-    variation: preselection?.variation ?? null,
+    step: "services",
+    selectedServices: preselection ? [{ service: preselection.service, variation: preselection.variation }] : [],
     addOns: [],
     slot: null,
     contact: initialContact,
+    smsOptIn: false,
+    cancellationAgreed: false,
     bookingId: null,
     technicianName: null,
   });
@@ -37,12 +39,15 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, step }));
   }
 
-  function selectService(service: WireServiceItem, variation: WireVariation) {
-    setState((s) => ({ ...s, service, variation }));
+  function addService(service: WireServiceItem, variation: WireVariation) {
+    setState((s) => {
+      const withoutThisItem = s.selectedServices.filter((sel) => sel.service.itemId !== service.itemId);
+      return { ...s, selectedServices: [...withoutThisItem, { service, variation }] };
+    });
   }
 
-  function clearService() {
-    setState((s) => ({ ...s, service: null, variation: null, addOns: [] }));
+  function removeService(itemId: string) {
+    setState((s) => ({ ...s, selectedServices: s.selectedServices.filter((sel) => sel.service.itemId !== itemId) }));
   }
 
   function proceedToDateTime() {
@@ -64,26 +69,34 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, contact }));
   }
 
+  function setSmsOptIn(smsOptIn: boolean) {
+    setState((s) => ({ ...s, smsOptIn }));
+  }
+
+  function setCancellationAgreed(cancellationAgreed: boolean) {
+    setState((s) => ({ ...s, cancellationAgreed }));
+  }
+
   function bookingCreated(bookingId: string, technicianName: string | null) {
     setState((s) => ({ ...s, bookingId, technicianName, step: "done" }));
   }
 
-  const addOnTotalCents = state.addOns.reduce(
-    (sum, a) => sum + (a.variations[0]?.priceCents ?? 0),
-    0,
-  );
-  const totalCents = (state.variation?.priceCents ?? 0) + addOnTotalCents;
+  const servicesTotalCents = state.selectedServices.reduce((sum, sel) => sum + sel.variation.priceCents, 0);
+  const addOnTotalCents = state.addOns.reduce((sum, a) => sum + (a.variations[0]?.priceCents ?? 0), 0);
+  const totalCents = servicesTotalCents + addOnTotalCents;
 
   return {
     state,
     totalCents,
     goTo,
-    selectService,
-    clearService,
+    addService,
+    removeService,
     proceedToDateTime,
     toggleAddOn,
     selectSlot,
     setContact,
+    setSmsOptIn,
+    setCancellationAgreed,
     bookingCreated,
   };
 }

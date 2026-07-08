@@ -7,14 +7,15 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-card)]/90 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/images/logo.png" alt={BUSINESS_NAME} width={36} height={36} className="rounded-full" />
-          <span
-            className="text-lg tracking-wide text-[var(--color-ink)]"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
-            {BUSINESS_NAME}
-          </span>
+        <Link href="/" className="flex items-center py-1" aria-label={BUSINESS_NAME}>
+          <Image
+            src="/images/logo.png"
+            alt={BUSINESS_NAME}
+            width={465}
+            height={100}
+            className="h-10 w-auto sm:h-12"
+            priority
+          />
         </Link>
         <nav className="hidden items-center gap-6 text-sm text-[var(--color-muted)] sm:flex">
           <Link href="/#services" className="hover:text-[var(--color-ink)]">Services</Link>

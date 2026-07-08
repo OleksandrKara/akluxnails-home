@@ -14,12 +14,12 @@ function formatTime(iso: string): string {
 export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   const [slots, setSlots] = useState<WireSlot[] | null>(null);
   const [error, setError] = useState(false);
-  const variationId = flow.state.variation?.variationId;
+  const variationIds = flow.state.selectedServices.map((sel) => sel.variation.variationId).join(",");
 
   useEffect(() => {
-    if (!variationId) return;
+    if (!variationIds) return;
     let cancelled = false;
-    fetch(`/api/booking/availability?variationId=${encodeURIComponent(variationId)}`)
+    fetch(`/api/booking/availability?variationIds=${encodeURIComponent(variationIds)}`)
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled) setSlots(data.slots ?? []);
@@ -31,7 +31,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       cancelled = true;
       setSlots(null);
     };
-  }, [variationId]);
+  }, [variationIds]);
 
   if (error) {
     return <p className="text-sm text-[var(--color-muted)]">Couldn&apos;t load availability. Please try again shortly.</p>;
@@ -64,7 +64,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
             <div className="mt-2 flex flex-wrap gap-2">
               {daySlots.map((slot) => (
                 <button
-                  key={slot.startAt + slot.teamMemberId}
+                  key={slot.startAt + slot.segments[0]?.teamMemberId}
                   type="button"
                   onClick={() => flow.selectSlot(slot)}
                   className="rounded-[var(--radius-pill)] px-3 py-1.5 text-sm ring-1 ring-[var(--color-border)] hover:bg-[var(--color-accent-tint-2)]"
