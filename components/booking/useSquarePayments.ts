@@ -43,7 +43,15 @@ export function useSquareCard(containerId: string, enabled = true) {
   const attachedRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled || !APP_ID || !LOCATION_ID) return;
+    if (!enabled || !APP_ID || !LOCATION_ID) {
+      // Reset so that when `enabled` next flips true, this actually re-attaches: the container
+      // div is conditionally rendered by the caller, so a fresh "true" cycle gets a brand-new DOM
+      // node — without this, attachedRef staying true from an earlier cycle would skip attach()
+      // entirely and leave that new container empty. (card itself is gated to null below whenever
+      // `enabled` is false, so it doesn't need clearing here too.)
+      attachedRef.current = false;
+      return;
+    }
     let cancelled = false;
 
     async function setup() {
@@ -78,5 +86,5 @@ export function useSquareCard(containerId: string, enabled = true) {
     };
   }, [containerId, enabled]);
 
-  return { card, error };
+  return { card: enabled ? card : null, error };
 }
