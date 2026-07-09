@@ -72,3 +72,38 @@ export async function recordEvent(params: {
     console.error("Failed to record event", err);
   }
 }
+
+/** Records one booking-funnel step-reached event — see marketing.funnel_events, a table shared
+ * with mani (also written by its own backend) and read by salaryReview's funnel dashboard. Same
+ * never-throws guarantee as recordEvent/recordPageView.
+ */
+export async function recordFunnelEvent(params: {
+  visitorId: string;
+  landingPageId: string;
+  variantId: string;
+  flowKey: string;
+  stepKey: string;
+  stepIndex: number;
+  stepCountTotal: number;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  try {
+    await getPool().query(
+      `INSERT INTO marketing.funnel_events
+         (session_id, landing_page_id, variant_id, flow_key, step_key, step_index, step_count_total, metadata)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+      [
+        params.visitorId,
+        params.landingPageId,
+        params.variantId,
+        params.flowKey,
+        params.stepKey,
+        params.stepIndex,
+        params.stepCountTotal,
+        JSON.stringify(params.metadata ?? {}),
+      ],
+    );
+  } catch (err) {
+    console.error("Failed to record funnel event", err);
+  }
+}
