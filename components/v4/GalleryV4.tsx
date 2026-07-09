@@ -80,10 +80,11 @@ export default function GalleryV4() {
           >
             ×
           </button>
-          <div
-            className="relative h-full max-h-[85vh] w-full max-w-3xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          {/* No stopPropagation here on purpose: this box fills almost the entire viewport on
+              mobile (w-full up to max-w-3xl, h-full up to 85vh), leaving only thin slivers of
+              backdrop actually tappable to close. Letting a tap on the photo itself also close
+              the lightbox — normal mobile lightbox behavior — is what makes closing reliable. */}
+          <div className="relative h-full max-h-[85vh] w-full max-w-3xl">
             <Image
               src={PHOTOS[selectedIndex].src}
               alt={PHOTOS[selectedIndex].alt}

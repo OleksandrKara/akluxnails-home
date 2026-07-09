@@ -57,21 +57,3 @@ export const V4_GIFTCARD_BODY = "Any amount, delivered digitally, never expires 
 export const V4_LOCATION_NOTE = "Easy parking nearby · Perfect before work, over lunch, or in the evening.";
 export const V4_HOURS = "Monday – Sunday · 9:00 AM – 7:00 PM";
 
-export interface StockPhotoCredit {
-  src: string;
-  photographer: string;
-  sourceUrl: string;
-}
-
-// One verified, downloaded Unsplash photo (Unsplash License — free for commercial use, no
-// attribution required) used as an editorial mood shot where no real salon photo fits. A second
-// candidate ("salon interior") was rejected after a visual check showed a competing salon's own
-// branding visible on the wall — every real homepage photo is used instead for anything claiming
-// to show AK.LUX.NAILS' actual work or space.
-export const V4_STOCK_PHOTOS: Record<string, StockPhotoCredit> = {
-  handDetail: {
-    src: "/images/v4/hand-detail.jpg",
-    photographer: "Bryony Elena",
-    sourceUrl: "https://unsplash.com/photos/tXwBDZS2JxQ",
-  },
-};
