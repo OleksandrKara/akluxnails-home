@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useBookingFlow, type Preselection } from "./useBookingFlow";
 import ServicesStep from "./steps/ServicesStep";
 import AddOnsStep from "./steps/AddOnsStep";
@@ -8,6 +8,7 @@ import DateTimeStep from "./steps/DateTimeStep";
 import DetailsStep from "./steps/DetailsStep";
 import DoneStep from "./steps/DoneStep";
 import type { BookingStep } from "./types";
+import { trackFunnelStep } from "@/lib/trackFunnelStep";
 
 const STEPS: { step: BookingStep; label: string }[] = [
   { step: "services", label: "Service" },
@@ -49,6 +50,7 @@ export default function BookingModal({
   theme?: "v4";
 }) {
   const flow = useBookingFlow(preselection);
+  const trackedStepsRef = useRef<Set<BookingStep>>(new Set());
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -56,6 +58,19 @@ export default function BookingModal({
       document.body.style.overflow = "";
     };
   }, []);
+
+  // Booking-funnel step tracking (see marketing.funnel_events / lib/funnelFlow.ts). This
+  // component is only ever mounted while the modal is open (BookingModalProvider conditionally
+  // renders it), so a plain ref-backed Set — not keyed off anything — already scopes dedup to
+  // one modal session: back-navigation to an already-tracked step doesn't re-fire. "done" isn't
+  // tracked — booking_completed already covers completion more reliably.
+  useEffect(() => {
+    const step = flow.state.step;
+    if (step === "done") return;
+    if (trackedStepsRef.current.has(step)) return;
+    trackedStepsRef.current.add(step);
+    trackFunnelStep(step);
+  }, [flow.state.step]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
