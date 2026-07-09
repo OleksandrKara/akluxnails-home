@@ -3,15 +3,16 @@
 // duplicated; everything below is new, V4-specific copy.
 
 // Hero headline is split into 3 lines with one emphasized (italic + underlined) word, matching
-// svitnail.com's actual hero typographic treatment.
-export const V4_HEADLINE_LINE_1 = "Nails that stay";
-export const V4_HEADLINE_EMPHASIS = "flawless";
-export const V4_HEADLINE_LINE_3 = "for weeks.";
+// svitnail.com's actual hero typographic treatment. Leads with the pain point clients actually
+// describe — losing a nail tech they liked and having to start over — rather than a generic
+// quality claim.
+export const V4_HEADLINE_LINE_1 = "Stop searching for";
+export const V4_HEADLINE_EMPHASIS = "a nail tech.";
+export const V4_HEADLINE_LINE_3 = "You just found one.";
 export const V4_BADGE = "Downtown San Diego's Russian manicure studio";
 export const V4_SUBHEAD =
   "Russian manicure specialists in Downtown San Diego. Precision cuticle work, premium non-toxic gels, and a calm, modern studio — nail health first, always.";
-export const V4_PROMO = "15% OFF Your First Visit";
-export const V4_PROMO_MICRO = "15% off your first visit · book online in minutes";
+export const V4_PROMO_MICRO = "14-day guarantee · book online in seconds";
 
 export const V4_WHY_CHOOSE_US = [
   { title: "Russian Manicure specialists", desc: "Precise dry-cuticle technique, trained in the method — not a generic gel manicure." },
@@ -45,7 +46,7 @@ export const V4_REFERRAL_BODY = "Send a friend our way: you get 10% off your nex
 
 export const V4_STORY_HEADLINE = "Post a Story, Get a Discount";
 export const V4_STORY_BODY = "Share a Story from your appointment and tag us — show it at your next visit for 5% extra off.";
-export const V4_INSTAGRAM_HANDLE = "@akluxnails"; // placeholder — confirm real handle
+export const V4_INSTAGRAM_HANDLE = "@ak.lux.nails";
 
 export const V4_PREPAY_HEADLINE = "Prepay & Save";
 export const V4_PREPAY_BODY = "Prepay for 3 or more manicure/pedicure visits and save 10% on the whole package.";

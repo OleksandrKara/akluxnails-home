@@ -18,8 +18,8 @@ export default function HeroV4() {
   return (
     <section className="relative flex min-h-[92vh] items-end overflow-hidden sm:min-h-screen">
       <Image
-        src="/images/nailart1.jpg"
-        alt="Hand-painted nail art by AK.LUX.NAILS"
+        src="/images/milkynails.jpg"
+        alt="Milky white gel manicure by AK.LUX.NAILS"
         fill
         priority
         sizes="100vw"
@@ -45,7 +45,8 @@ export default function HeroV4() {
             style={{ textDecoration: "underline", textDecorationColor: "var(--color-accent)", textDecorationThickness: "4px", textUnderlineOffset: "6px" }}
           >
             {V4_HEADLINE_EMPHASIS}
-          </em>{" "}
+          </em>
+          <br />
           {V4_HEADLINE_LINE_3}
         </h1>
 
