@@ -25,8 +25,8 @@ export default function HeroV4() {
         sizes="100vw"
         className="object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
-      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#1f1620]/90 via-[#1f1620]/50 to-[#1f1620]/20" />
+      <div className="absolute inset-0 bg-[#3f2c45]/10" />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl px-6 pt-32 pb-16 sm:px-8 sm:pb-24">
         <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.14em] text-white uppercase backdrop-blur-md">
@@ -35,7 +35,7 @@ export default function HeroV4() {
         </span>
 
         <h1
-          className="mt-6 text-5xl leading-[1.02] font-light tracking-tight text-[#fcfbf8] sm:text-6xl lg:text-7xl"
+          className="mt-6 text-5xl leading-[1.02] font-light tracking-tight text-white sm:text-6xl lg:text-7xl"
           style={{ fontFamily: "var(--font-heading)" }}
         >
           {V4_HEADLINE_LINE_1}
