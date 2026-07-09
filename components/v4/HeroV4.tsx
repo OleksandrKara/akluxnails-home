@@ -18,8 +18,8 @@ export default function HeroV4() {
   return (
     <section className="relative flex min-h-[92vh] items-end overflow-hidden sm:min-h-screen">
       <Image
-        src="/images/milkynails.jpg"
-        alt="Milky white gel manicure by AK.LUX.NAILS"
+        src="/images/v4/hero-main.jpg"
+        alt="Glossy milky white gel manicure by AK.LUX.NAILS"
         fill
         priority
         sizes="100vw"
