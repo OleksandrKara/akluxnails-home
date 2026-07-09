@@ -7,6 +7,7 @@ import ReviewsSection from "@/components/ReviewsSection";
 import LocationSection from "@/components/LocationSection";
 import Footer from "@/components/Footer";
 import StickyBookBar from "@/components/StickyBookBar";
+import HomePageV4 from "@/components/v4/HomePageV4";
 import { getVariantById } from "@/lib/variant";
 import { recordPageView } from "@/lib/tracking";
 import { accentPaletteToCssVars, deriveAccentPalette } from "@/lib/theme";
@@ -43,6 +44,13 @@ export default async function HomePage({
         gclid: first(sp.gclid),
       },
     });
+  }
+
+  // A variant can point at an entirely different page template instead of a content override —
+  // Homepage V4 is a real, weighted variant of "/" this way, so it gets the same page-view
+  // tracking above and shows up in the owner dashboard's variant list automatically.
+  if (variant?.key === "homepage-v4") {
+    return <HomePageV4 />;
   }
 
   const themeStyle: CSSProperties = content.accentColor
