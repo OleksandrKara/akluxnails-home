@@ -25,10 +25,10 @@ const FEATURED_NAMES = [
 ];
 
 const SERVICE_PHOTOS: Record<string, { src: string; alt: string }> = {
-  "Regular Manicure Gel-Overlay": { src: "/images/nudemani1.jpg", alt: "Nude gel manicure by AK.LUX.NAILS" },
+  "Regular Manicure Gel-Overlay": { src: "/images/v4/regular-manicure.jpg", alt: "Gel-overlay manicure by AK.LUX.NAILS" },
   "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Gel nail extensions by AK.LUX.NAILS" },
   "Japanese manicure Deluxe (with massage & spa hand care)": {
-    src: "/images/mani1.jpg",
+    src: "/images/nudemani1.jpg",
     alt: "Deluxe manicure with spa hand care by AK.LUX.NAILS",
   },
   "Regular Pedicure Gel-Overlay": { src: "/images/v4/pedicure-dry.jpg", alt: "Polished pedicure toes" },
