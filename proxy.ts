@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
-import { getVariantById, pickVariant } from "./lib/variant";
+import { getVariantById, getVariantByKey, pickVariant } from "./lib/variant";
 
 // Assigns visitor identity + A/B variant server-side, via cookies, before the page ever renders —
 // avoids the localStorage-based fragility the mani funnel originally shipped with (client-side
@@ -38,7 +38,19 @@ export async function proxy(request: NextRequest) {
   let landingPageId: string | null = null;
   let setVariantCookie = false;
 
-  if (existingVariantId) {
+  // A ?v=<key> deep link (e.g. ?v=homepage-v4) always wins and becomes sticky — the way the owner
+  // (or a future ad campaign) can force a specific variant regardless of cookie/random assignment.
+  const deepLinkKey = request.nextUrl.searchParams.get("v");
+  if (deepLinkKey) {
+    const resolved = await getVariantByKey(deepLinkKey);
+    if (resolved) {
+      variantId = resolved.variantId;
+      landingPageId = resolved.landingPageId;
+      setVariantCookie = true;
+    }
+  }
+
+  if (!variantId && existingVariantId) {
     const stillValid = await getVariantById(existingVariantId);
     if (stillValid) {
       variantId = stillValid.variantId;

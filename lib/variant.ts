@@ -15,6 +15,10 @@ export interface HomeVariantContent {
 export interface ResolvedVariant {
   landingPageId: string;
   variantId: string;
+  /** Deep-link key (e.g. "control", "homepage-v4") — null for variants with no key assigned. Lets
+   * a variant signal "render an entirely different page template" (see app/page.tsx) rather than
+   * just a content override, and lets proxy.ts resolve a ?v=<key> deep link. */
+  key: string | null;
   content: HomeVariantContent;
 }
 
@@ -22,6 +26,7 @@ interface VariantRow {
   id: string;
   landing_page_id: string;
   weight: number;
+  key: string | null;
   content: HomeVariantContent;
 }
 
@@ -47,7 +52,7 @@ export async function pickVariant(): Promise<ResolvedVariant | null> {
   if (!pageId) return null;
 
   const { rows } = await getPool().query<VariantRow>(
-    "SELECT id, landing_page_id, weight, content FROM marketing.landing_variants WHERE landing_page_id = $1 AND active = true",
+    "SELECT id, landing_page_id, weight, key, content FROM marketing.landing_variants WHERE landing_page_id = $1 AND active = true",
     [pageId],
   );
   if (rows.length === 0) return null;
@@ -58,12 +63,12 @@ export async function pickVariant(): Promise<ResolvedVariant | null> {
   for (const row of rows) {
     roll -= row.weight;
     if (roll <= 0) {
-      return { landingPageId: row.landing_page_id, variantId: row.id, content: row.content ?? {} };
+      return { landingPageId: row.landing_page_id, variantId: row.id, key: row.key, content: row.content ?? {} };
     }
   }
   // Floating-point edge case — fall back to the last row rather than returning nothing.
   const last = rows[rows.length - 1];
-  return { landingPageId: last.landing_page_id, variantId: last.id, content: last.content ?? {} };
+  return { landingPageId: last.landing_page_id, variantId: last.id, key: last.key, content: last.content ?? {} };
 }
 
 /** Re-fetches a specific already-assigned variant by id (used when a visitor's cookie already
@@ -71,10 +76,25 @@ export async function pickVariant(): Promise<ResolvedVariant | null> {
  */
 export async function getVariantById(variantId: string): Promise<ResolvedVariant | null> {
   const { rows } = await getPool().query<VariantRow>(
-    "SELECT id, landing_page_id, weight, content FROM marketing.landing_variants WHERE id = $1 AND active = true",
+    "SELECT id, landing_page_id, weight, key, content FROM marketing.landing_variants WHERE id = $1 AND active = true",
     [variantId],
   );
   if (rows.length === 0) return null;
   const row = rows[0];
-  return { landingPageId: row.landing_page_id, variantId: row.id, content: row.content ?? {} };
+  return { landingPageId: row.landing_page_id, variantId: row.id, key: row.key, content: row.content ?? {} };
+}
+
+/** Resolves a variant by its deep-link key (e.g. "?v=homepage-v4") — used by proxy.ts to let a
+ * specific variant be forced regardless of cookie/random assignment. */
+export async function getVariantByKey(key: string): Promise<ResolvedVariant | null> {
+  const pageId = await landingPageId();
+  if (!pageId) return null;
+
+  const { rows } = await getPool().query<VariantRow>(
+    "SELECT id, landing_page_id, weight, key, content FROM marketing.landing_variants WHERE landing_page_id = $1 AND key = $2 AND active = true",
+    [pageId, key],
+  );
+  if (rows.length === 0) return null;
+  const row = rows[0];
+  return { landingPageId: row.landing_page_id, variantId: row.id, key: row.key, content: row.content ?? {} };
 }
