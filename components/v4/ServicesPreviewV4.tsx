@@ -25,12 +25,13 @@ const FEATURED_NAMES = [
 ];
 
 const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: string }> = {
-  // position shifted up so the nail tips (near the top of this source photo) aren't cropped out
-  // of the card's short thumbnail frame.
+  // Pre-cropped (see public/images/v4/regular-manicure.jpg) to already match this card's aspect
+  // ratio and frame every nail fully, cuticle to tip — the original portrait photo couldn't show
+  // that at this card's wide, short aspect ratio without a source crop; a CSS object-position
+  // trick alone can only shift which slice shows, not fit more of a taller subject into it.
   "Regular Manicure Gel-Overlay": {
     src: "/images/v4/regular-manicure.jpg",
     alt: "Gel-overlay manicure by AK.LUX.NAILS",
-    position: "center 20%",
   },
   "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Gel nail extensions by AK.LUX.NAILS" },
   "Japanese manicure Deluxe (with massage & spa hand care)": {
