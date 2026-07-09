@@ -1,3 +1,4 @@
+import Image from "next/image";
 import BookNowButton from "../BookNowButton";
 import { getCuratedMenu } from "@/lib/square/catalog";
 import { toWireItem } from "@/lib/square/wire";
@@ -11,12 +12,27 @@ function formatPrice(cents: number): string {
 // A premium homepage teases flagship manicure/pedicure work rather than mechanically showing one
 // item per catalog group (which would surface Men's Services/4-Hand Appointments alongside them,
 // diluting the "luxury Russian manicure" positioning) — "View All Services" opens the full menu.
+// Each gets a small representative photo, matching svitnail.com's catalog card layout. Three are
+// real AK.LUX.NAILS work; the pedicure photo is a verified Unsplash photo (Unsplash License, free
+// commercial use) of polished toes with no bowl/water/soaking visible anywhere in frame — this
+// salon does a dry pedicure (no foot soak), so anything showing a soak would misrepresent the
+// actual service.
 const FEATURED_NAMES = [
   "Regular Manicure Gel-Overlay",
   "Gel Nail Extension",
   "Japanese manicure Deluxe (with massage & spa hand care)",
   "Regular Pedicure Gel-Overlay",
 ];
+
+const SERVICE_PHOTOS: Record<string, { src: string; alt: string }> = {
+  "Regular Manicure Gel-Overlay": { src: "/images/nudemani1.jpg", alt: "Nude gel manicure by AK.LUX.NAILS" },
+  "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Gel nail extensions by AK.LUX.NAILS" },
+  "Japanese manicure Deluxe (with massage & spa hand care)": {
+    src: "/images/mani1.jpg",
+    alt: "Deluxe manicure with spa hand care by AK.LUX.NAILS",
+  },
+  "Regular Pedicure Gel-Overlay": { src: "/images/v4/pedicure-dry.jpg", alt: "Polished pedicure toes" },
+};
 
 export default async function ServicesPreviewV4() {
   const menu = await getCuratedMenu();
@@ -45,28 +61,42 @@ export default async function ServicesPreviewV4() {
             wireService.variations.length === 1
               ? { service: wireService, variation: wireVariation }
               : { service: wireService, variation: null };
+          const photo = SERVICE_PHOTOS[service.name];
           return (
             <FadeUp key={service.itemId} delayMs={i * 80}>
               <BookNowButton
                 preselection={preselection}
-                className="group flex h-full w-full flex-col items-start rounded-[var(--radius-xl)] bg-[var(--color-card)] p-7 text-left ring-1 ring-[var(--color-border)] transition hover:-translate-y-1 hover:shadow-xl"
+                className="group flex h-full w-full flex-col items-start overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-card)] text-left ring-1 ring-[var(--color-border)] transition hover:-translate-y-1 hover:shadow-xl"
               >
-                <span className="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">
-                  {group.title}
-                </span>
-                <span
-                  className="mt-3 text-xl text-[var(--color-ink)]"
-                  style={{ fontFamily: "var(--font-heading)" }}
-                >
-                  {service.name}
-                </span>
-                <span className="mt-4 text-lg font-medium text-[var(--color-accent-dark)]">
-                  {service.variations.length === 1
-                    ? formatPrice(service.variations[0].priceCents)
-                    : `from ${formatPrice(cheapest.priceCents)}`}
-                </span>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-[var(--color-ink)] transition group-hover:gap-2">
-                  Book Now →
+                {photo && (
+                  <span className="relative block h-40 w-full overflow-hidden">
+                    <Image
+                      src={photo.src}
+                      alt={photo.alt}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
+                  </span>
+                )}
+                <span className="flex w-full flex-col items-start p-7">
+                  <span className="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">
+                    {group.title}
+                  </span>
+                  <span
+                    className="mt-3 text-xl text-[var(--color-ink)]"
+                    style={{ fontFamily: "var(--font-heading)" }}
+                  >
+                    {service.name}
+                  </span>
+                  <span className="mt-4 text-lg font-medium text-[var(--color-accent-dark)]">
+                    {service.variations.length === 1
+                      ? formatPrice(service.variations[0].priceCents)
+                      : `from ${formatPrice(cheapest.priceCents)}`}
+                  </span>
+                  <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-[var(--color-ink)] transition group-hover:gap-2">
+                    Book Now →
+                  </span>
                 </span>
               </BookNowButton>
             </FadeUp>
