@@ -25,16 +25,16 @@ const FEATURED_NAMES = [
 ];
 
 const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: string }> = {
-  // position shifted down (higher Y%) so the nail tips — in the lower half of this wide,
-  // short-cropped source photo — aren't cut off by the card's short thumbnail frame.
+  // position shifted up so the nail tips (near the top of this source photo) aren't cropped out
+  // of the card's short thumbnail frame.
   "Regular Manicure Gel-Overlay": {
-    src: "/images/nudemani1.jpg",
-    alt: "Nude gel manicure by AK.LUX.NAILS",
-    position: "center 70%",
+    src: "/images/v4/regular-manicure.jpg",
+    alt: "Gel-overlay manicure by AK.LUX.NAILS",
+    position: "center 20%",
   },
   "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Gel nail extensions by AK.LUX.NAILS" },
   "Japanese manicure Deluxe (with massage & spa hand care)": {
-    src: "/images/mani1.jpg",
+    src: "/images/nudemani1.jpg",
     alt: "Deluxe manicure with spa hand care by AK.LUX.NAILS",
   },
   "Regular Pedicure Gel-Overlay": { src: "/images/v4/pedicure-dry.jpg", alt: "Polished pedicure toes" },
