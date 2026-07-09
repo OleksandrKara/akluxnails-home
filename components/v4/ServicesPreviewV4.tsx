@@ -24,8 +24,14 @@ const FEATURED_NAMES = [
   "Regular Pedicure Gel-Overlay",
 ];
 
-const SERVICE_PHOTOS: Record<string, { src: string; alt: string }> = {
-  "Regular Manicure Gel-Overlay": { src: "/images/nudemani1.jpg", alt: "Nude gel manicure by AK.LUX.NAILS" },
+const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: string }> = {
+  // position shifted down (higher Y%) so the nail tips — in the lower half of this wide,
+  // short-cropped source photo — aren't cut off by the card's short thumbnail frame.
+  "Regular Manicure Gel-Overlay": {
+    src: "/images/nudemani1.jpg",
+    alt: "Nude gel manicure by AK.LUX.NAILS",
+    position: "center 70%",
+  },
   "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Gel nail extensions by AK.LUX.NAILS" },
   "Japanese manicure Deluxe (with massage & spa hand care)": {
     src: "/images/mani1.jpg",
@@ -76,6 +82,7 @@ export default async function ServicesPreviewV4() {
                       fill
                       sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       className="object-cover transition duration-500 group-hover:scale-105"
+                      style={photo.position ? { objectPosition: photo.position } : undefined}
                     />
                   </span>
                 )}

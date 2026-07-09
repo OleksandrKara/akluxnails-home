@@ -2,10 +2,12 @@ import Image from "next/image";
 import FadeUp from "./FadeUp";
 
 const PHOTOS = [
-  { src: "/images/nailart1.jpg", alt: "Hand-painted nail art by AK.LUX.NAILS", span: "sm:col-span-2 sm:row-span-2" },
-  { src: "/images/customer1.jpg", alt: "A happy AK.LUX.NAILS client showing off her manicure", span: "" },
-  { src: "/images/milkynails.jpg", alt: "Milky white gel manicure by AK.LUX.NAILS", span: "" },
-  { src: "/images/nudemani1.jpg", alt: "Nude gel manicure by AK.LUX.NAILS", span: "sm:col-span-2" },
+  { src: "/images/v4/gallery-red.jpg", alt: "Glossy red gel manicure by AK.LUX.NAILS", span: "sm:col-span-2 sm:row-span-2" },
+  { src: "/images/v4/gallery-yellow-floral.jpg", alt: "Pale yellow manicure with a floral accent nail by AK.LUX.NAILS", span: "" },
+  { src: "/images/v4/gallery-french-profile.jpg", alt: "Classic white French manicure by AK.LUX.NAILS", span: "" },
+  { src: "/images/v4/gallery-nude-glitter.jpg", alt: "Nude manicure with gold glitter by AK.LUX.NAILS", span: "" },
+  { src: "/images/v4/gallery-milky.jpg", alt: "Milky white gel manicure by AK.LUX.NAILS", span: "" },
+  { src: "/images/v4/gallery-bird-art.jpg", alt: "Nude manicure with a hand-painted bird accent nail by AK.LUX.NAILS", span: "sm:col-span-2" },
 ];
 
 export default function GalleryV4() {
