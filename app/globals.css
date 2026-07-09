@@ -68,6 +68,40 @@
   --radius-pill: var(--radius-pill);
 }
 
+/**
+ * Homepage V4 only (see components/v4/HomePageV4.tsx, which sets this class on its root). Every
+ * V4 section already reads the shared color/font-heading/font-body variables above via Tailwind
+ * arbitrary values (e.g. text-[var(--color-accent)]). Overriding the same variable names here,
+ * scoped to this class, re-themes all of them to match the reference site real palette and
+ * typography (cream FCFBF8, espresso 172B0C, gold F5D96B, Space Grotesk display font, DM Sans
+ * body font) without editing every section file.
+ */
+.v4-theme {
+  --color-bg-from: #fcfbf8;
+  --color-bg-mid: #fcfbf8;
+  --color-bg-to: #f5f1e8;
+  --color-card: #fcfbf8;
+  --color-ink: #172b0c;
+  --color-ink-soft: #172b0c;
+  --color-muted: #4a4a42;
+  --color-muted-2: #6b6b60;
+  --color-muted-3: #8a8a7d;
+  --color-border: #172b0c1a;
+  --color-border-2: #172b0c1a;
+  --color-border-3: #172b0c26;
+  --color-accent: #f5d96b;
+  --color-accent-dark: #d9b94a;
+  --color-accent-hover: #e8c85a;
+  --color-accent-tint: #faf0cc;
+  --color-accent-tint-2: #fdf8ea;
+  --color-accent-border-soft: #ecd898;
+  --color-gold: #f5d96b;
+  --color-gold-text: #9e7a3d;
+
+  --font-heading: var(--font-space-grotesk), sans-serif;
+  --font-body: var(--font-dm-sans), sans-serif;
+}
+
 * {
   box-sizing: border-box;
 }

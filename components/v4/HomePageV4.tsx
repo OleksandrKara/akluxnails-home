@@ -21,7 +21,7 @@ import HeaderV4 from "./HeaderV4";
  * for anyone hitting the old direct link. */
 export default function HomePageV4() {
   return (
-    <div className="flex min-h-screen flex-col pb-16 sm:pb-0">
+    <div className="v4-theme flex min-h-screen flex-col bg-[var(--color-bg-from)] pb-16 sm:pb-0" style={{ fontFamily: "var(--font-body)" }}>
       <HeaderV4 />
       <main>
         <HeroV4 />

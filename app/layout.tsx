@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Jost } from "next/font/google";
+import { Playfair_Display, Jost, Space_Grotesk, DM_Sans } from "next/font/google";
 import BookingModalProvider from "@/components/booking/BookingModalProvider";
 import "./globals.css";
 
@@ -13,6 +13,20 @@ const jost = Jost({
   variable: "--font-jost",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+});
+
+// Homepage V4 only (see globals.css's .v4-theme scope) — matches svitnail.com's own typography
+// (Space Grotesk display font, DM Sans body/UI font), which the owner asked to get closer to.
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin"],
+  weight: ["300", "500", "700"],
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
 });
 
 const SITE_URL = "https://akluxnails.com";
@@ -38,7 +52,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${jost.variable} antialiased`}>
+    <html
+      lang="en"
+      className={`${playfair.variable} ${jost.variable} ${spaceGrotesk.variable} ${dmSans.variable} antialiased`}
+    >
       <body className="min-h-screen flex flex-col">
         <BookingModalProvider>{children}</BookingModalProvider>
       </body>
