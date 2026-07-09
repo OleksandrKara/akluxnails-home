@@ -28,7 +28,7 @@ export default function ValuePropV4() {
         <FadeUp delayMs={120} className="relative aspect-[3/4] w-full overflow-hidden rounded-[var(--radius-xl)] shadow-2xl">
           <Image
             src="/images/v4/hand-detail.jpg"
-            alt="Elegant white French almond manicure by AK.LUX.NAILS"
+            alt="Classic white French manicure by AK.LUX.NAILS"
             fill
             sizes="(min-width: 1024px) 40vw, 90vw"
             className="object-cover"
