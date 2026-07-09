@@ -4,7 +4,11 @@ import { createContext, useContext, useState } from "react";
 import BookingModal from "./BookingModal";
 import type { Preselection } from "./useBookingFlow";
 
-const BookingModalContext = createContext<{ open: (preselection?: Preselection) => void } | null>(null);
+type ModalTheme = "v4" | undefined;
+
+const BookingModalContext = createContext<{ open: (preselection?: Preselection, theme?: ModalTheme) => void } | null>(
+  null,
+);
 
 export function useBookingModal() {
   const ctx = useContext(BookingModalContext);
@@ -15,19 +19,21 @@ export function useBookingModal() {
 export default function BookingModalProvider({ children }: { children: React.ReactNode }) {
   const [preselection, setPreselection] = useState<Preselection | null | undefined>(undefined);
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState<ModalTheme>(undefined);
 
   return (
     <BookingModalContext.Provider
       value={{
-        open: (p) => {
+        open: (p, t) => {
           setPreselection(p);
+          setTheme(t);
           setIsOpen(true);
         },
       }}
     >
       {children}
       {isOpen && (
-        <BookingModal onClose={() => setIsOpen(false)} preselection={preselection ?? undefined} />
+        <BookingModal onClose={() => setIsOpen(false)} preselection={preselection ?? undefined} theme={theme} />
       )}
     </BookingModalContext.Provider>
   );

@@ -38,9 +38,15 @@ function ProgressBar({ step }: { step: BookingStep }) {
 export default function BookingModal({
   onClose,
   preselection,
+  theme,
 }: {
   onClose: () => void;
   preselection?: Preselection;
+  /** Set when opened from Homepage V4 (see V4ThemeContext/BookNowButton) — applies the same
+   * v4-theme CSS variable override used by the rest of that page, so every step (which already
+   * reads the shared color and font variables) re-themes without any per-step edits. Every
+   * other variant opens this with theme=undefined, so it's completely unaffected. */
+  theme?: "v4";
 }) {
   const flow = useBookingFlow(preselection);
 
@@ -53,7 +59,10 @@ export default function BookingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] p-6 shadow-xl sm:rounded-[var(--radius-xl)]">
+      <div
+        className={`max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] p-6 shadow-xl sm:rounded-[var(--radius-xl)] ${theme === "v4" ? "v4-theme" : ""}`}
+        style={theme === "v4" ? { fontFamily: "var(--font-body)" } : undefined}
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <ProgressBar step={flow.state.step} />
