@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import BookNowButton from "./BookNowButton";
 import { LOCATION } from "@/lib/siteData";
+import { useIsV4Theme } from "./v4/V4ThemeContext";
 
 function MessageIcon() {
   return (
@@ -22,6 +23,7 @@ function MessageIcon() {
  * matter how far down the page someone has scrolled, without competing with the hero CTA. */
 export default function StickyBookBar() {
   const [visible, setVisible] = useState(false);
+  const isV4 = useIsV4Theme();
 
   useEffect(() => {
     function onScroll() {
@@ -44,7 +46,11 @@ export default function StickyBookBar() {
         href={LOCATION.smsHref}
         aria-label="Text us"
         title="Text us"
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]"
+        className={
+          isV4
+            ? "flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--color-ink)] text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+            : "flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]"
+        }
       >
         <MessageIcon />
       </a>

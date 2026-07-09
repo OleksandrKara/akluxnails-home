@@ -15,45 +15,49 @@ import FinalCtaV4 from "./FinalCtaV4";
 import Footer from "../Footer";
 import StickyBookBar from "../StickyBookBar";
 import HeaderV4 from "./HeaderV4";
+import { V4ThemeProvider } from "./V4ThemeContext";
 
 /** The full Homepage V4 template — rendered by app/page.tsx when the resolved variant's key is
  * "homepage-v4" (a real, weighted variant in the live rotation), and by the /v4 redirect target
- * for anyone hitting the old direct link. */
+ * for anyone hitting the old direct link. Wrapped in V4ThemeProvider so BookNowButton (shared by
+ * every variant) knows to open the booking modal themed to match — see V4ThemeContext.tsx. */
 export default function HomePageV4() {
   return (
-    <div className="flex min-h-screen flex-col pb-16 sm:pb-0">
-      <HeaderV4 />
-      <main>
-        <HeroV4 />
-        <TrustBarV4 />
+    <V4ThemeProvider>
+      <div className="v4-theme flex min-h-screen flex-col bg-[var(--color-bg-from)] pb-16 sm:pb-0" style={{ fontFamily: "var(--font-body)" }}>
+        <HeaderV4 />
+        <main>
+          <HeroV4 />
+          <TrustBarV4 />
 
-        <section className="mx-auto max-w-3xl px-6 py-16 text-center">
-          <p className="text-[var(--color-muted)]">
-            AK.LUX.NAILS is a Russian Manicure salon in Downtown San Diego, specializing in
-            structured gel nails and builder gel for clients who want their gel manicure to
-            actually last. If you&rsquo;ve been searching for a Russian nail salon that treats
-            nail health as seriously as the finished look, this is that luxury nail salon in San
-            Diego.
-          </p>
-        </section>
+          <section className="mx-auto max-w-3xl px-6 py-16 text-center">
+            <p className="text-[var(--color-muted)]">
+              AK.LUX.NAILS is a Russian Manicure salon in Downtown San Diego, specializing in
+              structured gel nails and builder gel for clients who want their gel manicure to
+              actually last. If you&rsquo;ve been searching for a Russian nail salon that treats
+              nail health as seriously as the finished look, this is that luxury nail salon in San
+              Diego.
+            </p>
+          </section>
 
-        <ServicesPreviewV4 />
-        <WhyChooseUsV4 />
-        <ValuePropV4 />
-        <GalleryV4 />
+          <ServicesPreviewV4 />
+          <WhyChooseUsV4 />
+          <ValuePropV4 />
+          <GalleryV4 />
 
-        <ReviewsSection />
+          <ReviewsSection />
 
-        <GuaranteeV4 />
-        <ReferFriendV4 />
-        <PostStoryV4 />
-        <PrepayV4 />
-        <GiftCardV4 />
-        <LocationV4 />
-      </main>
-      <FinalCtaV4 />
-      <Footer />
-      <StickyBookBar />
-    </div>
+          <GuaranteeV4 />
+          <ReferFriendV4 />
+          <PostStoryV4 />
+          <PrepayV4 />
+          <GiftCardV4 />
+          <LocationV4 />
+        </main>
+        <FinalCtaV4 />
+        <Footer />
+        <StickyBookBar />
+      </div>
+    </V4ThemeProvider>
   );
 }

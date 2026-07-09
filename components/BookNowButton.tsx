@@ -2,6 +2,7 @@
 
 import { useBookingModal } from "./booking/BookingModalProvider";
 import type { Preselection } from "./booking/useBookingFlow";
+import { useIsV4Theme } from "./v4/V4ThemeContext";
 
 /** Opens this page's own native booking flow (services/add-ons, date/time, contact, card-on-file
  * for no-show protection) — unlike mani.akluxnails.com's ads funnel, this page's mostly-returning
@@ -18,6 +19,7 @@ export default function BookNowButton({
   preselection?: Preselection;
 }) {
   const { open } = useBookingModal();
+  const isV4 = useIsV4Theme();
 
   function onClick() {
     try {
@@ -25,7 +27,7 @@ export default function BookNowButton({
     } catch {
       // best-effort only — never block opening the modal on this
     }
-    open(preselection);
+    open(preselection, isV4 ? "v4" : undefined);
   }
 
   return (
