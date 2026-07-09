@@ -59,18 +59,26 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const [error, setError] = useState<string | null>(null);
   const [showPolicy, setShowPolicy] = useState(false);
   const [returningCustomer, setReturningCustomer] = useState<ReturningCustomer | null>(null);
+  // The exact phone/email the above result actually came from. Compared against the *current*
+  // fields on every render below — if they no longer match (the user has since edited either
+  // field), the result is treated as unconfirmed rather than trusted. Without this, typing a
+  // known customer's number then changing it to someone else's (or a typo) would keep skipping
+  // the card step until the new lookup happens to complete, which is exactly backwards — we must
+  // not assume a card is on file for contact info we haven't actually confirmed yet.
+  const [lookedUpFor, setLookedUpFor] = useState<{ phoneNumber: string; emailAddress: string } | null>(null);
+  const returningCustomerConfirmed =
+    lookedUpFor?.phoneNumber === phoneNumber && lookedUpFor?.emailAddress === emailAddress ? returningCustomer : null;
 
-  const needsCard = !isFourHandsRequest && !returningCustomer?.hasCardOnFile;
+  const needsCard = !isFourHandsRequest && !returningCustomerConfirmed?.hasCardOnFile;
   const { card, error: sdkError } = useSquareCard(CARD_CONTAINER_ID, needsCard);
 
   useEffect(() => {
     const phoneReady = looksLikeCompletePhone(phoneNumber);
     const emailReady = looksLikeCompleteEmail(emailAddress);
+    if (!phoneReady && !emailReady) return;
+
+    let cancelled = false;
     const timer = setTimeout(() => {
-      if (!phoneReady && !emailReady) {
-        setReturningCustomer(null);
-        return;
-      }
       fetch("/api/booking/customer-lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,10 +88,25 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         }),
       })
         .then((r) => r.json())
-        .then((data) => setReturningCustomer(data.found ? data : null))
-        .catch(() => setReturningCustomer(null));
+        .then((data) => {
+          // Guards against a slow response for an older phone/email resolving after the input
+          // has since changed again — the lookedUpFor comparison above already protects against
+          // stale data being trusted, but there's no reason to apply it at all in that case.
+          if (cancelled) return;
+          setReturningCustomer(data.found ? data : null);
+          setLookedUpFor({ phoneNumber, emailAddress });
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setReturningCustomer(null);
+          setLookedUpFor({ phoneNumber, emailAddress });
+        });
     }, LOOKUP_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [phoneNumber, emailAddress]);
 
   if (selectedServices.length === 0 || !slot) return null;
@@ -151,10 +174,10 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   }
 
   const skippedThings: string[] = [];
-  if (returningCustomer?.hasCardOnFile) skippedThings.push("your card");
-  if (returningCustomer?.hasSmsOptIn) skippedThings.push("your texting preferences");
-  const welcomeBackMessage = returningCustomer
-    ? `Welcome back${returningCustomer.givenName ? `, ${returningCustomer.givenName}` : ""}! 🎉${
+  if (returningCustomerConfirmed?.hasCardOnFile) skippedThings.push("your card");
+  if (returningCustomerConfirmed?.hasSmsOptIn) skippedThings.push("your texting preferences");
+  const welcomeBackMessage = returningCustomerConfirmed
+    ? `Welcome back${returningCustomerConfirmed.givenName ? `, ${returningCustomerConfirmed.givenName}` : ""}! 🎉${
         skippedThings.length > 0
           ? ` We already have ${skippedThings.join(" and ")} on file, so there's nothing extra to fill out — thank you for being a returning client.`
           : " Great to see you again."
@@ -246,7 +269,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           compliant marketing consent. Purely optional, never blocks booking. Styled to actually
           invite a yes (badge, benefit-led copy that changes once checked) rather than just
           sitting there as a bare checkbox. Skipped entirely once we already have consent on file. */}
-      {!returningCustomer?.hasSmsOptIn && (
+      {!returningCustomerConfirmed?.hasSmsOptIn && (
         <label
           className={`mt-4 flex cursor-pointer items-start gap-3 rounded-[var(--radius-lg)] border-2 p-3.5 transition ${
             smsOptIn
