@@ -65,7 +65,11 @@ export default function GalleryV4() {
 
       {selectedIndex !== null && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 sm:p-8"
+          // touch-none: without it, mobile Chrome can interpret a swipe inside the overlay as its
+          // own edge-swipe back/forward navigation gesture instead of a tap-to-close, leaving the
+          // lightbox open (or navigating the page) — this forces all touch handling through our
+          // own onClick instead.
+          className="fixed inset-0 z-50 flex touch-none items-center justify-center bg-black/90 p-4 sm:p-8"
           onClick={() => setSelectedIndex(null)}
         >
           <button
