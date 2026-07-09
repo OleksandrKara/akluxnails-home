@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Jost, Space_Grotesk, DM_Sans } from "next/font/google";
+import { Playfair_Display, Jost, Fraunces, Manrope } from "next/font/google";
 import BookingModalProvider from "@/components/booking/BookingModalProvider";
 import "./globals.css";
 
@@ -15,16 +15,20 @@ const jost = Jost({
   weight: ["400", "500", "600"],
 });
 
-// Homepage V4 only (see globals.css's .v4-theme scope) — matches svitnail.com's own typography
-// (Space Grotesk display font, DM Sans body/UI font), which the owner asked to get closer to.
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+// Homepage V4 only (see globals.css's .v4-theme scope). Started as a close match to
+// svitnail.com's own fonts (Space Grotesk/DM Sans), but swapped for a pairing that reads more
+// "luxury beauty" and gives the hero's italicized emphasis word a real italic face instead of a
+// synthetic slant: Fraunces (a warm, soft-contrast display serif with genuine italics, common in
+// modern boutique/beauty branding) for headings, Manrope for body/UI text.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
-  weight: ["300", "500", "700"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
 });
@@ -54,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${jost.variable} ${spaceGrotesk.variable} ${dmSans.variable} antialiased`}
+      className={`${playfair.variable} ${jost.variable} ${fraunces.variable} ${manrope.variable} antialiased`}
     >
       <body className="min-h-screen flex flex-col">
         <BookingModalProvider>{children}</BookingModalProvider>

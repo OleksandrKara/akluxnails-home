@@ -76,8 +76,8 @@
  * owner's own luxury-beauty spec: deep plum for headings/dark sections, soft champagne gold for
  * the accent, off-white background, white cards, and a neutral charcoal for body text (kept
  * distinct from the plum, which is reserved for headings/brand moments, not paragraph copy).
- * Typography (Space Grotesk display / DM Sans body) is unchanged from the earlier svitnail.com
- * reference pass.
+ * Typography is Fraunces (a warm, soft-contrast serif with genuine italics, common in modern
+ * boutique/beauty branding) for headings and Manrope for body/UI text.
  */
 .v4-theme {
   --color-bg-from: #faf8f6;
@@ -101,8 +101,8 @@
   --color-gold: #d9b46a;
   --color-gold-text: #8a6a3a;
 
-  --font-heading: var(--font-space-grotesk), sans-serif;
-  --font-body: var(--font-dm-sans), sans-serif;
+  --font-heading: var(--font-fraunces), serif;
+  --font-body: var(--font-manrope), sans-serif;
 }
 
 * {
