@@ -12,10 +12,11 @@ function formatPrice(cents: number): string {
 // A premium homepage teases flagship manicure/pedicure work rather than mechanically showing one
 // item per catalog group (which would surface Men's Services/4-Hand Appointments alongside them,
 // diluting the "luxury Russian manicure" positioning) — "View All Services" opens the full menu.
-// Each gets a small representative photo, matching svitnail.com's catalog card layout — all real
-// AK.LUX.NAILS work. The pedicure card uses a technique/process shot rather than a feet photo:
-// we do a dry pedicure (no foot soak), so a generic pedicure stock photo showing feet in a water
-// bath would misrepresent the actual service.
+// Each gets a small representative photo, matching svitnail.com's catalog card layout. Three are
+// real AK.LUX.NAILS work; the pedicure photo is a verified Unsplash photo (Unsplash License, free
+// commercial use) of polished toes with no bowl/water/soaking visible anywhere in frame — this
+// salon does a dry pedicure (no foot soak), so anything showing a soak would misrepresent the
+// actual service.
 const FEATURED_NAMES = [
   "Regular Manicure Gel-Overlay",
   "Gel Nail Extension",
@@ -30,9 +31,7 @@ const SERVICE_PHOTOS: Record<string, { src: string; alt: string }> = {
     src: "/images/mani1.jpg",
     alt: "Deluxe manicure with spa hand care by AK.LUX.NAILS",
   },
-  // We do a dry pedicure (no foot soak) — a soaking/spa-bowl stock photo would misrepresent the
-  // actual service, so this uses a real in-studio precision-technique photo instead.
-  "Regular Pedicure Gel-Overlay": { src: "/images/nail4.jpg", alt: "Precision nail technique work at AK.LUX.NAILS" },
+  "Regular Pedicure Gel-Overlay": { src: "/images/v4/pedicure-dry.jpg", alt: "Polished pedicure toes" },
 };
 
 export default async function ServicesPreviewV4() {
