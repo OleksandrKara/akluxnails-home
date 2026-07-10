@@ -68,14 +68,31 @@ jobs:
             # Match main exactly; the gitignored .env (secrets) is untouched.
             git reset --hard origin/main
             # 'ubuntu' needs sudo for docker on this host (passwordless sudo is enabled).
-            sudo docker compose up -d --build
+
+            # Rolling deploy: build the shared image once, then recreate blue/green one at a
+            # time, waiting for each to report healthy before touching the other — nginx's
+            # upstream retry (see nginx/akluxnails-home.conf) means visitors never see a
+            # dropped request even while one replica is mid-restart, since the other keeps
+            # serving throughout. Never both down at once.
+            sudo docker compose build frontend-blue
+
+            wait_healthy() {
+              for i in \$(seq 1 30); do
+                if [ "\$(sudo docker inspect -f '{{.State.Health.Status}}' "\$1" 2>/dev/null)" = "healthy" ]; then
+                  echo "\$1 healthy"; return 0
+                fi
+                sleep 3
+              done
+              echo "\$1 did not become healthy in time" >&2
+              return 1
+            }
+
+            sudo docker compose up -d --no-deps frontend-blue
+            wait_healthy akluxnails-home-frontend-blue
+
+            sudo docker compose up -d --no-deps frontend-green
+            wait_healthy akluxnails-home-frontend-green
+
             sudo docker image prune -f
-            # Wait for the frontend health check to report healthy (up to ~90s).
-            for i in \$(seq 1 30); do
-              if [ "\$(sudo docker inspect -f '{{.State.Health.Status}}' akluxnails-home-frontend 2>/dev/null)" = "healthy" ]; then
-                echo "frontend healthy"; break
-              fi
-              sleep 3
-            done
             sudo docker compose ps
           EOF
