@@ -1,12 +1,30 @@
+# Two identical frontend replicas ("blue"/"green") instead of one, so a deploy can restart them
+# one at a time — nginx (see nginx/akluxnails-home.conf) load-balances across both and
+# automatically retries a request against the other replica if one is mid-restart, so a deploy
+# never drops a real visitor's request. Both build from the same image (see `image:` below) so
+# `docker compose build` only builds once regardless of which/how many services reference it.
 services:
-  frontend:
+  frontend-blue:
+    image: akluxnails-home:latest
     build: .
-    container_name: akluxnails-home-frontend
+    container_name: akluxnails-home-frontend-blue
     restart: unless-stopped
     env_file:
       - ./.env
     ports:
       - "127.0.0.1:3002:3000"
+    networks:
+      - default
+      - salaryreview_default
+
+  frontend-green:
+    image: akluxnails-home:latest
+    container_name: akluxnails-home-frontend-green
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "127.0.0.1:3005:3000"
     networks:
       - default
       - salaryreview_default
