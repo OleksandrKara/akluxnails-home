@@ -13,6 +13,11 @@ import { recordPageView } from "@/lib/tracking";
 import { accentPaletteToCssVars, deriveAccentPalette } from "@/lib/theme";
 import type { CSSProperties } from "react";
 
+// Every variant key that renders the V4 template (components/v4/HomePageV4.tsx) rather than the
+// classic Header/Hero/Services/... tree — a Set so adding another V4-template variant later (a
+// new headline test, say "homepage-v6") is a one-line change here, not a new branch.
+const V4_TEMPLATE_KEYS = new Set(["homepage-v4", "homepage-v5"]);
+
 export default async function HomePage({
   searchParams,
 }: {
@@ -47,10 +52,11 @@ export default async function HomePage({
   }
 
   // A variant can point at an entirely different page template instead of a content override —
-  // Homepage V4 is a real, weighted variant of "/" this way, so it gets the same page-view
+  // Homepage V4 (and any later variant reusing that same template with different copy, e.g.
+  // "homepage-v5") is a real, weighted variant of "/" this way, so it gets the same page-view
   // tracking above and shows up in the owner dashboard's variant list automatically.
-  if (variant?.key === "homepage-v4") {
-    return <HomePageV4 />;
+  if (variant?.key && V4_TEMPLATE_KEYS.has(variant.key)) {
+    return <HomePageV4 content={content} />;
   }
 
   const themeStyle: CSSProperties = content.accentColor

@@ -16,18 +16,27 @@ import Footer from "../Footer";
 import StickyBookBar from "../StickyBookBar";
 import HeaderV4 from "./HeaderV4";
 import { V4ThemeProvider } from "./V4ThemeContext";
+import type { HomeVariantContent } from "@/lib/variant";
 
-/** The full Homepage V4 template — rendered by app/page.tsx when the resolved variant's key is
- * "homepage-v4" (a real, weighted variant in the live rotation), and by the /v4 redirect target
- * for anyone hitting the old direct link. Wrapped in V4ThemeProvider so BookNowButton (shared by
- * every variant) knows to open the booking modal themed to match — see V4ThemeContext.tsx. */
-export default function HomePageV4() {
+/** The full Homepage V4 template — rendered by app/page.tsx when the resolved variant's key
+ * selects it (e.g. "homepage-v4", "homepage-v5" — see V4_TEMPLATE_KEYS in app/page.tsx), and by
+ * the /v4 redirect target for anyone hitting the old direct link. Wrapped in V4ThemeProvider so
+ * BookNowButton (shared by every variant) knows to open the booking modal themed to match — see
+ * V4ThemeContext.tsx.
+ *
+ * content is optional (the /v4 redirect target renders with no variant at all) — only the hero
+ * headline is currently overridable per variant; everything else stays the shared V4 template. */
+export default function HomePageV4({ content }: { content?: HomeVariantContent }) {
   return (
     <V4ThemeProvider>
       <div className="v4-theme flex min-h-screen flex-col bg-[var(--color-bg-from)] pb-16 sm:pb-0" style={{ fontFamily: "var(--font-body)" }}>
         <HeaderV4 />
         <main>
-          <HeroV4 />
+          <HeroV4
+            headlineLine1={content?.v4HeadlineLine1}
+            headlineEmphasis={content?.v4HeadlineEmphasis}
+            headlineLine3={content?.v4HeadlineLine3}
+          />
           <TrustBarV4 />
 
           <section className="mx-auto max-w-3xl px-6 py-16 text-center">
