@@ -55,7 +55,7 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
   {
     title: "Manicures",
     items: [
-      "Regular Manicure Gel-Overlay",
+      "Russian Gel-Overlay Manicure",
       "Manicure (No Polish)",
       "Gel Nail Extension",
       "European Express Manicure",

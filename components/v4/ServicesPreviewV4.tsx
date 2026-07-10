@@ -17,7 +17,7 @@ function formatPrice(cents: number): string {
 // salon does a dry pedicure (no foot soak), so anything showing a soak would misrepresent the
 // actual service.
 const FEATURED_NAMES = [
-  "Regular Manicure Gel-Overlay",
+  "Russian Gel-Overlay Manicure",
   "Gel Nail Extension",
   "Japanese manicure Deluxe (with massage & spa hand care)",
   "Regular Pedicure Gel-Overlay",
@@ -32,7 +32,7 @@ const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: stri
   // subject into it. The pedicure photo's foot sits diagonally in frame (big toe closest to
   // camera, pinky toe farthest), so the crop window had to be placed carefully to keep every toe
   // in frame at this same aspect ratio.
-  "Regular Manicure Gel-Overlay": {
+  "Russian Gel-Overlay Manicure": {
     src: "/images/v4/regular-manicure.jpg",
     alt: "Gel-overlay manicure by AK.LUX.NAILS",
   },
