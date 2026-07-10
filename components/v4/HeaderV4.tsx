@@ -49,9 +49,10 @@ function MenuIcon({ open }: { open: boolean }) {
  * Same plain passive-scroll-listener technique StickyBookBar already uses elsewhere on this page,
  * not a new pattern.
  *
- * On mobile the inline nav (desktop-only, md:flex) is replaced by a hamburger button opening a
- * dropdown panel with the same links plus a Book Now button — previously there was no way at all
- * to reach these links on a phone. */
+ * On mobile the inline nav (desktop-only, md:flex) is replaced by a hamburger button next to a
+ * Book Now button — previously there was no way at all to reach these links on a phone. The
+ * hamburger opens a dropdown panel with the same links plus its own Book Now button, for anyone
+ * who wants to browse the site rather than book immediately. */
 export default function HeaderV4() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,7 +86,7 @@ export default function HeaderV4() {
       )}
 
       <div
-        className={`relative z-10 mx-auto flex max-w-6xl items-center justify-between gap-4 px-3 py-2 text-white transition-[background-color,border-radius,margin,box-shadow] duration-300 sm:px-5 ${
+        className={`relative z-10 mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2 text-white transition-[background-color,border-radius,margin,box-shadow] duration-300 sm:gap-4 sm:px-5 ${
           scrolled
             ? "mt-0 rounded-none border-b border-white/10 bg-[#1f1620]/95 shadow-lg backdrop-blur-md"
             : "mx-4 mt-4 rounded-full border border-white/15 bg-black/20 backdrop-blur-md sm:mx-6 sm:mt-6"
@@ -113,19 +114,24 @@ export default function HeaderV4() {
           ))}
         </nav>
 
-        <BookNowButton className="hidden shrink-0 rounded-full bg-[var(--color-accent)] px-4 py-2 text-xs font-bold tracking-[0.12em] text-[var(--color-ink)] uppercase transition hover:bg-[var(--color-accent-hover)] md:inline-block sm:px-5 sm:py-2.5">
-          Book Your Appointment
-        </BookNowButton>
+        {/* Visible at every breakpoint now — a mobile visitor gets Book Now + the hamburger
+            side by side, not just the hamburger; the panel below still repeats Book Now for
+            anyone who opens the menu to browse first. */}
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <BookNowButton className="shrink-0 rounded-full bg-[var(--color-accent)] px-3 py-2 text-xs font-bold tracking-[0.1em] text-[var(--color-ink)] uppercase transition hover:bg-[var(--color-accent-hover)] sm:px-5 sm:py-2.5 sm:tracking-[0.12em]">
+            Book Now
+          </BookNowButton>
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-expanded={menuOpen}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 md:hidden"
-        >
-          <MenuIcon open={menuOpen} />
-        </button>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 md:hidden"
+          >
+            <MenuIcon open={menuOpen} />
+          </button>
+        </div>
       </div>
 
       <div
@@ -149,7 +155,7 @@ export default function HeaderV4() {
           ))}
           <div onClick={closeMenu}>
             <BookNowButton className="mt-2 w-full rounded-full bg-[var(--color-accent)] px-4 py-3 text-center text-xs font-bold tracking-[0.12em] text-[var(--color-ink)] uppercase transition hover:bg-[var(--color-accent-hover)]">
-              Book Your Appointment
+              Book Now
             </BookNowButton>
           </div>
         </nav>
