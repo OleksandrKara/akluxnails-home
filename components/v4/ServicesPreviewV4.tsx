@@ -12,9 +12,8 @@ function formatPrice(cents: number): string {
 // A premium homepage teases flagship manicure/pedicure work rather than mechanically showing one
 // item per catalog group (which would surface Men's Services/4-Hand Appointments alongside them,
 // diluting the "luxury Russian manicure" positioning) — "View All Services" opens the full menu.
-// Each gets a small representative photo, matching svitnail.com's catalog card layout. Three are
-// real AK.LUX.NAILS work; the pedicure photo is a verified Unsplash photo (Unsplash License, free
-// commercial use) of polished toes with no bowl/water/soaking visible anywhere in frame — this
+// Each gets a small representative photo, matching svitnail.com's catalog card layout. The
+// pedicure photo shows polished toes with no bowl/water/soaking visible anywhere in frame — this
 // salon does a dry pedicure (no foot soak), so anything showing a soak would misrepresent the
 // actual service.
 const FEATURED_NAMES = [
