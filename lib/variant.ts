@@ -10,6 +10,13 @@ export interface HomeVariantContent {
   ctaText?: string;
   /** Single brand hex color — the rest of the palette (dark/hover/tints) is derived, see theme.ts. */
   accentColor?: string;
+  /** Homepage V4-template headline override (3 lines, middle one emphasized — see HeroV4.tsx).
+   * Only meaningful for a variant whose key selects the V4 template (e.g. "homepage-v4",
+   * "homepage-v5"); falls back to lib/siteDataV4.ts's defaults when any line is omitted, so a
+   * V4-template variant with no override still renders the original V4 copy unchanged. */
+  v4HeadlineLine1?: string;
+  v4HeadlineEmphasis?: string;
+  v4HeadlineLine3?: string;
 }
 
 export interface ResolvedVariant {

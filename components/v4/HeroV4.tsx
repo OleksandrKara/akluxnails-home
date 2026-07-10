@@ -13,8 +13,20 @@ import {
  * legibility, a small frosted pill badge, a huge light-weight tracked-in display headline with
  * one italic+underlined emphasis word, dual pill CTAs (solid gold + ghost outline), a small
  * dashed promo line, and a scroll indicator. The photo itself is real AK.LUX.NAILS work — only
- * the treatment (overlay, badge, typography) is inspired by the reference site. */
-export default function HeroV4() {
+ * the treatment (overlay, badge, typography) is inspired by the reference site.
+ *
+ * headline* props let a variant (see lib/variant.ts's v4Headline* content fields) override just
+ * the 3 headline lines — everything else about the hero (badge/subhead/CTAs/photo) stays the
+ * V4 default regardless, since only the headline is what's being A/B tested here. */
+export default function HeroV4({
+  headlineLine1 = V4_HEADLINE_LINE_1,
+  headlineEmphasis = V4_HEADLINE_EMPHASIS,
+  headlineLine3 = V4_HEADLINE_LINE_3,
+}: {
+  headlineLine1?: string;
+  headlineEmphasis?: string;
+  headlineLine3?: string;
+}) {
   return (
     <section className="relative flex min-h-[92vh] items-end overflow-hidden sm:min-h-screen">
       <Image
@@ -38,16 +50,16 @@ export default function HeroV4() {
           className="mt-6 text-5xl leading-[1.02] font-light tracking-tight text-white sm:text-6xl lg:text-7xl"
           style={{ fontFamily: "var(--font-heading)" }}
         >
-          {V4_HEADLINE_LINE_1}
+          {headlineLine1}
           <br />
           <em
             className="italic"
             style={{ textDecoration: "underline", textDecorationColor: "var(--color-accent)", textDecorationThickness: "4px", textUnderlineOffset: "6px" }}
           >
-            {V4_HEADLINE_EMPHASIS}
+            {headlineEmphasis}
           </em>
           <br />
-          {V4_HEADLINE_LINE_3}
+          {headlineLine3}
         </h1>
 
         <p className="mt-6 max-w-md text-base leading-relaxed text-white/80 sm:text-lg">{V4_SUBHEAD}</p>
