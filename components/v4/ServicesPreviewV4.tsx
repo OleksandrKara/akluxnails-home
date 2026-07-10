@@ -24,11 +24,14 @@ const FEATURED_NAMES = [
 ];
 
 const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: string }> = {
-  // Pre-cropped (see public/images/v4/regular-manicure.jpg, public/images/nail3.jpg, and
-  // public/images/nudemani1.jpg) to already match this card's aspect ratio and frame every nail
-  // fully, cuticle to tip — the original portrait photos couldn't show that at this card's wide,
-  // short aspect ratio without a source crop; a CSS object-position trick alone can only shift
-  // which slice shows, not fit more of a taller subject into it.
+  // Pre-cropped (see public/images/v4/regular-manicure.jpg, public/images/nail3.jpg,
+  // public/images/nudemani1.jpg, and public/images/v4/pedicure-dry.jpg) to already match this
+  // card's aspect ratio and frame every nail fully, cuticle to tip — the original portrait photos
+  // couldn't show that at this card's wide, short aspect ratio without a source crop; a CSS
+  // object-position trick alone can only shift which slice shows, not fit more of a taller
+  // subject into it. The pedicure photo's foot sits diagonally in frame (big toe closest to
+  // camera, pinky toe farthest), so the crop window had to be placed carefully to keep every toe
+  // in frame at this same aspect ratio.
   "Regular Manicure Gel-Overlay": {
     src: "/images/v4/regular-manicure.jpg",
     alt: "Gel-overlay manicure by AK.LUX.NAILS",
