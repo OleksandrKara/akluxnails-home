@@ -43,12 +43,15 @@ function MenuIcon({ open }: { open: boolean }) {
   );
 }
 
-/** Floating frosted-glass pill nav over the hero photo while at the top of the page (matches
- * svitnail.com's treatment), switching to a solid full-width sticky bar once scrolled past the
- * hero — the transparent pill only reads well against the hero photo; every section below it has
- * a light background, so the bar needs real contrast once it's no longer overlaying that photo.
- * Same plain passive-scroll-listener technique StickyBookBar already uses elsewhere on this page,
- * not a new pattern.
+/** Floating frosted-glass pill nav over the hero photo (matches svitnail.com's treatment) — stays
+ * the same rounded, translucent pill at every scroll position, just gaining a subtle shadow once
+ * scrolled for a bit of depth against the page behind it. Same plain passive-scroll-listener
+ * technique StickyBookBar already uses elsewhere on this page, not a new pattern.
+ *
+ * The nav sits in a flex-1 middle column between the logo and the Book Now/hamburger group, and
+ * centers its own links within that column — so it's always equidistant from the logo and from
+ * the button group, regardless of how wide either of those is, rather than just being whatever's
+ * left over after a plain justify-between (which does not guarantee that).
  *
  * On mobile the inline nav (desktop-only, md:flex) is replaced by a hamburger button next to a
  * Book Now button — previously there was no way at all to reach these links on a phone. The
@@ -89,13 +92,11 @@ export default function HeaderV4() {
       )}
 
       <div
-        className={`relative z-10 mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2 text-white transition-[background-color,border-radius,margin,box-shadow] duration-300 sm:gap-4 sm:px-5 ${
-          scrolled
-            ? "mt-0 rounded-none border-b border-white/10 bg-[#1f1620]/95 shadow-lg backdrop-blur-md"
-            : "mx-4 mt-4 rounded-full border border-white/15 bg-black/20 backdrop-blur-md sm:mx-6 sm:mt-6"
+        className={`relative z-10 mx-4 mt-4 flex max-w-6xl items-center gap-2 rounded-full border border-white/15 bg-black/20 px-3 py-2 text-white backdrop-blur-md transition-shadow duration-300 sm:mx-6 sm:mt-6 sm:gap-4 sm:px-5 ${
+          scrolled ? "shadow-lg" : ""
         }`}
       >
-        <span className="flex items-center py-1" aria-label={BUSINESS_NAME}>
+        <span className="flex shrink-0 items-center py-1" aria-label={BUSINESS_NAME}>
           <Image
             src="/images/logo.png"
             alt={BUSINESS_NAME}
@@ -107,7 +108,7 @@ export default function HeaderV4() {
         </span>
 
         <nav
-          className="hidden items-center gap-6 text-xs font-bold tracking-[0.12em] text-white/85 uppercase md:flex"
+          className="hidden flex-1 items-center justify-center gap-6 text-xs font-bold tracking-[0.12em] text-white/85 uppercase md:flex"
           style={{ fontFamily: "var(--font-body)" }}
         >
           {NAV_LINKS.map((link) => (
