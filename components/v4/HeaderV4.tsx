@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import BookNowButton from "../BookNowButton";
-import { BUSINESS_NAME } from "@/lib/siteData";
+import MessageIcon from "../icons/MessageIcon";
+import { BUSINESS_NAME, LOCATION } from "@/lib/siteData";
 
 const NAV_LINKS = [
   { href: "#services", label: "Services" },
@@ -51,8 +52,10 @@ function MenuIcon({ open }: { open: boolean }) {
  *
  * On mobile the inline nav (desktop-only, md:flex) is replaced by a hamburger button next to a
  * Book Now button — previously there was no way at all to reach these links on a phone. The
- * hamburger opens a dropdown panel with the same links plus its own Book Now button, for anyone
- * who wants to browse the site rather than book immediately. */
+ * hamburger opens a dropdown panel with the same links; Book Now already sits right next to the
+ * hamburger at all times, so repeating it inside the panel too would be redundant — instead the
+ * panel ends with a lower-key "Text Us" option (same SMS link as StickyBookBar) for anyone with a
+ * custom request or a group booking who'd rather just message the salon directly. */
 export default function HeaderV4() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -153,10 +156,18 @@ export default function HeaderV4() {
               {link.label}
             </a>
           ))}
-          <div onClick={closeMenu}>
-            <BookNowButton className="mt-2 w-full rounded-full bg-[var(--color-accent)] px-4 py-3 text-center text-xs font-bold tracking-[0.12em] text-[var(--color-ink)] uppercase transition hover:bg-[var(--color-accent-hover)]">
-              Book Now
-            </BookNowButton>
+          <div className="mt-3 border-t border-white/10 pt-3">
+            <a
+              href={LOCATION.smsHref}
+              onClick={closeMenu}
+              className="flex items-center justify-center gap-2 rounded-xl border border-white/15 px-3 py-2.5 text-xs font-bold tracking-[0.08em] text-white/80 uppercase transition hover:bg-white/10 hover:text-white"
+            >
+              <MessageIcon />
+              Text Us
+            </a>
+            <p className="mt-1.5 px-1 text-center text-[11px] leading-snug text-white/45">
+              Special request or group booking? We reply fast.
+            </p>
           </div>
         </nav>
       </div>

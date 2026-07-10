@@ -2,21 +2,9 @@
 
 import { useEffect, useState } from "react";
 import BookNowButton from "./BookNowButton";
+import MessageIcon from "./icons/MessageIcon";
 import { LOCATION } from "@/lib/siteData";
 import { useIsV4Theme } from "./v4/V4ThemeContext";
-
-function MessageIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 4.5h16a1 1 0 0 1 1 1V15a1 1 0 0 1-1 1H9l-4.5 4V16H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 /** A persistent mobile-only booking CTA that appears once the visitor scrolls past the hero's
  * own "Book Your Appointment" button — keeps the highest-intent action reachable with one tap no
