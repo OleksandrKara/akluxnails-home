@@ -91,50 +91,57 @@ export default function HeaderV4() {
         />
       )}
 
-      <div
-        className={`relative z-10 mx-4 mt-4 flex max-w-6xl items-center gap-2 rounded-full border border-white/15 bg-black/20 px-3 py-2 text-white backdrop-blur-md transition-shadow duration-300 sm:mx-6 sm:mt-6 sm:gap-4 sm:px-5 ${
-          scrolled ? "shadow-lg" : ""
-        }`}
-      >
-        <span className="flex shrink-0 items-center py-1" aria-label={BUSINESS_NAME}>
-          <Image
-            src="/images/logo.png"
-            alt={BUSINESS_NAME}
-            width={465}
-            height={100}
-            className="h-7 w-auto brightness-0 invert sm:h-8"
-            priority
-          />
-        </span>
-
-        <nav
-          className="hidden flex-1 items-center justify-center gap-6 text-xs font-bold tracking-[0.12em] text-white/85 uppercase md:flex"
-          style={{ fontFamily: "var(--font-body)" }}
+      {/* Outer wrapper carries the inset-from-viewport-edge margin; the inner pill carries
+          mx-auto to additionally center within that inset area on screens wider than max-w-6xl.
+          Keeping both concerns on one element doesn't work — margin utilities on the same element
+          just override each other, they don't combine — so a fixed inset and "also center once
+          there's extra room" need two separate boxes. */}
+      <div className="relative z-10 mx-4 mt-4 sm:mx-6 sm:mt-6">
+        <div
+          className={`mx-auto flex max-w-6xl items-center gap-2 rounded-full border border-white/15 bg-black/20 px-3 py-2 text-white backdrop-blur-md transition-shadow duration-300 sm:gap-4 sm:px-5 ${
+            scrolled ? "shadow-lg" : ""
+          }`}
         >
-          {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className="hover:text-white">
-              {link.label}
-            </a>
-          ))}
-        </nav>
+          <span className="flex shrink-0 items-center py-1" aria-label={BUSINESS_NAME}>
+            <Image
+              src="/images/logo.png"
+              alt={BUSINESS_NAME}
+              width={465}
+              height={100}
+              className="h-7 w-auto brightness-0 invert sm:h-8"
+              priority
+            />
+          </span>
 
-        {/* Visible at every breakpoint now — a mobile visitor gets Book Now + the hamburger
-            side by side, not just the hamburger; the panel below still repeats Book Now for
-            anyone who opens the menu to browse first. */}
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          <BookNowButton className="shrink-0 rounded-full bg-[var(--color-accent)] px-3 py-2 text-xs font-bold tracking-[0.1em] text-[var(--color-ink)] uppercase transition hover:bg-[var(--color-accent-hover)] sm:px-5 sm:py-2.5 sm:tracking-[0.12em]">
-            Book Now
-          </BookNowButton>
-
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-expanded={menuOpen}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 md:hidden"
+          <nav
+            className="hidden flex-1 items-center justify-center gap-6 text-xs font-bold tracking-[0.12em] text-white/85 uppercase md:flex"
+            style={{ fontFamily: "var(--font-body)" }}
           >
-            <MenuIcon open={menuOpen} />
-          </button>
+            {NAV_LINKS.map((link) => (
+              <a key={link.href} href={link.href} className="hover:text-white">
+                {link.label}
+              </a>
+            ))}
+          </nav>
+
+          {/* Visible at every breakpoint now — a mobile visitor gets Book Now + the hamburger
+              side by side, not just the hamburger; the panel below still repeats Book Now for
+              anyone who opens the menu to browse first. */}
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <BookNowButton className="shrink-0 rounded-full bg-[var(--color-accent)] px-3 py-2 text-xs font-bold tracking-[0.1em] text-[var(--color-ink)] uppercase transition hover:bg-[var(--color-accent-hover)] sm:px-5 sm:py-2.5 sm:tracking-[0.12em]">
+              Book Now
+            </BookNowButton>
+
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 md:hidden"
+            >
+              <MenuIcon open={menuOpen} />
+            </button>
+          </div>
         </div>
       </div>
 
