@@ -12,9 +12,8 @@ function formatPrice(cents: number): string {
 // A premium homepage teases flagship manicure/pedicure work rather than mechanically showing one
 // item per catalog group (which would surface Men's Services/4-Hand Appointments alongside them,
 // diluting the "luxury Russian manicure" positioning) — "View All Services" opens the full menu.
-// Each gets a small representative photo, matching svitnail.com's catalog card layout. Three are
-// real AK.LUX.NAILS work; the pedicure photo is a verified Unsplash photo (Unsplash License, free
-// commercial use) of polished toes with no bowl/water/soaking visible anywhere in frame — this
+// Each gets a small representative photo, matching svitnail.com's catalog card layout. The
+// pedicure photo shows polished toes with no bowl/water/soaking visible anywhere in frame — this
 // salon does a dry pedicure (no foot soak), so anything showing a soak would misrepresent the
 // actual service.
 const FEATURED_NAMES = [
@@ -25,15 +24,16 @@ const FEATURED_NAMES = [
 ];
 
 const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: string }> = {
-  // Pre-cropped (see public/images/v4/regular-manicure.jpg) to already match this card's aspect
-  // ratio and frame every nail fully, cuticle to tip — the original portrait photo couldn't show
-  // that at this card's wide, short aspect ratio without a source crop; a CSS object-position
-  // trick alone can only shift which slice shows, not fit more of a taller subject into it.
+  // Pre-cropped (see public/images/v4/regular-manicure.jpg and public/images/nail3.jpg) to
+  // already match this card's aspect ratio and frame every nail fully, cuticle to tip — the
+  // original portrait photos couldn't show that at this card's wide, short aspect ratio without
+  // a source crop; a CSS object-position trick alone can only shift which slice shows, not fit
+  // more of a taller subject into it.
   "Regular Manicure Gel-Overlay": {
     src: "/images/v4/regular-manicure.jpg",
     alt: "Gel-overlay manicure by AK.LUX.NAILS",
   },
-  "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Gel nail extensions by AK.LUX.NAILS" },
+  "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Almond gel nail extensions with floral art by AK.LUX.NAILS" },
   "Japanese manicure Deluxe (with massage & spa hand care)": {
     src: "/images/nudemani1.jpg",
     alt: "Deluxe manicure with spa hand care by AK.LUX.NAILS",
