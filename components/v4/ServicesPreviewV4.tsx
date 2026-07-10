@@ -24,11 +24,11 @@ const FEATURED_NAMES = [
 ];
 
 const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: string }> = {
-  // Pre-cropped (see public/images/v4/regular-manicure.jpg and public/images/nail3.jpg) to
-  // already match this card's aspect ratio and frame every nail fully, cuticle to tip — the
-  // original portrait photos couldn't show that at this card's wide, short aspect ratio without
-  // a source crop; a CSS object-position trick alone can only shift which slice shows, not fit
-  // more of a taller subject into it.
+  // Pre-cropped (see public/images/v4/regular-manicure.jpg, public/images/nail3.jpg, and
+  // public/images/nudemani1.jpg) to already match this card's aspect ratio and frame every nail
+  // fully, cuticle to tip — the original portrait photos couldn't show that at this card's wide,
+  // short aspect ratio without a source crop; a CSS object-position trick alone can only shift
+  // which slice shows, not fit more of a taller subject into it.
   "Regular Manicure Gel-Overlay": {
     src: "/images/v4/regular-manicure.jpg",
     alt: "Gel-overlay manicure by AK.LUX.NAILS",
@@ -36,7 +36,7 @@ const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: stri
   "Gel Nail Extension": { src: "/images/nail3.jpg", alt: "Almond gel nail extensions with floral art by AK.LUX.NAILS" },
   "Japanese manicure Deluxe (with massage & spa hand care)": {
     src: "/images/nudemani1.jpg",
-    alt: "Deluxe manicure with spa hand care by AK.LUX.NAILS",
+    alt: "Deluxe natural-look manicure at AK.LUX.NAILS's studio",
   },
   "Regular Pedicure Gel-Overlay": { src: "/images/v4/pedicure-dry.jpg", alt: "Polished pedicure toes" },
 };
