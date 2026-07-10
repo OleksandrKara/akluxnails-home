@@ -94,6 +94,10 @@ export const LOCATION = {
   smsHref: "sms:+16193231185?&body=Hi!%20I%20have%20a%20question%20for%20AK.LUX.NAILS.%20",
   groupBookingSmsHref:
     "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20book%20for%20a%20group%20at%20AK.LUX.NAILS.%20We%20are%20___%20people%2C%20looking%20for%20___.",
+  giftCardSmsHref:
+    "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20request%20a%20gift%20card%20for%20%24___%20at%20AK.LUX.NAILS.",
+  prepaySmsHref:
+    "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20prepay%20for%203%2B%20visits%20and%20save%2010%25%20at%20AK.LUX.NAILS.%20I%27m%20interested%20in%20___.",
 };
 
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";

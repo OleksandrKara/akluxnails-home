@@ -1,7 +1,6 @@
-import { BUSINESS_NAME } from "@/lib/siteData";
+import { BUSINESS_NAME, LOCATION } from "@/lib/siteData";
 import { V4_GIFTCARD_HEADLINE, V4_GIFTCARD_BODY } from "@/lib/siteDataV4";
 import FadeUp from "./FadeUp";
-import RequestModal from "./RequestModal";
 
 /** A custom-designed card graphic in the site's own brand colors, rather than a generic stock
  * "gift card mockup" photo — reads more premium and avoids sourcing someone else's card design. */
@@ -34,15 +33,13 @@ export default function GiftCardV4() {
           </h2>
           <p className="mt-4 max-w-md text-[var(--color-muted)]">{V4_GIFTCARD_BODY}</p>
           <div className="mt-8">
-            <RequestModal
-              requestType="gift_card"
-              triggerLabel="Request a Gift Card"
-              triggerClassName="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-8 py-4 text-base font-medium text-white transition hover:-translate-y-0.5 hover:bg-[var(--color-accent-hover)]"
-              title="Request a Gift Card"
-              description="Let us know how much you'd like the gift card to be for — we'll follow up to process it and send it your way."
-              detailLabel="Amount"
-              detailPlaceholder="e.g. $100"
-            />
+            {/* Pre-filled sms: link, not a lead-capture form — see PrepayV4.tsx for why. */}
+            <a
+              href={LOCATION.giftCardSmsHref}
+              className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-8 py-4 text-base font-medium text-white transition hover:-translate-y-0.5 hover:bg-[var(--color-accent-hover)]"
+            >
+              Request a Gift Card
+            </a>
           </div>
         </FadeUp>
       </div>
