@@ -9,6 +9,7 @@ export interface ClientContext {
   browserName: string | null;
   browserVersion: string | null;
   ipAddress: string | null;
+  host: string | null;
 }
 
 /** Device/OS/browser/IP derived from the raw request headers — mirrors salonLandings'
@@ -36,5 +37,25 @@ export async function deriveClientContext(): Promise<ClientContext> {
     browserName: ua.browser.name ?? null,
     browserVersion: ua.browser.version ?? null,
     ipAddress,
+    host: h.get("host"),
   };
+}
+
+// Matches the exact tool/scraper signatures actually seen hammering this site — deliberately NOT
+// a generic /bot|crawler|spider/ match, since that would also catch Googlebot, Bingbot, etc., and
+// the production domain is meant to stay indexable by those (see nginx/akluxnails-home.conf).
+// Mirrors salonLandings' request_context.py _BOT_USER_AGENT_PATTERN — keep the two in sync.
+const BOT_USER_AGENT_PATTERN = /^wget|^curl\/|headlesschrome|python-requests|go-http-client|flowiqlabsbot/i;
+
+/** True for traffic that should never count as a real page view/visitor: Docker's own healthcheck
+ * (`wget http://127.0.0.1:3000/` on a 30s timer, from inside each container — see Dockerfile) hits
+ * the app directly, bypassing nginx, so its Host header is literally the loopback address/port
+ * rather than the real domain nginx always forwards (`proxy_set_header Host $host`) — a precise
+ * structural signal, not a heuristic. Also flags known scraper/tool user-agents as a second,
+ * independent check for bot traffic that *does* come through nginx.
+ */
+export function isTrackingNoise(ctx: ClientContext): boolean {
+  if (ctx.host && /^(127\.0\.0\.1|localhost)(:\d+)?$/i.test(ctx.host)) return true;
+  if (ctx.userAgent && BOT_USER_AGENT_PATTERN.test(ctx.userAgent)) return true;
+  return false;
 }
