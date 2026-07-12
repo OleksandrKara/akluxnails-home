@@ -1,5 +1,5 @@
 import { getPool } from "./db";
-import { deriveClientContext } from "./requestContext";
+import { deriveClientContext, isTrackingNoise } from "./requestContext";
 
 export interface UtmParams {
   utmSource?: string;
@@ -26,6 +26,7 @@ export async function recordPageView(params: {
 }): Promise<void> {
   try {
     const ctx = await deriveClientContext();
+    if (isTrackingNoise(ctx)) return;
     const pool = getPool();
     await pool.query(
       `INSERT INTO marketing.visits
@@ -63,6 +64,7 @@ export async function recordEvent(params: {
   metadata?: Record<string, unknown>;
 }): Promise<void> {
   try {
+    if (isTrackingNoise(await deriveClientContext())) return;
     await getPool().query(
       `INSERT INTO marketing.events (session_id, landing_page_id, variant_id, event_type, metadata)
        VALUES ($1,$2,$3,$4,$5)`,
@@ -88,6 +90,7 @@ export async function recordFunnelEvent(params: {
   metadata?: Record<string, unknown>;
 }): Promise<void> {
   try {
+    if (isTrackingNoise(await deriveClientContext())) return;
     await getPool().query(
       `INSERT INTO marketing.funnel_events
          (session_id, landing_page_id, variant_id, flow_key, step_key, step_index, step_count_total, metadata)
