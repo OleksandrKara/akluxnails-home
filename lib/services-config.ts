@@ -67,7 +67,7 @@ export const SERVICE_GROUPS: ServiceGroup[] = [
   {
     title: "Pedicures",
     items: [
-      "Regular Pedicure Gel-Overlay",
+      "Regular Pedicure Gel-Overlay (Dry)",
       "Pedicure (No Polish)",
     ],
     addOnGroups: [NAIL_ART_ADD_ON_GROUP],

@@ -20,7 +20,7 @@ const FEATURED_NAMES = [
   "Russian Gel-Overlay Manicure",
   "Gel Nail Extension",
   "Japanese manicure Deluxe (with massage & spa hand care)",
-  "Regular Pedicure Gel-Overlay",
+  "Regular Pedicure Gel-Overlay (Dry)",
 ];
 
 const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: string }> = {
@@ -41,7 +41,7 @@ const SERVICE_PHOTOS: Record<string, { src: string; alt: string; position?: stri
     src: "/images/nudemani1.jpg",
     alt: "Deluxe natural-look manicure at AK.LUX.NAILS's studio",
   },
-  "Regular Pedicure Gel-Overlay": { src: "/images/v4/pedicure-dry.jpg", alt: "Polished pedicure toes" },
+  "Regular Pedicure Gel-Overlay (Dry)": { src: "/images/v4/pedicure-dry.jpg", alt: "Polished pedicure toes" },
 };
 
 export default async function ServicesPreviewV4() {

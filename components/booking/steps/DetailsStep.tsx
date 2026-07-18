@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
+import { CARD_STEP_GUARANTEE_TEXT, NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { useSquareCard } from "../useSquarePayments";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
 import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
+import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
 
 const CARD_CONTAINER_ID = "sq-card-container";
 const LOOKUP_DEBOUNCE_MS = 600;
@@ -349,6 +350,13 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           <p className="mt-4 text-xs text-[var(--color-muted)]">{NO_SHOW_POLICY_SUMMARY}</p>
           {needsCard && (
             <div className="mt-2">
+              {/* Right at the point of highest friction (handing over card details), a quick
+                  reassurance that the work itself is guaranteed — reduces hesitation before the
+                  card form. */}
+              <div className="mb-3 flex items-center gap-2 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] px-3 py-2.5 text-xs font-medium text-[var(--color-accent-dark)]">
+                <ShieldCheckIcon />
+                <span>{CARD_STEP_GUARANTEE_TEXT}</span>
+              </div>
               <div id={CARD_CONTAINER_ID} />
             </div>
           )}
