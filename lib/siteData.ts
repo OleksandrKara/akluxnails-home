@@ -111,10 +111,11 @@ export const NO_SHOW_POLICY_SUMMARY =
 
 // Shown right at the card-entry step — the point of highest friction/hesitation in the booking
 // flow — to reassure a first-time visitor before they hand over card details. Same "14 days, no
-// hassle" promise as siteDataV4's V4_GUARANTEE_BODY, kept as its own copy here since this string
-// is deliberately shorter for a compact inline badge rather than a full section.
-export const CARD_STEP_GUARANTEE_TEXT =
-  "14-Day Guarantee — if anything's off with your set, bring it back within 14 days and we'll fix it, no hassle.";
+// hassle" promise as siteDataV4's V4_GUARANTEE_BODY. Split into a short bold headline + one-line
+// body (rather than one paragraph) so it reads as a scannable badge, not body copy nobody stops
+// to read.
+export const CARD_STEP_GUARANTEE_HEADLINE = "14-Day Guarantee";
+export const CARD_STEP_GUARANTEE_BODY = "Not happy? We'll fix it free — no hassle.";
 
 // Verbatim from salonLandings' designCopy.ts — the same policy text and SMS consent language
 // already in use (and legally reviewed) for the mani funnel's booking flow.

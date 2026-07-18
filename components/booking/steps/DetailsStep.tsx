@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CARD_STEP_GUARANTEE_TEXT, NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
+import { CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE, NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { useSquareCard } from "../useSquarePayments";
 import type { BookingFlow } from "../useBookingFlow";
@@ -352,10 +352,18 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
             <div className="mt-2">
               {/* Right at the point of highest friction (handing over card details), a quick
                   reassurance that the work itself is guaranteed — reduces hesitation before the
-                  card form. */}
-              <div className="mb-3 flex items-center gap-2 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] px-3 py-2.5 text-xs font-medium text-[var(--color-accent-dark)]">
-                <ShieldCheckIcon />
-                <span>{CARD_STEP_GUARANTEE_TEXT}</span>
+                  card form. A filled icon circle + bold headline makes this scan as a badge at a
+                  glance rather than body copy someone has to stop and read. */}
+              <div className="mb-3 flex items-center gap-3 rounded-[var(--radius-lg)] border-2 border-[var(--color-accent)] bg-[var(--color-accent-tint-2)] px-4 py-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-white">
+                  <ShieldCheckIcon size={24} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-base font-bold leading-tight text-[var(--color-accent-dark)]">
+                    {CARD_STEP_GUARANTEE_HEADLINE}
+                  </span>
+                  <span className="mt-0.5 block text-sm text-[var(--color-ink)]">{CARD_STEP_GUARANTEE_BODY}</span>
+                </span>
               </div>
               <div id={CARD_CONTAINER_ID} />
             </div>
