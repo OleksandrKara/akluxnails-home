@@ -2,8 +2,10 @@ import { SquareError } from "square";
 
 // Square's real error codes for a declined/invalid card (see Square's ErrorCode reference) —
 // mapped to plain-language messages a customer can actually act on, instead of a generic
-// "something went wrong" that just leaves them stuck.
-const FRIENDLY_MESSAGES: Record<string, string> = {
+// "something went wrong" that just leaves them stuck. Exported so the client-side tokenize()
+// error path (lib/square/tokenizeErrors.ts — no "square" package import there, since that file
+// is bundled into the browser) can reuse the exact same wording instead of drifting out of sync.
+export const FRIENDLY_MESSAGES: Record<string, string> = {
   CVV_FAILURE: "The security code (CVV) doesn't match your card. Please double-check it and try again.",
   ADDRESS_VERIFICATION_FAILURE: "The billing ZIP code doesn't match your card. Please check it and try again.",
   INVALID_POSTAL_CODE: "That ZIP code doesn't look right. Please check it and try again.",
@@ -29,7 +31,7 @@ const FRIENDLY_MESSAGES: Record<string, string> = {
   ALLOWABLE_PIN_TRIES_EXCEEDED: "This card has exceeded its PIN attempts. Please try a different card.",
 };
 
-const DEFAULT_MESSAGE = "This card couldn't be saved. Please double-check the details or try a different card.";
+export const DEFAULT_MESSAGE = "This card couldn't be saved. Please double-check the details or try a different card.";
 
 export function friendlyCardErrorMessage(err: unknown): string {
   if (err instanceof SquareError) {

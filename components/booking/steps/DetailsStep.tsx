@@ -6,6 +6,7 @@ import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { useSquareCard } from "../useSquarePayments";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
+import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
 
 const CARD_CONTAINER_ID = "sq-card-container";
 const LOOKUP_DEBOUNCE_MS = 600;
@@ -138,7 +139,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           sellerKeyedIn: false,
         });
         if (tokenResult.status !== "OK" || !tokenResult.token) {
-          throw new Error(tokenResult.errors?.[0]?.message ?? "Card verification failed. Please check your card details.");
+          throw new Error(friendlyTokenizeErrorMessage(tokenResult.errors));
         }
 
         const cardRes = await fetch("/api/booking/card", {
