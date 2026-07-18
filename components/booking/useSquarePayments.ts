@@ -9,7 +9,10 @@ interface SquareCard {
   tokenize(verificationDetails?: unknown): Promise<{
     status: string;
     token?: string;
-    errors?: { message: string }[];
+    // code/field/type aren't guaranteed by the SDK (its client-side validation errors are less
+    // structured than the server-side Cards API's) — all optional, see lib/square/tokenizeErrors.ts
+    // for how each is used when present.
+    errors?: { message?: string; code?: string; field?: string; type?: string }[];
   }>;
 }
 interface SquarePayments {
@@ -78,7 +81,10 @@ export function useSquareCard(containerId: string, enabled = true) {
 
     setup().catch((err) => {
       console.error("Square payments setup failed", err);
-      if (!cancelled) setError("Could not load the card form. Please refresh and try again.");
+      // Deliberately doesn't mention "your card" — this is a page/connection hiccup loading the
+      // payment form itself, before the visitor has even entered any card details, and shouldn't
+      // read like a card-data problem (see the akluxnails.com incident this wording came from).
+      if (!cancelled) setError("We couldn't load the secure payment form — this is a temporary connection issue, not a problem with your card. Please refresh the page and try again.");
     });
 
     return () => {
