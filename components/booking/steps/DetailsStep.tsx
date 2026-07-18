@@ -160,7 +160,13 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       const bookingRes = await fetch("/api/booking/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId, slot, addOnVariationIds }),
+        body: JSON.stringify({
+          customerId,
+          slot,
+          addOnVariationIds,
+          serviceName: selectedServices[0]?.service.name,
+          contact,
+        }),
       });
       if (!bookingRes.ok) throw new Error("Couldn't finish booking your appointment. Please try again.");
       const { bookingId, technicianName } = await bookingRes.json();

@@ -110,25 +110,27 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
         )}
       </dl>
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <a
-          href={googleCalendarUrl(calendarEvent)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-card)] px-4 py-2.5 text-sm font-medium text-[var(--color-ink)] shadow-sm ring-1 ring-[var(--color-border)] transition hover:shadow-md"
-        >
-          <GoogleCalendarIcon />
-          Google Calendar
-        </a>
-        <a
-          href={icsDataUrl(calendarEvent)}
-          download="appointment.ics"
-          className="flex items-center justify-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-card)] px-4 py-2.5 text-sm font-medium text-[var(--color-ink)] shadow-sm ring-1 ring-[var(--color-border)] transition hover:shadow-md"
-        >
-          <CalendarDownloadIcon />
-          Download .ics
-        </a>
-      </div>
+      {!isFourHandsRequest && (
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <a
+            href={googleCalendarUrl(calendarEvent)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-card)] px-4 py-2.5 text-sm font-medium text-[var(--color-ink)] shadow-sm ring-1 ring-[var(--color-border)] transition hover:shadow-md"
+          >
+            <GoogleCalendarIcon />
+            Google Calendar
+          </a>
+          <a
+            href={icsDataUrl(calendarEvent)}
+            download="appointment.ics"
+            className="flex items-center justify-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-card)] px-4 py-2.5 text-sm font-medium text-[var(--color-ink)] shadow-sm ring-1 ring-[var(--color-border)] transition hover:shadow-md"
+          >
+            <CalendarDownloadIcon />
+            Download .ics
+          </a>
+        </div>
+      )}
 
       <button
         type="button"
