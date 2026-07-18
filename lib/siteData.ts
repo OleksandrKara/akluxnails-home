@@ -109,6 +109,13 @@ export const NO_SHOW_POLICY_SUMMARY =
   "A card on file protects your reserved time. It's only charged if you miss your appointment " +
   "or cancel with less than 24 hours' notice ($25 fee) — never for the service itself.";
 
+// Shown right at the card-entry step — the point of highest friction/hesitation in the booking
+// flow — to reassure a first-time visitor before they hand over card details. Same "14 days, no
+// hassle" promise as siteDataV4's V4_GUARANTEE_BODY, kept as its own copy here since this string
+// is deliberately shorter for a compact inline badge rather than a full section.
+export const CARD_STEP_GUARANTEE_TEXT =
+  "14-Day Guarantee — if anything's off with your set, bring it back within 14 days and we'll fix it, no hassle.";
+
 // Verbatim from salonLandings' designCopy.ts — the same policy text and SMS consent language
 // already in use (and legally reviewed) for the mani funnel's booking flow.
 export const CANCELLATION_POLICY_TEXT = `We ask that you please reschedule or cancel at least 24 hours before your appointment, or you may be charged a cancellation fee of $25.00.
