@@ -4,6 +4,7 @@ import { createBooking, getTeamMemberName } from "@/lib/square/bookings";
 import { resolveBookingIdentity } from "@/lib/bookingIdentity";
 import { recordEvent } from "@/lib/tracking";
 import { notifyFourHandRequest } from "@/lib/telegram";
+import { notifyFourHandRequestSms } from "@/lib/sms";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 
 interface WireSegment {
@@ -50,6 +51,11 @@ export async function POST(request: NextRequest) {
       bookingId = `four-hand-request-${randomUUID()}`;
       await notifyFourHandRequest({
         customerName: wireContact ? `${wireContact.givenName ?? ""} ${wireContact.familyName ?? ""}`.trim() : undefined,
+        phoneNumber: wireContact?.phoneNumber,
+        preferredStartAt: wireSlot.startAt,
+      });
+      await notifyFourHandRequestSms({
+        givenName: wireContact?.givenName,
         phoneNumber: wireContact?.phoneNumber,
         preferredStartAt: wireSlot.startAt,
       });
