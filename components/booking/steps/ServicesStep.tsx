@@ -35,6 +35,29 @@ function RemoveIcon({ onClick }: { onClick: () => void }) {
   );
 }
 
+// A small filled badge reads as a clear "selected" signal at a glance — same visual language as
+// the checkmark badges elsewhere in the booking flow (DoneStep, SecureAppointmentCard) — rather
+// than a bare colored unicode character sitting inline with the text.
+function SelectedCheck() {
+  return (
+    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-[11px] font-bold text-white">
+      ✓
+    </span>
+  );
+}
+
+/** Card container classes shared by all three row variants — one selected look (accent ring +
+ * soft accent-tinted fill) instead of each variant drifting its own slightly different treatment. */
+function cardClasses(selected: boolean): string {
+  return `rounded-[var(--radius-lg)] ring-1 transition-colors ${
+    selected ? "ring-2 ring-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "ring-[var(--color-border)]"
+  }`;
+}
+
+function dividerClasses(selected: boolean): string {
+  return selected ? "border-[var(--color-accent-border-soft)]" : "border-[var(--color-border)]";
+}
+
 export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   const [data, setData] = useState<ServicesResponse | null>(null);
   const [error, setError] = useState(false);
@@ -95,12 +118,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
     // row rather than a radio choice with no real second option.
     if (isTiered && lockedVariation) {
       return (
-        <div
-          key={svc.itemId}
-          className={`rounded-[var(--radius-lg)] ring-1 ${
-            selected ? "ring-2 ring-[var(--color-accent)]" : "ring-[var(--color-border)]"
-          }`}
-        >
+        <div key={svc.itemId} className={cardClasses(Boolean(selected))}>
           <div className="flex w-full items-center justify-between px-4 py-3">
             <button
               type="button"
@@ -108,56 +126,67 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
               className="flex flex-1 items-center justify-between text-left"
             >
               <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
-                {selected && <span className="text-[var(--color-accent)]">✓</span>}
+                {selected && <SelectedCheck />}
                 {svc.name}
               </span>
-              <span className="text-sm text-[var(--color-muted)]">{formatPrice(lockedVariation.priceCents)}</span>
+              <span className="text-sm font-medium text-[var(--color-muted)]">
+                {formatPrice(lockedVariation.priceCents)}
+              </span>
             </button>
             {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
           </div>
-          <p className="border-t border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-muted)]">
+          <p className={`border-t px-4 py-2 text-xs text-[var(--color-muted)] ${dividerClasses(Boolean(selected))}`}>
             {lock} — matched to your other service so the same provider does your whole visit.
           </p>
         </div>
       );
     }
 
-    // A real tier choice (Nail Artist vs. Top Nail Artist, etc.) — shown as radio buttons right
-    // under the service name, always visible rather than hidden behind a tap-to-expand panel, so
-    // it's unambiguous on mobile that picking a provider is expected, not an optional detail.
+    // A real tier choice (Nail Artist vs. Top Nail Artist, etc.) — shown as chip-style radio
+    // buttons right under the service name, always visible rather than hidden behind a
+    // tap-to-expand panel, so it's unambiguous on mobile that picking a provider is expected, not
+    // an optional detail. Selected chip is a solid accent fill (not just a tinted ring) so it reads
+    // unmistakably as "chosen" against the row's own softer selected background.
     if (isTiered) {
       return (
-        <div
-          key={svc.itemId}
-          className={`rounded-[var(--radius-lg)] ring-1 ${
-            selected ? "ring-2 ring-[var(--color-accent)]" : "ring-[var(--color-border)]"
-          }`}
-        >
+        <div key={svc.itemId} className={cardClasses(Boolean(selected))}>
           <div className="flex w-full items-center justify-between px-4 py-3">
             <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
-              {selected && <span className="text-[var(--color-accent)]">✓</span>}
+              {selected && <SelectedCheck />}
               {svc.name}
             </span>
             {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
           </div>
-          <div className="border-t border-[var(--color-border)] px-4 py-3">
-            <p className="mb-1.5 text-xs font-medium text-[var(--color-muted-2)]">Choose your artist</p>
+          <div className={`border-t px-4 py-3 ${dividerClasses(Boolean(selected))}`}>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-2)]">
+              Choose your artist
+            </p>
             <div className="flex flex-wrap gap-2">
-              {svc.variations.map((v) => (
-                <label
-                  key={v.variationId}
-                  className="flex items-center gap-1.5 rounded-[var(--radius-pill)] px-3 py-1.5 text-xs ring-1 ring-[var(--color-border)] has-[:checked]:bg-[var(--color-accent-tint-2)] has-[:checked]:ring-[var(--color-accent)]"
-                >
-                  <input
-                    type="radio"
-                    name={`tier-${svc.itemId}`}
-                    checked={selected?.variation.variationId === v.variationId}
-                    onChange={() => flow.addService(svc, v)}
-                    className="accent-[var(--color-accent)]"
-                  />
-                  {v.name} ({formatPrice(v.priceCents)})
-                </label>
-              ))}
+              {svc.variations.map((v) => {
+                const checked = selected?.variation.variationId === v.variationId;
+                return (
+                  <label
+                    key={v.variationId}
+                    className={`flex cursor-pointer items-center gap-1 rounded-[var(--radius-pill)] px-4 py-2 text-sm font-medium transition-colors ${
+                      checked
+                        ? "bg-[var(--color-accent)] text-white"
+                        : "bg-[var(--color-card)] text-[var(--color-ink)] ring-1 ring-[var(--color-border)] hover:ring-[var(--color-accent)]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name={`tier-${svc.itemId}`}
+                      checked={checked}
+                      onChange={() => flow.addService(svc, v)}
+                      className="sr-only"
+                    />
+                    {v.name}
+                    <span className={checked ? "text-white/80" : "text-[var(--color-muted)]"}>
+                      · {formatPrice(v.priceCents)}
+                    </span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -166,12 +195,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
 
     // Single-variation: nothing to choose, so tapping the whole row adds/removes it directly.
     return (
-      <div
-        key={svc.itemId}
-        className={`rounded-[var(--radius-lg)] ring-1 ${
-          selected ? "ring-2 ring-[var(--color-accent)]" : "ring-[var(--color-border)]"
-        }`}
-      >
+      <div key={svc.itemId} className={cardClasses(Boolean(selected))}>
         <div className="flex w-full items-center justify-between px-4 py-3">
           <button
             type="button"
@@ -179,10 +203,12 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
             className="flex flex-1 items-center justify-between text-left"
           >
             <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
-              {selected && <span className="text-[var(--color-accent)]">✓</span>}
+              {selected && <SelectedCheck />}
               {svc.name}
             </span>
-            <span className="text-sm text-[var(--color-muted)]">{formatPrice(svc.variations[0].priceCents)}</span>
+            <span className="text-sm font-medium text-[var(--color-muted)]">
+              {formatPrice(svc.variations[0].priceCents)}
+            </span>
           </button>
           {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
         </div>
