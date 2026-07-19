@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ServicesResponse, WireServiceItem, WireVariation } from "../types";
+import type { ServicesResponse, WireServiceItem } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 
@@ -38,16 +38,10 @@ function RemoveIcon({ onClick }: { onClick: () => void }) {
 export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   const [data, setData] = useState<ServicesResponse | null>(null);
   const [error, setError] = useState(false);
-  // undefined = "not yet touched by the visitor" — falls back to the flow's initial
-  // pendingServiceId (homepage card click on a multi-tier service) until they open/close a panel
-  // themselves. Derived during render rather than via an effect + setState.
-  const [pendingServiceId, setPendingServiceId] = useState<string | null | undefined>(undefined);
   const { selectedServices } = flow.state;
-  // Defaults open if a previously-selected service (e.g. from navigating back) isn't one of the
-  // top picks — otherwise it'd be selected-but-invisible in the collapsed view.
-  const [showAll, setShowAll] = useState(() =>
-    selectedServices.some((sel) => !TOP_SERVICE_NAMES.includes(sel.service.name)),
-  );
+  // null = no explicit user choice yet — falls back to the derived default below. Once the
+  // customer taps either toggle button, their choice sticks regardless of the derived default.
+  const [manualShowAll, setManualShowAll] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetch("/api/booking/services")
@@ -55,11 +49,6 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
       .then(setData)
       .catch(() => setError(true));
   }, []);
-
-  const effectivePendingId = pendingServiceId !== undefined ? pendingServiceId : flow.state.pendingServiceId;
-  const pendingService = data && effectivePendingId
-    ? (data.groups.flatMap((g) => g.services).find((s) => s.itemId === effectivePendingId) ?? null)
-    : null;
 
   if (error) {
     return <p className="text-sm text-[var(--color-muted)]">Couldn&apos;t load services. Please try again shortly.</p>;
@@ -75,41 +64,6 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   function lockedTierName(forItemId: string): string | null {
     const other = selectedServices.find((sel) => sel.service.itemId !== forItemId && sel.service.variations.length > 1);
     return other?.variation.name ?? null;
-  }
-
-  function pickVariation(svc: WireServiceItem, v: WireVariation) {
-    flow.addService(svc, v);
-    setPendingServiceId(null);
-  }
-
-  /** A single-variation service has nothing to actually choose — tapping it should add/remove it
-   * directly instead of expanding a panel that just asks you to confirm the only option again. */
-  function onServiceClick(svc: WireServiceItem, isSelected: boolean) {
-    if (svc.variations.length === 1) {
-      if (isSelected) {
-        flow.removeService(svc.itemId);
-      } else {
-        flow.addService(svc, svc.variations[0]);
-      }
-      return;
-    }
-
-    const lock = lockedTierName(svc.itemId);
-    if (isSelected) {
-      // Already selected and locked by another tiered service in the cart — nothing to change,
-      // only the × can remove it.
-      if (lock) return;
-      setPendingServiceId(pendingService?.itemId === svc.itemId ? null : svc.itemId);
-      return;
-    }
-    if (lock) {
-      const matching = svc.variations.find((v) => v.name === lock);
-      if (matching) {
-        flow.addService(svc, matching);
-        return;
-      }
-    }
-    setPendingServiceId(pendingService?.itemId === svc.itemId ? null : svc.itemId);
   }
 
   /** Add-ons live on their own step next, shown only if at least one selected service belongs to
@@ -132,7 +86,85 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
    * behavior. */
   function renderServiceRow(svc: WireServiceItem) {
     const selected = selectedServices.find((sel) => sel.service.itemId === svc.itemId);
-    const locked = svc.variations.length > 1 && Boolean(lockedTierName(svc.itemId));
+    const isTiered = svc.variations.length > 1;
+    const lock = isTiered ? lockedTierName(svc.itemId) : null;
+    const lockedVariation = lock ? (svc.variations.find((v) => v.name === lock) ?? null) : null;
+
+    // Locked by another already-selected tiered service in this visit — there's really only one
+    // valid tier here (same provider does the whole visit), so this reads as a plain single-price
+    // row rather than a radio choice with no real second option.
+    if (isTiered && lockedVariation) {
+      return (
+        <div
+          key={svc.itemId}
+          className={`rounded-[var(--radius-lg)] ring-1 ${
+            selected ? "ring-2 ring-[var(--color-accent)]" : "ring-[var(--color-border)]"
+          }`}
+        >
+          <div className="flex w-full items-center justify-between px-4 py-3">
+            <button
+              type="button"
+              onClick={() => (selected ? flow.removeService(svc.itemId) : flow.addService(svc, lockedVariation))}
+              className="flex flex-1 items-center justify-between text-left"
+            >
+              <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
+                {selected && <span className="text-[var(--color-accent)]">✓</span>}
+                {svc.name}
+              </span>
+              <span className="text-sm text-[var(--color-muted)]">{formatPrice(lockedVariation.priceCents)}</span>
+            </button>
+            {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
+          </div>
+          <p className="border-t border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-muted)]">
+            {lock} — matched to your other service so the same provider does your whole visit.
+          </p>
+        </div>
+      );
+    }
+
+    // A real tier choice (Nail Artist vs. Top Nail Artist, etc.) — shown as radio buttons right
+    // under the service name, always visible rather than hidden behind a tap-to-expand panel, so
+    // it's unambiguous on mobile that picking a provider is expected, not an optional detail.
+    if (isTiered) {
+      return (
+        <div
+          key={svc.itemId}
+          className={`rounded-[var(--radius-lg)] ring-1 ${
+            selected ? "ring-2 ring-[var(--color-accent)]" : "ring-[var(--color-border)]"
+          }`}
+        >
+          <div className="flex w-full items-center justify-between px-4 py-3">
+            <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
+              {selected && <span className="text-[var(--color-accent)]">✓</span>}
+              {svc.name}
+            </span>
+            {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
+          </div>
+          <div className="border-t border-[var(--color-border)] px-4 py-3">
+            <p className="mb-1.5 text-xs font-medium text-[var(--color-muted-2)]">Choose your artist</p>
+            <div className="flex flex-wrap gap-2">
+              {svc.variations.map((v) => (
+                <label
+                  key={v.variationId}
+                  className="flex items-center gap-1.5 rounded-[var(--radius-pill)] px-3 py-1.5 text-xs ring-1 ring-[var(--color-border)] has-[:checked]:bg-[var(--color-accent-tint-2)] has-[:checked]:ring-[var(--color-accent)]"
+                >
+                  <input
+                    type="radio"
+                    name={`tier-${svc.itemId}`}
+                    checked={selected?.variation.variationId === v.variationId}
+                    onChange={() => flow.addService(svc, v)}
+                    className="accent-[var(--color-accent)]"
+                  />
+                  {v.name} ({formatPrice(v.priceCents)})
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Single-variation: nothing to choose, so tapping the whole row adds/removes it directly.
     return (
       <div
         key={svc.itemId}
@@ -143,47 +175,17 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
         <div className="flex w-full items-center justify-between px-4 py-3">
           <button
             type="button"
-            onClick={() => onServiceClick(svc, Boolean(selected))}
+            onClick={() => (selected ? flow.removeService(svc.itemId) : flow.addService(svc, svc.variations[0]))}
             className="flex flex-1 items-center justify-between text-left"
           >
             <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
               {selected && <span className="text-[var(--color-accent)]">✓</span>}
               {svc.name}
-              {selected && svc.variations.length > 1 && (
-                <span className="text-xs font-normal text-[var(--color-muted)]">({selected.variation.name})</span>
-              )}
             </span>
-            <span className="text-sm text-[var(--color-muted)]">
-              {selected
-                ? formatPrice(selected.variation.priceCents)
-                : svc.variations.length === 1
-                  ? formatPrice(svc.variations[0].priceCents)
-                  : `from ${formatPrice(Math.min(...svc.variations.map((v) => v.priceCents)))}`}
-            </span>
+            <span className="text-sm text-[var(--color-muted)]">{formatPrice(svc.variations[0].priceCents)}</span>
           </button>
           {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
         </div>
-        {svc.variations.length > 1 && pendingService?.itemId === svc.itemId && (
-          <div className="space-y-1 border-t border-[var(--color-border)] px-4 py-3">
-            {svc.variations.map((v) => (
-              <button
-                key={v.variationId}
-                type="button"
-                onClick={() => pickVariation(svc, v)}
-                className="flex w-full items-center justify-between rounded-[var(--radius-sm)] px-3 py-2 text-sm hover:bg-[var(--color-accent-tint-2)]"
-              >
-                <span>{v.name}</span>
-                <span className="font-medium text-[var(--color-accent)]">{formatPrice(v.priceCents)}</span>
-              </button>
-            ))}
-          </div>
-        )}
-        {selected && locked && svc.variations.length > 1 && (
-          <p className="border-t border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-muted)]">
-            Matched to the {selected.variation.name} you picked for your other service — the same provider does
-            your whole visit.
-          </p>
-        )}
       </div>
     );
   }
@@ -192,6 +194,17 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   const topServices = TOP_SERVICE_NAMES
     .map((name) => allServices.find((svc) => svc.name === name))
     .filter((svc): svc is WireServiceItem => Boolean(svc));
+
+  // Defaults open if a previously-selected service, or a homepage-card preselection, isn't one of
+  // the top picks — otherwise it'd be selected-but-invisible in the collapsed view. Pure derived
+  // value (no effect needed) so the customer's own toggle always wins once they've made one.
+  const pendingService = flow.state.pendingServiceId
+    ? allServices.find((svc) => svc.itemId === flow.state.pendingServiceId)
+    : null;
+  const needsShowAllByDefault =
+    selectedServices.some((sel) => !TOP_SERVICE_NAMES.includes(sel.service.name)) ||
+    Boolean(pendingService && !TOP_SERVICE_NAMES.includes(pendingService.name));
+  const showAll = manualShowAll ?? needsShowAllByDefault;
 
   return (
     <div>
@@ -212,7 +225,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
           </div>
           <button
             type="button"
-            onClick={() => setShowAll(false)}
+            onClick={() => setManualShowAll(false)}
             className="mt-4 flex w-full items-center justify-center gap-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] py-2.5 text-sm font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent-tint-2)]"
           >
             Show top picks only <span aria-hidden>↑</span>
@@ -223,7 +236,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
           <div className="mt-4 space-y-2">{topServices.map(renderServiceRow)}</div>
           <button
             type="button"
-            onClick={() => setShowAll(true)}
+            onClick={() => setManualShowAll(true)}
             className="mt-4 flex w-full items-center justify-center gap-1 rounded-[var(--radius-lg)] border border-[var(--color-border)] py-2.5 text-sm font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent-tint-2)]"
           >
             Show more services <span aria-hidden>↓</span>
