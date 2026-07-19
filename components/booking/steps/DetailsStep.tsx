@@ -146,6 +146,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           addOnVariationIds,
           serviceName: selectedServices[0]?.service.name,
           contact,
+          smsOptIn,
         }),
       });
       if (!bookingRes.ok) throw new Error("Couldn't finish booking your appointment. Please try again.");
