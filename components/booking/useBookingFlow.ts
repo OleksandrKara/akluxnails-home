@@ -16,6 +16,10 @@ export interface BookingFlowState {
   cancellationAgreed: boolean;
   bookingId: string | null;
   technicianName: string | null;
+  customerId: string | null;
+  /** Whether this customer already had a card on file at booking time — lets DoneStep skip the
+   * "secure your appointment" card prompt entirely for a customer who's already secured. */
+  hasCardOnFile: boolean;
 }
 
 const initialContact: ContactInfo = { givenName: "", familyName: "", phoneNumber: "", emailAddress: "" };
@@ -42,6 +46,8 @@ export function useBookingFlow(preselection?: Preselection) {
     cancellationAgreed: false,
     bookingId: null,
     technicianName: null,
+    customerId: null,
+    hasCardOnFile: false,
   });
 
   function goTo(step: BookingStep) {
@@ -113,8 +119,19 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, cancellationAgreed }));
   }
 
-  function bookingCreated(bookingId: string, technicianName: string | null) {
-    setState((s) => ({ ...s, bookingId, technicianName, step: "done" }));
+  function bookingCreated(
+    bookingId: string,
+    technicianName: string | null,
+    customerId: string,
+    hasCardOnFile: boolean,
+  ) {
+    setState((s) => ({ ...s, bookingId, technicianName, customerId, hasCardOnFile, step: "done" }));
+  }
+
+  /** Called once DoneStep's card prompt succeeds, so a re-render doesn't show it again (e.g. if
+   * something else in the modal re-renders DoneStep). */
+  function cardSecured() {
+    setState((s) => ({ ...s, hasCardOnFile: true }));
   }
 
   const totalCents = state.selectedServices.reduce((sum, sel) => {
@@ -136,6 +153,7 @@ export function useBookingFlow(preselection?: Preselection) {
     setSmsOptIn,
     setCancellationAgreed,
     bookingCreated,
+    cardSecured,
   };
 }
 
