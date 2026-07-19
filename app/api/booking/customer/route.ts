@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { findOrCreateCustomer } from "@/lib/square/customers";
 import { resolveBookingIdentity } from "@/lib/bookingIdentity";
 import { recordEvent } from "@/lib/tracking";
+import { recordStep1Contact } from "@/lib/marketingContacts";
+import { getDefaultLandingPageId } from "@/lib/variant";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -28,6 +30,18 @@ export async function POST(request: NextRequest) {
         eventType: "booking_started",
       });
     }
+
+    // marketing.contacts must show this lead regardless of whether the vid/variant cookies
+    // resolved — see lib/marketingContacts.ts for why this app writes here at all now.
+    await recordStep1Contact({
+      givenName,
+      phoneNumber,
+      emailAddress: emailAddress ?? null,
+      squareCustomerId: customerId,
+      visitorId: identity.visitorId,
+      landingPageId: identity.landingPageId ?? (await getDefaultLandingPageId()),
+      variantId: identity.variantId,
+    });
 
     return NextResponse.json({ customerId });
   } catch (err) {

@@ -10,7 +10,14 @@ export interface CreateBookingInput {
   customerNote?: string;
 }
 
-export async function createBooking(input: CreateBookingInput): Promise<string> {
+export interface CreatedBooking {
+  bookingId: string;
+  /** Square's own appointment status (e.g. "ACCEPTED") — surfaced so callers (marketing.contacts
+   * writes) don't have to guess/hardcode it. */
+  status: string | null;
+}
+
+export async function createBooking(input: CreateBookingInput): Promise<CreatedBooking> {
   const client = getSquareClient();
   const primaryTeamMemberId = input.slot.segments[0]?.teamMemberId;
 
@@ -54,7 +61,7 @@ export async function createBooking(input: CreateBookingInput): Promise<string> 
   if (!response.booking?.id) {
     throw new Error("Square did not return a booking id");
   }
-  return response.booking.id;
+  return { bookingId: response.booking.id, status: response.booking.status ?? null };
 }
 
 /** Best-effort display name for the confirmation screen — never blocks booking success on this. */

@@ -1,11 +1,14 @@
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createBooking, getTeamMemberName } from "@/lib/square/bookings";
+import { getServiceVariation } from "@/lib/square/catalog";
 import { resolveBookingIdentity } from "@/lib/bookingIdentity";
 import { recordEvent } from "@/lib/tracking";
 import { notifyFourHandRequest } from "@/lib/telegram";
 import { notifyFourHandRequestSms } from "@/lib/sms";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { linkContactToBooking } from "@/lib/marketingContacts";
+import { getDefaultLandingPageId } from "@/lib/variant";
 
 interface WireSegment {
   teamMemberId: string;
@@ -23,11 +26,21 @@ interface WireContact {
   givenName?: string;
   familyName?: string;
   phoneNumber?: string;
+  emailAddress?: string;
+}
+
+/** Priced from the catalog rather than trusting a client-sent total — the same reasoning
+ * createBooking already applies to add-on service_variation_version. Used only for
+ * marketing.contacts' booking_price column; has no bearing on what Square actually charges. */
+async function computeBookingPriceCents(segments: WireSegment[], addOnVariationIds?: string[]): Promise<number> {
+  const variationIds = [...segments.map((s) => s.serviceVariationId), ...(addOnVariationIds ?? [])];
+  const resolved = await Promise.all(variationIds.map((id) => getServiceVariation(id)));
+  return resolved.reduce((sum, r) => sum + (r?.variation.priceCents ?? 0), 0);
 }
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { customerId, slot, addOnVariationIds, customerNote, serviceName, contact } = body ?? {};
+  const { customerId, slot, addOnVariationIds, customerNote, serviceName, contact, smsOptIn } = body ?? {};
   const wireSlot = slot as WireSlot | undefined;
   const wireContact = contact as WireContact | undefined;
   if (!customerId || !wireSlot?.startAt || !wireSlot.segments?.length) {
@@ -43,12 +56,20 @@ export async function POST(request: NextRequest) {
 
   try {
     let bookingId: string;
+    let bookingStatus: string;
+    let bookingPriceCents: number | null;
+    let bookingArtistName: string | null;
     const technicianName = await getTeamMemberName(wireSlot.segments[0].teamMemberId);
 
     if (isFourHandsRequest) {
       // No real Square appointment for this path — the Square customer/contact was already
       // found-or-created in /api/booking/customer. Just alert the team.
       bookingId = `four-hand-request-${randomUUID()}`;
+      bookingStatus = "requested";
+      // Neither price nor a specific artist is confirmed yet — staff calls to work both out
+      // (see notifyFourHandRequest below), matching mani's own four-hand contact record.
+      bookingPriceCents = null;
+      bookingArtistName = null;
       await notifyFourHandRequest({
         customerName: wireContact ? `${wireContact.givenName ?? ""} ${wireContact.familyName ?? ""}`.trim() : undefined,
         phoneNumber: wireContact?.phoneNumber,
@@ -60,7 +81,7 @@ export async function POST(request: NextRequest) {
         preferredStartAt: wireSlot.startAt,
       });
     } else {
-      bookingId = await createBooking({
+      const created = await createBooking({
         customerId,
         slot: {
           startAt: wireSlot.startAt,
@@ -74,6 +95,10 @@ export async function POST(request: NextRequest) {
         addOnVariationIds,
         customerNote,
       });
+      bookingId = created.bookingId;
+      bookingStatus = created.status ?? "ACCEPTED";
+      bookingPriceCents = await computeBookingPriceCents(wireSlot.segments, addOnVariationIds);
+      bookingArtistName = technicianName;
     }
 
     const identity = await resolveBookingIdentity(request);
@@ -84,6 +109,26 @@ export async function POST(request: NextRequest) {
         variantId: identity.variantId,
         eventType: "booking_completed",
         metadata: { bookingId },
+      });
+    }
+
+    if (wireContact?.givenName && wireContact?.phoneNumber) {
+      await linkContactToBooking({
+        givenName: wireContact.givenName,
+        phoneNumber: wireContact.phoneNumber,
+        emailAddress: wireContact.emailAddress ?? null,
+        smsConsent: Boolean(smsOptIn),
+        squareCustomerId: customerId,
+        squareBookingId: bookingId,
+        bookingStatus,
+        bookingStartAt: wireSlot.startAt,
+        bookingServiceName: serviceName ?? "Unknown service",
+        bookingPriceCents,
+        bookingArtistName,
+        submissionType: isFourHandsRequest ? "four_hand_request" : "booking",
+        visitorId: identity.visitorId,
+        landingPageId: identity.landingPageId ?? (await getDefaultLandingPageId()),
+        variantId: identity.variantId,
       });
     }
 

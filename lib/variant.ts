@@ -39,6 +39,14 @@ interface VariantRow {
 
 let cachedLandingPageId: string | null = null;
 
+/** This whole app only ever serves one landing page (the slug in LANDING_PAGE_SLUG, "home" by
+ * default) — used as a fallback landing_page_id for marketing.contacts writes when the vid/variant
+ * cookies didn't resolve one (e.g. an ad blocker stripped them), so a contact still gets attributed
+ * to "home" rather than showing up under no landing page at all. */
+export async function getDefaultLandingPageId(): Promise<string | null> {
+  return landingPageId();
+}
+
 async function landingPageId(): Promise<string | null> {
   if (cachedLandingPageId) return cachedLandingPageId;
   const slug = process.env.LANDING_PAGE_SLUG ?? "home";
