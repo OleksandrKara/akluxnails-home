@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE, NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
+import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
-import { useSquareCard } from "../useSquarePayments";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
-import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
-import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
 
-const CARD_CONTAINER_ID = "sq-card-container";
 const LOOKUP_DEBOUNCE_MS = 600;
 
 interface ReturningCustomer {
@@ -38,16 +34,20 @@ function looksLikeCompleteEmail(value: string): boolean {
   return /\S+@\S+\.\S+/.test(value);
 }
 
-/** One screen: contact details + order summary + card-on-file, ending in a single "Confirm &
- * Book" action — fewer taps than a separate contact/card/confirm sequence, which matters for
- * conversion. The whole booking (customer, card, appointment) is created in one submit.
+/** One screen: contact details + order summary, ending in a single "Confirm & Book" action —
+ * no card required here. The appointment is created from just contact info + cancellation-policy
+ * agreement; a card (for the $25 no-show/late-cancellation policy) is asked for afterward, on
+ * DoneStep, once the customer has already seen their appointment confirmed. Booking first this way
+ * means even a customer who never gets around to adding a card still has a real, staff-visible
+ * appointment on the books — better than today's alternative of losing them entirely at a
+ * mandatory card field before anything existed.
  *
- * The 4-hand placeholder item is a request, not a real priced/confirmed service — no card or
+ * The 4-hand placeholder item is a request, not a real priced/confirmed service — no
  * cancellation-policy agreement is needed for it, just contact info and the same SMS opt-in.
  *
  * As soon as contact info matches an existing Square customer, the form recognizes them and skips
- * re-asking for anything already on file (SMS consent, card) rather than only finding out at
- * submit time. */
+ * re-asking for anything already on file (SMS consent) rather than only finding out at submit
+ * time. Their existing card-on-file status is threaded through to DoneStep so it doesn't ask again. */
 export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const { selectedServices, slot, smsOptIn, cancellationAgreed } = flow.state;
   const isFourHandsRequest =
@@ -70,9 +70,6 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const [lookedUpFor, setLookedUpFor] = useState<{ phoneNumber: string; emailAddress: string } | null>(null);
   const returningCustomerConfirmed =
     lookedUpFor?.phoneNumber === phoneNumber && lookedUpFor?.emailAddress === emailAddress ? returningCustomer : null;
-
-  const needsCard = !isFourHandsRequest && !returningCustomerConfirmed?.hasCardOnFile;
-  const { card, error: sdkError } = useSquareCard(CARD_CONTAINER_ID, needsCard);
 
   useEffect(() => {
     const phoneReady = looksLikeCompletePhone(phoneNumber);
@@ -113,7 +110,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
 
   if (selectedServices.length === 0 || !slot) return null;
 
-  const canSubmit = isFourHandsRequest ? true : Boolean(!needsCard || card) && cancellationAgreed;
+  const canSubmit = isFourHandsRequest ? true : cancellationAgreed;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -131,28 +128,6 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       });
       if (!customerRes.ok) throw new Error("Couldn't save your details. Please try again.");
       const { customerId } = await customerRes.json();
-
-      if (needsCard && card) {
-        const tokenResult = await card.tokenize({
-          billingContact: { givenName, familyName, email: emailAddress || undefined, phone: phoneNumber, countryCode: "US" },
-          intent: "STORE",
-          customerInitiated: true,
-          sellerKeyedIn: false,
-        });
-        if (tokenResult.status !== "OK" || !tokenResult.token) {
-          throw new Error(friendlyTokenizeErrorMessage(tokenResult.errors));
-        }
-
-        const cardRes = await fetch("/api/booking/card", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sourceId: tokenResult.token, customerId, cardholderName: `${givenName} ${familyName}`.trim() }),
-        });
-        if (!cardRes.ok) {
-          const { error } = await cardRes.json().catch(() => ({ error: null }));
-          throw new Error(error ?? "This card couldn't be saved. Please double-check the details or try a different card.");
-        }
-      }
 
       const addOnVariationIds = selectedServices.flatMap((sel) =>
         sel.addOns.map((a) => a.variations[0]?.variationId).filter((id): id is string => Boolean(id)),
@@ -172,7 +147,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       if (!bookingRes.ok) throw new Error("Couldn't finish booking your appointment. Please try again.");
       const { bookingId, technicianName } = await bookingRes.json();
 
-      flow.bookingCreated(bookingId, technicianName ?? null);
+      flow.bookingCreated(bookingId, technicianName ?? null, customerId, Boolean(returningCustomerConfirmed?.hasCardOnFile));
     } catch (err) {
       console.error("Booking submission failed", err);
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -348,30 +323,9 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           </label>
 
           <p className="mt-4 text-xs text-[var(--color-muted)]">{NO_SHOW_POLICY_SUMMARY}</p>
-          {needsCard && (
-            <div className="mt-2">
-              {/* Right at the point of highest friction (handing over card details), a quick
-                  reassurance that the work itself is guaranteed — reduces hesitation before the
-                  card form. A filled icon circle + bold headline makes this scan as a badge at a
-                  glance rather than body copy someone has to stop and read. */}
-              <div className="mb-3 flex items-center gap-3 rounded-[var(--radius-lg)] border-2 border-[var(--color-accent)] bg-[var(--color-accent-tint-2)] px-4 py-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-white">
-                  <ShieldCheckIcon size={24} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-base font-bold leading-tight text-[var(--color-accent-dark)]">
-                    {CARD_STEP_GUARANTEE_HEADLINE}
-                  </span>
-                  <span className="mt-0.5 block text-sm text-[var(--color-ink)]">{CARD_STEP_GUARANTEE_BODY}</span>
-                </span>
-              </div>
-              <div id={CARD_CONTAINER_ID} />
-            </div>
-          )}
         </>
       )}
 
-      {sdkError && needsCard && <p className="mt-3 text-sm text-red-600">{sdkError}</p>}
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       <button

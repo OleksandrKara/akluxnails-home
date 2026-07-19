@@ -1,8 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import type { BookingFlow } from "../useBookingFlow";
 import { googleCalendarUrl, icsDataUrl } from "../calendarLinks";
 import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { useSquareCard } from "../useSquarePayments";
+import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
+import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
+import { CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE } from "@/lib/siteData";
+
+const CARD_CONTAINER_ID = "sq-card-container";
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
@@ -39,12 +46,126 @@ function CalendarDownloadIcon() {
   );
 }
 
+/** The card-on-file ask, deferred here from DetailsStep so booking itself never requires one —
+ * even a customer who never completes this still has a real, staff-visible appointment. Framed as
+ * the expected next step (not "optional"/skippable via any dedicated affordance): no skip link,
+ * strong "we're holding your spot" copy. It's still not a hard gate — the Done button and calendar
+ * links below always work regardless, and closing the modal without adding a card leaves the
+ * appointment fully intact. */
+function SecureAppointmentCard({
+  customerId,
+  givenName,
+  familyName,
+  phoneNumber,
+  emailAddress,
+  onSecured,
+}: {
+  customerId: string;
+  givenName: string;
+  familyName: string;
+  phoneNumber: string;
+  emailAddress: string;
+  onSecured: () => void;
+}) {
+  const { card, error: sdkError } = useSquareCard(CARD_CONTAINER_ID);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [secured, setSecured] = useState(false);
+
+  async function handleAddCard() {
+    if (!card) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const tokenResult = await card.tokenize({
+        billingContact: { givenName, familyName, email: emailAddress || undefined, phone: phoneNumber, countryCode: "US" },
+        intent: "STORE",
+        customerInitiated: true,
+        sellerKeyedIn: false,
+      });
+      if (tokenResult.status !== "OK" || !tokenResult.token) {
+        throw new Error(friendlyTokenizeErrorMessage(tokenResult.errors));
+      }
+
+      const cardRes = await fetch("/api/booking/card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceId: tokenResult.token, customerId, cardholderName: `${givenName} ${familyName}`.trim() }),
+      });
+      if (!cardRes.ok) {
+        const { error: apiError } = await cardRes.json().catch(() => ({ error: null }));
+        throw new Error(apiError ?? "This card couldn't be saved. Please double-check the details or try a different card.");
+      }
+      setSecured(true);
+      onSecured();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (secured) {
+    return (
+      <div className="mt-5 flex items-center gap-3 rounded-[var(--radius-lg)] border-2 border-[var(--color-success)] bg-[var(--color-success-bg)] p-4 text-left">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-success)] text-xl text-white">
+          ✓
+        </span>
+        <span>
+          <span className="block text-base font-bold leading-tight text-[var(--color-ink)]">You&apos;re fully secured!</span>
+          <span className="mt-0.5 block text-sm text-[var(--color-muted)]">Thanks for adding a card — see you soon.</span>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-5 rounded-[var(--radius-lg)] border-2 border-[var(--color-accent)] bg-[var(--color-accent-tint-2)] p-4 text-left">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-white">
+          <ShieldCheckIcon size={24} />
+        </span>
+        <span>
+          <span className="block text-base font-bold leading-tight text-[var(--color-accent-dark)]">
+            Secure Your Appointment
+          </span>
+          <span className="mt-0.5 block text-sm text-[var(--color-ink)]">
+            Add a card per our cancellation policy — we&apos;re holding your spot!
+          </span>
+        </span>
+      </div>
+
+      <div className="mt-3">
+        <div id={CARD_CONTAINER_ID} />
+      </div>
+      {sdkError && <p className="mt-2 text-sm text-red-600">{sdkError}</p>}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+
+      <button
+        type="button"
+        onClick={handleAddCard}
+        disabled={!card || submitting}
+        className="mt-3 w-full rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)] disabled:opacity-60"
+      >
+        {submitting ? "Saving…" : "Confirm My Card"}
+      </button>
+
+      {/* Secondary reassurance right where the card ask is — the quality guarantee reinforces the
+          security ask instead of competing with it for attention. */}
+      <p className="mt-3 text-xs text-[var(--color-muted)]">
+        <strong className="text-[var(--color-accent-dark)]">{CARD_STEP_GUARANTEE_HEADLINE}:</strong> {CARD_STEP_GUARANTEE_BODY}
+      </p>
+    </div>
+  );
+}
+
 export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose: () => void }) {
-  const { selectedServices, slot, technicianName } = flow.state;
+  const { selectedServices, slot, technicianName, customerId, hasCardOnFile, contact } = flow.state;
   if (selectedServices.length === 0 || !slot) return null;
 
   const isFourHandsRequest =
     selectedServices.length === 1 && selectedServices[0].service.name === FOUR_HANDS_REQUEST_ITEM_NAME;
+  const showSecureCard = !isFourHandsRequest && Boolean(customerId) && !hasCardOnFile;
 
   const title = isFourHandsRequest
     ? "4-Hand Appointment Request at AK.LUX.NAILS"
@@ -109,6 +230,17 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
           </div>
         )}
       </dl>
+
+      {showSecureCard && customerId && (
+        <SecureAppointmentCard
+          customerId={customerId}
+          givenName={contact.givenName}
+          familyName={contact.familyName}
+          phoneNumber={contact.phoneNumber}
+          emailAddress={contact.emailAddress}
+          onSecured={flow.cardSecured}
+        />
+      )}
 
       {!isFourHandsRequest && (
         <div className="mt-4 grid grid-cols-2 gap-3">
