@@ -8,7 +8,7 @@
  */
 export const BOOKING_FLOW = {
   flowKey: "homepage_booking_v1",
-  steps: ["services", "tech", "addons", "datetime", "details"] as const,
+  steps: ["services", "addons", "datetime", "details"] as const,
 };
 
 export type BookingFlowStep = (typeof BOOKING_FLOW.steps)[number];

@@ -58,8 +58,8 @@ function cardClasses(selected: boolean): string {
   }`;
 }
 
-/** Which nail tech does the work (if a service has more than one price tier) is its own step
- * right after this one — this screen only asks "what", never "who". */
+/** Which nail tech does the work (if a service has more than one price tier) is a filter on the
+ * "Choose a time" screen later — this screen only asks "what", never "who". */
 export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   const [data, setData] = useState<ServicesResponse | null>(null);
   const [error, setError] = useState(false);
@@ -83,17 +83,16 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   }
 
   /** Add-ons live on their own step next, shown only if at least one selected service belongs to
-   * a group that actually has add-on options (e.g. skip it entirely for a Men's-only booking). */
+   * a group that actually has add-on options (e.g. skip it entirely for a Men's-only booking).
+   * Which nail tech does the work (if a selected service has more than one price tier) is a
+   * filter on the "Choose a time" screen next, not a separate step here. */
   function onContinue() {
-    const hasTieredService = selectedServices.some((sel) => sel.service.variations.length > 1);
     const hasApplicableAddOns = data!.groups.some(
       (group) =>
         group.addOnGroups.length > 0 &&
         group.services.some((svc) => selectedServices.some((sel) => sel.service.itemId === svc.itemId)),
     );
-    if (hasTieredService) {
-      flow.proceedToTech();
-    } else if (hasApplicableAddOns) {
+    if (hasApplicableAddOns) {
       flow.proceedToAddOns();
     } else {
       flow.proceedToDateTime();
@@ -101,7 +100,8 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   }
 
   /** One service row's markup — shared by the collapsed top-picks view and the full grouped
-   * view. Always just name + price + tap to add/remove; which nail tech is asked in TechStep. */
+   * view. Always just name + price + tap to add/remove; which nail tech is a filter on the
+   * time-picker screen later. */
   function renderServiceRow(svc: WireServiceItem) {
     const selected = selectedServices.find((sel) => sel.service.itemId === svc.itemId);
     const isTiered = svc.variations.length > 1;
@@ -121,7 +121,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
               {svc.name}
             </span>
             <span className="text-sm font-medium text-[var(--color-muted)]">
-              {isTiered && !selected ? `from ${formatPrice(price)}` : formatPrice(price)}
+              {isTiered ? `from ${formatPrice(price)}` : formatPrice(price)}
             </span>
           </button>
           {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}

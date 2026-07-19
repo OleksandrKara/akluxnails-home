@@ -11,11 +11,14 @@ function formatDay(iso: string): string {
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
+function formatPrice(cents: number): string {
+  return `$${(cents / 100).toFixed(0)}`;
+}
 
 interface TaggedSlot {
   slot: WireSlot;
   /** Only set in "any tech" mode when more than one technician was actually searched — omitted
-   * in specific-tech mode since the customer already picked that person one screen ago. */
+   * in specific-tech mode since the filter above already makes that clear. */
   technicianName?: string;
 }
 
@@ -29,6 +32,30 @@ function variationIdsFor(selectedServices: SelectedService[], techId?: string): 
     .join(",");
 }
 
+/** What the visit would cost if this specific technician did every tiered service in it — used
+ * by the filter chips so the price difference between technicians is obvious up front, not just
+ * discoverable by scrolling the merged time list. Independent of the current (possibly stale
+ * once a different technician's been picked before) `sel.variation` — always recomputed fresh
+ * from each service's own variation list. */
+function totalForTech(selectedServices: SelectedService[], techId: string): number {
+  return selectedServices.reduce((sum, sel) => {
+    const addOnCents = sel.addOns.reduce((s2, a) => s2 + (a.variations[0]?.priceCents ?? 0), 0);
+    const variationCents =
+      sel.service.variations.length > 1
+        ? (sel.service.variations.find((v) => v.technicianId === techId)?.priceCents ?? sel.variation.priceCents)
+        : sel.variation.priceCents;
+    return sum + variationCents + addOnCents;
+  }, 0);
+}
+
+function chipClasses(active: boolean): string {
+  return `rounded-[var(--radius-pill)] px-3.5 py-2 text-sm font-medium transition-colors ${
+    active
+      ? "bg-[var(--color-accent)] text-white"
+      : "bg-[var(--color-card)] text-[var(--color-ink)] ring-1 ring-[var(--color-border)] hover:ring-[var(--color-accent)]"
+  }`;
+}
+
 async function fetchSlots(variationIds: string): Promise<WireSlot[]> {
   const res = await fetch(`/api/booking/availability?variationIds=${encodeURIComponent(variationIds)}`);
   const data = await res.json();
@@ -40,9 +67,10 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   const [error, setError] = useState(false);
   const { selectedServices, selectedTechId } = flow.state;
 
-  // Distinct named technicians across the currently-selected tiered services — same computation
-  // as TechStep. Only matters here for "any" mode: with more than one real technician, "any"
-  // means searching every one of their calendars and merging the results.
+  // Distinct named technicians across the currently-selected tiered services — scales to
+  // however many real technicians the catalog resolves (see lib/square/catalog.ts), not
+  // hardcoded to any fixed count. Only matters for "any" mode: with more than one real
+  // technician, "any" means searching every one of their calendars and merging the results.
   const techs = new Map<string, string>();
   for (const sel of selectedServices) {
     if (sel.service.variations.length <= 1) continue;
@@ -50,7 +78,8 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       if (v.technicianId && v.technicianName) techs.set(v.technicianId, v.technicianName);
     }
   }
-  const isAnyMode = selectedTechId === null && techs.size > 1;
+  const showTechFilter = techs.size > 1;
+  const isAnyMode = selectedTechId === null && showTechFilter;
   const serviceItemIds = selectedServices
     .map((sel) => sel.service.itemId)
     .sort()
@@ -72,7 +101,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
           );
           results = combos.flat();
         } else {
-          const slots = await fetchSlots(variationIdsFor(selectedServices));
+          const slots = await fetchSlots(variationIdsFor(selectedServices, selectedTechId ?? undefined));
           results = slots.map((slot) => ({ slot }));
         }
         results.sort((a, b) => a.slot.startAt.localeCompare(b.slot.startAt));
@@ -90,34 +119,72 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTechId, serviceItemIds]);
 
-  if (!taggedSlots) {
-    return <p className="text-sm text-[var(--color-muted)]">Loading available times…</p>;
-  }
-  if (error || taggedSlots.length === 0) {
+  /** "Which nail tech does the work" as a filter right here, rather than a separate step before
+   * this one — one screen instead of two, and the price difference between technicians is right
+   * next to the choice instead of hidden behind a name-only picker. */
+  function renderTechFilter() {
+    if (!showTechFilter) return null;
     return (
-      <div className="rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-5 text-center">
-        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-card)] text-xl" aria-hidden>
-          📅
+      <div className="mt-4">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-2)]">Nail tech</p>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => flow.setTech(null)} className={chipClasses(selectedTechId === null)}>
+            Any nail tech
+          </button>
+          {[...techs.entries()].map(([id, name]) => (
+            <button key={id} type="button" onClick={() => flow.setTech(id)} className={chipClasses(selectedTechId === id)}>
+              {name} · {formatPrice(totalForTech(selectedServices, id))}
+            </button>
+          ))}
         </div>
-        <p className="mt-3 text-sm font-medium text-[var(--color-ink)]">
-          {error ? "Couldn't load availability right now" : "No openings for this combination in the next few weeks"}
-        </p>
-        <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Try removing a service, or give us a call and we&apos;ll find a time that works for you.
-        </p>
-        <a
-          href={LOCATION.phoneHref}
-          className="mt-4 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-base font-medium text-white hover:bg-[var(--color-accent-hover)]"
-        >
-          📞 Call {LOCATION.phone}
-        </a>
-        <button
-          type="button"
-          onClick={() => flow.goTo("services")}
-          className="mt-3 block w-full text-xs text-[var(--color-accent)] underline"
-        >
+      </div>
+    );
+  }
+
+  if (!taggedSlots) {
+    return (
+      <div>
+        <h3 className="text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+          Choose a time
+        </h3>
+        <button type="button" onClick={() => flow.goTo("services")} className="mt-1 text-xs text-[var(--color-accent)] underline">
           Back to services
         </button>
+        {renderTechFilter()}
+        <p className="mt-4 text-sm text-[var(--color-muted)]">Loading available times…</p>
+      </div>
+    );
+  }
+
+  if (error || taggedSlots.length === 0) {
+    return (
+      <div>
+        <h3 className="text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+          Choose a time
+        </h3>
+        <button type="button" onClick={() => flow.goTo("services")} className="mt-1 text-xs text-[var(--color-accent)] underline">
+          Back to services
+        </button>
+        {renderTechFilter()}
+        <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-5 text-center">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-card)] text-xl" aria-hidden>
+            📅
+          </div>
+          <p className="mt-3 text-sm font-medium text-[var(--color-ink)]">
+            {error ? "Couldn't load availability right now" : "No openings for this combination in the next few weeks"}
+          </p>
+          <p className="mt-1 text-sm text-[var(--color-muted)]">
+            {showTechFilter && selectedTechId !== null
+              ? "Try “Any nail tech”, or give us a call and we'll find a time that works for you."
+              : "Try removing a service, or give us a call and we'll find a time that works for you."}
+          </p>
+          <a
+            href={LOCATION.phoneHref}
+            className="mt-4 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-base font-medium text-white hover:bg-[var(--color-accent-hover)]"
+          >
+            📞 Call {LOCATION.phone}
+          </a>
+        </div>
       </div>
     );
   }
@@ -136,6 +203,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       <button type="button" onClick={() => flow.goTo("services")} className="mt-1 text-xs text-[var(--color-accent)] underline">
         Back to services
       </button>
+      {renderTechFilter()}
       <div className="mt-4 max-h-96 space-y-4 overflow-y-auto">
         {[...byDay.entries()].map(([day, daySlots]) => (
           <div key={day}>

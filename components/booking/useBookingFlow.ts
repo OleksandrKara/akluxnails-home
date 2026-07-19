@@ -17,9 +17,9 @@ export interface BookingFlowState {
   /** Whether this customer already had a card on file at booking time — lets DoneStep skip the
    * "secure your appointment" card prompt entirely for a customer who's already secured. */
   hasCardOnFile: boolean;
-  /** The customer's nail-tech choice from TechStep — null means "any available tech". Not to be
-   * confused with `technicianName` above, which is the *confirmed* appointment's technician,
-   * only known after a real booking is created. */
+  /** The customer's nail-tech filter choice on DateTimeStep — null means "any available tech".
+   * Not to be confused with `technicianName` above, which is the *confirmed* appointment's
+   * technician, only known after a real booking is created. */
   selectedTechId: string | null;
 }
 
@@ -80,10 +80,6 @@ export function useBookingFlow(preselection?: Preselection) {
 
   function removeService(itemId: string) {
     setState((s) => ({ ...s, selectedServices: s.selectedServices.filter((sel) => sel.service.itemId !== itemId) }));
-  }
-
-  function proceedToTech() {
-    setState((s) => ({ ...s, step: "tech" }));
   }
 
   function proceedToAddOns() {
@@ -182,7 +178,6 @@ export function useBookingFlow(preselection?: Preselection) {
     goTo,
     addService,
     removeService,
-    proceedToTech,
     proceedToAddOns,
     proceedToDateTime,
     setTech,
