@@ -7,9 +7,6 @@ import type { BookingStep, ContactInfo, SelectedService, WireServiceItem, WireSl
 export interface BookingFlowState {
   step: BookingStep;
   selectedServices: SelectedService[];
-  /** A service to open the tier picker for on mount (homepage card click on a multi-tier
-   * service) — never pre-picks a tier, so the visitor always chooses their own provider. */
-  pendingServiceId: string | null;
   slot: WireSlot | null;
   contact: ContactInfo;
   smsOptIn: boolean;
@@ -20,26 +17,28 @@ export interface BookingFlowState {
   /** Whether this customer already had a card on file at booking time — lets DoneStep skip the
    * "secure your appointment" card prompt entirely for a customer who's already secured. */
   hasCardOnFile: boolean;
+  /** The customer's nail-tech choice from TechStep — null means "any available tech". Not to be
+   * confused with `technicianName` above, which is the *confirmed* appointment's technician,
+   * only known after a real booking is created. */
+  selectedTechId: string | null;
 }
 
 const initialContact: ContactInfo = { givenName: "", familyName: "", phoneNumber: "", emailAddress: "" };
 
-/** `variation` is only set for single-tier services, which have nothing to actually choose —
- * multi-tier services are passed with `variation: null` so the visitor is asked to pick their
- * provider instead of silently getting the cheapest one. */
+/** A homepage-card click always preselects a real variation (the cheapest, for a tiered
+ * service) — a nail-tech choice for tiered services, if any, is made later in its own step
+ * rather than by withholding preselection here. */
 export interface Preselection {
   service: WireServiceItem;
-  variation: WireVariation | null;
+  variation: WireVariation;
 }
 
 export function useBookingFlow(preselection?: Preselection) {
   const [state, setState] = useState<BookingFlowState>({
     step: "services",
-    selectedServices:
-      preselection && preselection.variation
-        ? [{ service: preselection.service, variation: preselection.variation, addOns: [] }]
-        : [],
-    pendingServiceId: preselection && !preselection.variation ? preselection.service.itemId : null,
+    selectedServices: preselection
+      ? [{ service: preselection.service, variation: preselection.variation, addOns: [] }]
+      : [],
     slot: null,
     contact: initialContact,
     smsOptIn: false,
@@ -48,6 +47,7 @@ export function useBookingFlow(preselection?: Preselection) {
     technicianName: null,
     customerId: null,
     hasCardOnFile: false,
+    selectedTechId: null,
   });
 
   function goTo(step: BookingStep) {
@@ -82,12 +82,33 @@ export function useBookingFlow(preselection?: Preselection) {
     setState((s) => ({ ...s, selectedServices: s.selectedServices.filter((sel) => sel.service.itemId !== itemId) }));
   }
 
+  function proceedToTech() {
+    setState((s) => ({ ...s, step: "tech" }));
+  }
+
   function proceedToAddOns() {
     setState((s) => ({ ...s, step: "addons" }));
   }
 
   function proceedToDateTime() {
     setState((s) => ({ ...s, step: "datetime" }));
+  }
+
+  /** `null` = "any available tech". A specific choice immediately rewrites every currently
+   * tiered selected service's `variation` to that technician's, so the estimated price on
+   * AddOns/DateTime/Details is right straight away rather than only once a slot is picked. */
+  function setTech(technicianId: string | null) {
+    setState((s) => ({
+      ...s,
+      selectedTechId: technicianId,
+      selectedServices: technicianId
+        ? s.selectedServices.map((sel) => {
+            if (sel.service.variations.length <= 1) return sel;
+            const matched = sel.service.variations.find((v) => v.technicianId === technicianId);
+            return matched ? { ...sel, variation: matched } : sel;
+          })
+        : s.selectedServices,
+    }));
   }
 
   /** Radio-style: picking an option for a group replaces whatever was already picked from that
@@ -103,8 +124,24 @@ export function useBookingFlow(preselection?: Preselection) {
     }));
   }
 
+  /** The chosen slot's segments are the ground truth for what's actually about to be booked
+   * (see DetailsStep — the real Square appointment is created from `slot`, not from
+   * `selectedServices[].variation`). Re-aligning `variation` to match here matters most for the
+   * "any tech" path — whichever technician's combo the picked slot came from is only known once
+   * a real slot is chosen — but doing it unconditionally is a harmless no-op otherwise. */
   function selectSlot(slot: WireSlot) {
-    setState((s) => ({ ...s, slot, step: "details" }));
+    setState((s) => ({
+      ...s,
+      slot,
+      step: "details",
+      selectedServices: s.selectedServices.map((sel) => {
+        const matchedVariationId = slot.segments.find((seg) =>
+          sel.service.variations.some((v) => v.variationId === seg.serviceVariationId),
+        )?.serviceVariationId;
+        const matchedVariation = sel.service.variations.find((v) => v.variationId === matchedVariationId);
+        return matchedVariation ? { ...sel, variation: matchedVariation } : sel;
+      }),
+    }));
   }
 
   function setContact(contact: ContactInfo) {
@@ -145,8 +182,10 @@ export function useBookingFlow(preselection?: Preselection) {
     goTo,
     addService,
     removeService,
+    proceedToTech,
     proceedToAddOns,
     proceedToDateTime,
+    setTech,
     setServiceAddOn,
     selectSlot,
     setContact,

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useBookingFlow, type Preselection } from "./useBookingFlow";
 import ServicesStep from "./steps/ServicesStep";
+import TechStep from "./steps/TechStep";
 import AddOnsStep from "./steps/AddOnsStep";
 import DateTimeStep from "./steps/DateTimeStep";
 import DetailsStep from "./steps/DetailsStep";
@@ -10,8 +11,12 @@ import DoneStep from "./steps/DoneStep";
 import type { BookingStep } from "./types";
 import { trackFunnelStep } from "@/lib/trackFunnelStep";
 
+// "Tech" is skipped for a booking with no tiered service (see ServicesStep's onContinue) — same
+// tolerance as "Add-ons" being skipped for a Men's-only booking: the progress bar just shows it
+// as "passed" once the flow is on a later step, no conditional rendering needed here.
 const STEPS: { step: BookingStep; label: string }[] = [
   { step: "services", label: "Service" },
+  { step: "tech", label: "Tech" },
   { step: "addons", label: "Add-ons" },
   { step: "datetime", label: "Time" },
   { step: "details", label: "Details" },
@@ -94,6 +99,7 @@ export default function BookingModal({
 
         <div className="mt-5">
           {flow.state.step === "services" && <ServicesStep flow={flow} />}
+          {flow.state.step === "tech" && <TechStep flow={flow} />}
           {flow.state.step === "addons" && <AddOnsStep flow={flow} />}
           {flow.state.step === "datetime" && <DateTimeStep flow={flow} />}
           {flow.state.step === "details" && <DetailsStep flow={flow} />}
