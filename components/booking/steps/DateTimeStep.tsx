@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LOCATION } from "@/lib/siteData";
+import StarIcon from "@/components/icons/StarIcon";
 import type { SelectedService, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 
@@ -20,6 +21,14 @@ interface TaggedSlot {
   /** Only set in "any tech" mode when more than one technician was actually searched — omitted
    * in specific-tech mode since the filter above already makes that clear. */
   technicianName?: string;
+}
+
+interface TechInfo {
+  name: string;
+  /** Derived from the raw Square variation name (e.g. "Top Nail Artist" vs "Nail Artist") rather
+   * than hardcoded by person — so this keeps working unchanged whenever a new technician joins
+   * under either tier. */
+  isTop: boolean;
 }
 
 function variationIdsFor(selectedServices: SelectedService[], techId?: string): string {
@@ -65,20 +74,28 @@ async function fetchSlots(variationIds: string): Promise<WireSlot[]> {
 export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   const [taggedSlots, setTaggedSlots] = useState<TaggedSlot[] | null>(null);
   const [error, setError] = useState(false);
+  const [showTechInfo, setShowTechInfo] = useState(false);
   const { selectedServices, selectedTechId } = flow.state;
 
   // Distinct named technicians across the currently-selected tiered services — scales to
   // however many real technicians the catalog resolves (see lib/square/catalog.ts), not
   // hardcoded to any fixed count. Only matters for "any" mode: with more than one real
   // technician, "any" means searching every one of their calendars and merging the results.
-  const techs = new Map<string, string>();
+  const techs = new Map<string, TechInfo>();
   for (const sel of selectedServices) {
     if (sel.service.variations.length <= 1) continue;
     for (const v of sel.service.variations) {
-      if (v.technicianId && v.technicianName) techs.set(v.technicianId, v.technicianName);
+      if (!v.technicianId || !v.technicianName) continue;
+      const isTop = /top/i.test(v.name);
+      const existing = techs.get(v.technicianId);
+      techs.set(v.technicianId, { name: v.technicianName, isTop: existing?.isTop || isTop });
     }
   }
   const showTechFilter = techs.size > 1;
+  // Only worth explaining the tier difference when the currently-selected techs actually differ
+  // by tier — a future all-regular or all-top staff wouldn't show a confusing, pointless link.
+  const hasMixedTiers =
+    [...techs.values()].some((t) => t.isTop) && [...techs.values()].some((t) => !t.isTop);
   const isAnyMode = selectedTechId === null && showTechFilter;
   const serviceItemIds = selectedServices
     .map((sel) => sel.service.itemId)
@@ -94,9 +111,9 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
         let results: TaggedSlot[];
         if (isAnyMode) {
           const combos = await Promise.all(
-            [...techs.entries()].map(async ([techId, techName]) => {
+            [...techs.entries()].map(async ([techId, info]) => {
               const slots = await fetchSlots(variationIdsFor(selectedServices, techId));
-              return slots.map((slot) => ({ slot, technicianName: techName }));
+              return slots.map((slot) => ({ slot, technicianName: info.name }));
             }),
           );
           results = combos.flat();
@@ -121,7 +138,10 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
 
   /** "Which nail tech does the work" as a filter right here, rather than a separate step before
    * this one — one screen instead of two, and the price difference between technicians is right
-   * next to the choice instead of hidden behind a name-only picker. */
+   * next to the choice instead of hidden behind a name-only picker. A star marks the Top tier
+   * and a collapsed-by-default link explains why, so the reason for the price gap is one tap
+   * away without adding permanent weight to an already busy screen. A soft gradient divider below
+   * separates this block from the time-slot list beneath it. */
   function renderTechFilter() {
     if (!showTechFilter) return null;
     return (
@@ -131,12 +151,37 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
           <button type="button" onClick={() => flow.setTech(null)} className={chipClasses(selectedTechId === null)}>
             Any nail tech
           </button>
-          {[...techs.entries()].map(([id, name]) => (
+          {[...techs.entries()].map(([id, info]) => (
             <button key={id} type="button" onClick={() => flow.setTech(id)} className={chipClasses(selectedTechId === id)}>
-              {name} · {formatPrice(totalForTech(selectedServices, id))}
+              <span className="inline-flex items-center gap-1">
+                {info.isTop && <StarIcon size={11} />}
+                {info.name}
+              </span>{" "}
+              · {formatPrice(totalForTech(selectedServices, id))}
             </button>
           ))}
         </div>
+        {hasMixedTiers && (
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => setShowTechInfo((v) => !v)}
+              className="text-xs text-[var(--color-accent)] underline underline-offset-2"
+            >
+              What&apos;s the difference? <span aria-hidden>{showTechInfo ? "︿" : "⌄"}</span>
+            </button>
+            {showTechInfo && (
+              <p className="mt-1.5 text-xs leading-relaxed text-[var(--color-muted)]">
+                <span className="inline-flex items-center gap-1 font-medium text-[var(--color-ink)]">
+                  <StarIcon size={10} /> Top Nail Artist
+                </span>{" "}
+                has 2+ years of experience and typically finishes this service in about 2 hours. A Nail Artist
+                gives the same great result in about 2.5–3 hours.
+              </p>
+            )}
+          </div>
+        )}
+        <div className="mt-4 h-px bg-gradient-to-r from-transparent via-[var(--color-border)] to-transparent" />
       </div>
     );
   }
