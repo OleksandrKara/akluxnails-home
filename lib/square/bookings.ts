@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { getSquareClient, locationId } from "./client";
 import type { AvailableSlot } from "./availability";
+import { getServiceVariation } from "./catalog";
 
 export interface CreateBookingInput {
   customerId: string;
@@ -13,6 +14,22 @@ export async function createBooking(input: CreateBookingInput): Promise<string> 
   const client = getSquareClient();
   const primaryTeamMemberId = input.slot.segments[0]?.teamMemberId;
 
+  // Square requires service_variation_version on every appointment segment, add-ons included —
+  // the client only sends add-on variation ids (see ServicesStep/AddOnsStep), so the current
+  // catalog version has to be resolved here rather than trusted from the client anyway.
+  const addOnSegments = await Promise.all(
+    (input.addOnVariationIds ?? []).map(async (variationId) => {
+      const resolved = await getServiceVariation(variationId);
+      if (!resolved) throw new Error(`Add-on variation ${variationId} not found in catalog`);
+      return {
+        durationMinutes: 0,
+        serviceVariationId: variationId,
+        serviceVariationVersion: resolved.variation.variationVersion,
+        teamMemberId: primaryTeamMemberId,
+      };
+    }),
+  );
+
   const appointmentSegments = [
     ...input.slot.segments.map((segment) => ({
       durationMinutes: segment.durationMinutes,
@@ -20,11 +37,7 @@ export async function createBooking(input: CreateBookingInput): Promise<string> 
       serviceVariationVersion: segment.serviceVariationVersion,
       teamMemberId: segment.teamMemberId,
     })),
-    ...(input.addOnVariationIds ?? []).map((variationId) => ({
-      durationMinutes: 0,
-      serviceVariationId: variationId,
-      teamMemberId: primaryTeamMemberId,
-    })),
+    ...addOnSegments,
   ];
 
   const response = await client.bookings.create({
