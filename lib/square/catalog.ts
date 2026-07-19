@@ -1,6 +1,7 @@
 import type { Square } from "square";
 import { getSquareClient } from "./client";
 import { SERVICE_GROUPS } from "../services-config";
+import { searchAvailability } from "./availability";
 
 // "1st Visit Specials" is a real category in the live Square catalog covering every first-time-
 // client service (e.g. "1st Time Regular Manicure Gel-Overlay"). Excluded categorically here, plus
@@ -14,6 +15,10 @@ export interface ServiceVariationOption {
   variationVersion: bigint;
   name: string;
   priceCents: number;
+  /** Resolved once per catalog snapshot, only for items with more than one variation (see
+   * resolveTechnicians below) — undefined if resolution failed or this variation isn't tiered. */
+  technicianId?: string;
+  technicianName?: string;
 }
 
 export interface CatalogServiceItem {
@@ -37,6 +42,60 @@ function isItemVariation(
   obj: Square.CatalogObject,
 ): obj is Square.CatalogObject.ItemVariation {
   return obj.type === "ITEM_VARIATION";
+}
+
+// Wider than searchAvailability's default 21-day window (this is purely for discovering *who*
+// serves a tiered variation, so a technician with a slower calendar shouldn't come back
+// unresolved just because they have nothing open in the next three weeks) but capped at Square's
+// own hard limit — confirmed directly: Square's availability search rejects any start_at_range
+// wider than 32 days with INVALID_TIME_RANGE.
+const TECHNICIAN_RESOLUTION_DAYS_AHEAD = 32;
+
+/**
+ * Resolves which specific technician a tiered variation belongs to. In this business's real
+ * Square setup, each tier (e.g. "Nail Artist" / "Top Nail Artist") maps to exactly one named
+ * person, not a rotating pool — confirmed directly against live availability search results,
+ * not assumed. There's no catalog-level field for this, so it's discovered the same way the
+ * booking flow itself would: search that one variation's availability and read off whichever
+ * team member comes back.
+ *
+ * Best-effort: a variation with no slots in the next 32 days, or any other failure, is simply
+ * left unresolved — callers fall back to showing the raw variation name instead of a real name.
+ */
+async function resolveTechnicians(itemsByName: Map<string, CatalogServiceItem>): Promise<void> {
+  const client = getSquareClient();
+  const nameCache = new Map<string, string | undefined>();
+
+  async function resolveOne(variation: ServiceVariationOption): Promise<void> {
+    try {
+      const slots = await searchAvailability([variation.variationId], TECHNICIAN_RESOLUTION_DAYS_AHEAD);
+      const teamMemberId = slots[0]?.segments[0]?.teamMemberId;
+      if (!teamMemberId) return;
+      variation.technicianId = teamMemberId;
+      if (nameCache.has(teamMemberId)) {
+        variation.technicianName = nameCache.get(teamMemberId);
+        return;
+      }
+      // Given name only — Square's booking-profile display_name is inconsistently formatted
+      // ("Tatiana" vs "Susan Alieva" for the two real technicians here), and a single first name
+      // reads more naturally in a "choose your nail tech" picker either way.
+      const res = await client.teamMembers.get({ teamMemberId });
+      const givenName = res.teamMember?.givenName ?? undefined;
+      nameCache.set(teamMemberId, givenName);
+      variation.technicianName = givenName;
+    } catch (err) {
+      console.error("Failed to resolve technician for variation", variation.variationId, err);
+    }
+  }
+
+  const tasks: Promise<void>[] = [];
+  for (const item of itemsByName.values()) {
+    if (item.variations.length <= 1) continue;
+    for (const variation of item.variations) {
+      tasks.push(resolveOne(variation));
+    }
+  }
+  await Promise.all(tasks);
 }
 
 async function fetchCatalogSnapshot(): Promise<CatalogSnapshot> {
@@ -85,6 +144,8 @@ async function fetchCatalogSnapshot(): Promise<CatalogSnapshot> {
     if (variations.length === 0) continue;
     itemsByName.set(data.name, { itemId: obj.id, name: data.name, variations });
   }
+
+  await resolveTechnicians(itemsByName);
 
   return { itemsByName, fetchedAt: Date.now() };
 }

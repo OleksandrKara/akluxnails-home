@@ -3,6 +3,11 @@ export interface WireVariation {
   variationVersion: string;
   name: string;
   priceCents: number;
+  /** Resolved server-side only for tiered items (see lib/square/catalog.ts's resolveTechnicians)
+   * — the specific technician this variation belongs to. Undefined for single-variation services
+   * and for any tiered variation resolution couldn't confirm. */
+  technicianId?: string;
+  technicianName?: string;
 }
 
 export interface WireServiceItem {
@@ -55,4 +60,4 @@ export interface SelectedService {
   addOns: WireServiceItem[];
 }
 
-export type BookingStep = "services" | "addons" | "datetime" | "details" | "done";
+export type BookingStep = "services" | "tech" | "addons" | "datetime" | "details" | "done";

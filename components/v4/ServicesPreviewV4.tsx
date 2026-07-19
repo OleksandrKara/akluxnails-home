@@ -67,10 +67,9 @@ export default async function ServicesPreviewV4() {
           const cheapest = service.variations.reduce((min, v) => (v.priceCents < min.priceCents ? v : min));
           const wireService = toWireItem(service);
           const wireVariation = wireService.variations.find((v) => v.variationId === cheapest.variationId)!;
-          const preselection =
-            wireService.variations.length === 1
-              ? { service: wireService, variation: wireVariation }
-              : { service: wireService, variation: null };
+          // Cheapest variation regardless of tier count — a nail-tech choice for tiered services
+          // (if any) is made in its own step later in the flow, not by withholding preselection.
+          const preselection = { service: wireService, variation: wireVariation };
           const photo = SERVICE_PHOTOS[service.name];
           return (
             <FadeUp key={service.itemId} delayMs={i * 80}>

@@ -171,7 +171,7 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
     ? "4-Hand Appointment Request at AK.LUX.NAILS"
     : `${selectedServices.map((sel) => sel.service.name).join(" + ")} at AK.LUX.NAILS`;
   const description = [
-    ...selectedServices.map((sel) => `${sel.service.name} (${sel.variation.name})`),
+    ...selectedServices.map((sel) => sel.service.name),
     ...selectedServices.flatMap((sel) => sel.addOns.map((a) => `+ ${a.name}`)),
     technicianName ? `With ${technicianName}` : null,
     isFourHandsRequest ? null : `Total: ${formatPrice(flow.totalCents)}`,
@@ -201,9 +201,7 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
           <div key={sel.service.itemId}>
             <div className="flex justify-between">
               <dt className="text-[var(--color-muted)]">Service</dt>
-              <dd className="text-[var(--color-ink)]">
-                {sel.service.name} ({sel.variation.name})
-              </dd>
+              <dd className="text-[var(--color-ink)]">{sel.service.name}</dd>
             </div>
             {sel.addOns.map((a) => (
               <div key={a.itemId} className="flex justify-between">

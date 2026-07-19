@@ -52,6 +52,10 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const { selectedServices, slot, smsOptIn, cancellationAgreed } = flow.state;
   const isFourHandsRequest =
     selectedServices.length === 1 && selectedServices[0].service.name === FOUR_HANDS_REQUEST_ITEM_NAME;
+  // selectSlot() already re-resolves each tiered service's variation to match whichever
+  // technician the chosen slot actually belongs to — accurate here regardless of whether the
+  // customer picked a specific tech or "any available" on TechStep.
+  const tieredTechName = selectedServices.find((sel) => sel.service.variations.length > 1)?.variation.technicianName;
 
   const [givenName, setGivenName] = useState(flow.state.contact.givenName);
   const [familyName, setFamilyName] = useState(flow.state.contact.familyName);
@@ -185,9 +189,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         {selectedServices.map((sel) => (
           <div key={sel.service.itemId}>
             <div className="flex justify-between">
-              <span className="text-[var(--color-ink)]">
-                {sel.service.name} ({sel.variation.name})
-              </span>
+              <span className="text-[var(--color-ink)]">{sel.service.name}</span>
               <span className="text-[var(--color-ink)]">{formatPrice(sel.variation.priceCents)}</span>
             </div>
             {sel.addOns.map((a) => (
@@ -198,6 +200,12 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
             ))}
           </div>
         ))}
+        {tieredTechName && (
+          <div className="mt-1 flex justify-between text-[var(--color-muted)]">
+            <span>With</span>
+            <span>{tieredTechName}</span>
+          </div>
+        )}
         <div className="mt-1 text-[var(--color-muted)]">
           {isFourHandsRequest ? "Preferred time: " : ""}
           {formatDateTime(slot.startAt)}

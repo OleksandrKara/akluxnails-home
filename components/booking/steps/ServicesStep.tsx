@@ -19,6 +19,10 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
 }
 
+function cheapestVariation(svc: WireServiceItem) {
+  return svc.variations.reduce((min, v) => (v.priceCents < min.priceCents ? v : min));
+}
+
 function RemoveIcon({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -46,18 +50,16 @@ function SelectedCheck() {
   );
 }
 
-/** Card container classes shared by all three row variants — one selected look (accent ring +
- * soft accent-tinted fill) instead of each variant drifting its own slightly different treatment. */
+/** One selected look everywhere (accent ring + soft accent-tinted fill), used the same way for
+ * every service row. */
 function cardClasses(selected: boolean): string {
   return `rounded-[var(--radius-lg)] ring-1 transition-colors ${
     selected ? "ring-2 ring-[var(--color-accent)] bg-[var(--color-accent-tint-2)]" : "ring-[var(--color-border)]"
   }`;
 }
 
-function dividerClasses(selected: boolean): string {
-  return selected ? "border-[var(--color-accent-border-soft)]" : "border-[var(--color-border)]";
-}
-
+/** Which nail tech does the work (if a service has more than one price tier) is its own step
+ * right after this one — this screen only asks "what", never "who". */
 export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   const [data, setData] = useState<ServicesResponse | null>(null);
   const [error, setError] = useState(false);
@@ -80,126 +82,38 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
     return <p className="text-sm text-[var(--color-muted)]">Loading services…</p>;
   }
 
-  /** Multi-tier services (e.g. "Nail Artist" vs "Top Nail Artist") represent which provider does
-   * the work — once one selected service has picked a provider tier, every other tiered service
-   * in the same visit must use the same one, since it's the same tech doing the whole visit.
-   * Matched generically by variation name so it isn't hardcoded to specific service names. */
-  function lockedTierName(forItemId: string): string | null {
-    const other = selectedServices.find((sel) => sel.service.itemId !== forItemId && sel.service.variations.length > 1);
-    return other?.variation.name ?? null;
-  }
-
   /** Add-ons live on their own step next, shown only if at least one selected service belongs to
    * a group that actually has add-on options (e.g. skip it entirely for a Men's-only booking). */
   function onContinue() {
+    const hasTieredService = selectedServices.some((sel) => sel.service.variations.length > 1);
     const hasApplicableAddOns = data!.groups.some(
       (group) =>
         group.addOnGroups.length > 0 &&
         group.services.some((svc) => selectedServices.some((sel) => sel.service.itemId === svc.itemId)),
     );
-    if (hasApplicableAddOns) {
+    if (hasTieredService) {
+      flow.proceedToTech();
+    } else if (hasApplicableAddOns) {
       flow.proceedToAddOns();
     } else {
       flow.proceedToDateTime();
     }
   }
 
-  /** One service row's markup — shared by the collapsed top-picks view and the full grouped view
-   * so neither can drift out of sync with the other's selection/variation-picker/locked-tier
-   * behavior. */
+  /** One service row's markup — shared by the collapsed top-picks view and the full grouped
+   * view. Always just name + price + tap to add/remove; which nail tech is asked in TechStep. */
   function renderServiceRow(svc: WireServiceItem) {
     const selected = selectedServices.find((sel) => sel.service.itemId === svc.itemId);
     const isTiered = svc.variations.length > 1;
-    const lock = isTiered ? lockedTierName(svc.itemId) : null;
-    const lockedVariation = lock ? (svc.variations.find((v) => v.name === lock) ?? null) : null;
+    const cheapest = cheapestVariation(svc);
+    const price = selected ? selected.variation.priceCents : cheapest.priceCents;
 
-    // Locked by another already-selected tiered service in this visit — there's really only one
-    // valid tier here (same provider does the whole visit), so this reads as a plain single-price
-    // row rather than a radio choice with no real second option.
-    if (isTiered && lockedVariation) {
-      return (
-        <div key={svc.itemId} className={cardClasses(Boolean(selected))}>
-          <div className="flex w-full items-center justify-between px-4 py-3">
-            <button
-              type="button"
-              onClick={() => (selected ? flow.removeService(svc.itemId) : flow.addService(svc, lockedVariation))}
-              className="flex flex-1 items-center justify-between text-left"
-            >
-              <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
-                {selected && <SelectedCheck />}
-                {svc.name}
-              </span>
-              <span className="text-sm font-medium text-[var(--color-muted)]">
-                {formatPrice(lockedVariation.priceCents)}
-              </span>
-            </button>
-            {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
-          </div>
-          <p className={`border-t px-4 py-2 text-xs text-[var(--color-muted)] ${dividerClasses(Boolean(selected))}`}>
-            {lock} — matched to your other service so the same provider does your whole visit.
-          </p>
-        </div>
-      );
-    }
-
-    // A real tier choice (Nail Artist vs. Top Nail Artist, etc.) — shown as chip-style radio
-    // buttons right under the service name, always visible rather than hidden behind a
-    // tap-to-expand panel, so it's unambiguous on mobile that picking a provider is expected, not
-    // an optional detail. Selected chip is a solid accent fill (not just a tinted ring) so it reads
-    // unmistakably as "chosen" against the row's own softer selected background.
-    if (isTiered) {
-      return (
-        <div key={svc.itemId} className={cardClasses(Boolean(selected))}>
-          <div className="flex w-full items-center justify-between px-4 py-3">
-            <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
-              {selected && <SelectedCheck />}
-              {svc.name}
-            </span>
-            {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
-          </div>
-          <div className={`border-t px-4 py-3 ${dividerClasses(Boolean(selected))}`}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-2)]">
-              Choose your artist
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {svc.variations.map((v) => {
-                const checked = selected?.variation.variationId === v.variationId;
-                return (
-                  <label
-                    key={v.variationId}
-                    className={`flex cursor-pointer items-center gap-1 rounded-[var(--radius-pill)] px-4 py-2 text-sm font-medium transition-colors ${
-                      checked
-                        ? "bg-[var(--color-accent)] text-white"
-                        : "bg-[var(--color-card)] text-[var(--color-ink)] ring-1 ring-[var(--color-border)] hover:ring-[var(--color-accent)]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={`tier-${svc.itemId}`}
-                      checked={checked}
-                      onChange={() => flow.addService(svc, v)}
-                      className="sr-only"
-                    />
-                    {v.name}
-                    <span className={checked ? "text-white/80" : "text-[var(--color-muted)]"}>
-                      · {formatPrice(v.priceCents)}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Single-variation: nothing to choose, so tapping the whole row adds/removes it directly.
     return (
       <div key={svc.itemId} className={cardClasses(Boolean(selected))}>
         <div className="flex w-full items-center justify-between px-4 py-3">
           <button
             type="button"
-            onClick={() => (selected ? flow.removeService(svc.itemId) : flow.addService(svc, svc.variations[0]))}
+            onClick={() => (selected ? flow.removeService(svc.itemId) : flow.addService(svc, cheapest))}
             className="flex flex-1 items-center justify-between text-left"
           >
             <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
@@ -207,7 +121,7 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
               {svc.name}
             </span>
             <span className="text-sm font-medium text-[var(--color-muted)]">
-              {formatPrice(svc.variations[0].priceCents)}
+              {isTiered && !selected ? `from ${formatPrice(price)}` : formatPrice(price)}
             </span>
           </button>
           {selected && <RemoveIcon onClick={() => flow.removeService(svc.itemId)} />}
@@ -221,15 +135,10 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
     .map((name) => allServices.find((svc) => svc.name === name))
     .filter((svc): svc is WireServiceItem => Boolean(svc));
 
-  // Defaults open if a previously-selected service, or a homepage-card preselection, isn't one of
-  // the top picks — otherwise it'd be selected-but-invisible in the collapsed view. Pure derived
-  // value (no effect needed) so the customer's own toggle always wins once they've made one.
-  const pendingService = flow.state.pendingServiceId
-    ? allServices.find((svc) => svc.itemId === flow.state.pendingServiceId)
-    : null;
-  const needsShowAllByDefault =
-    selectedServices.some((sel) => !TOP_SERVICE_NAMES.includes(sel.service.name)) ||
-    Boolean(pendingService && !TOP_SERVICE_NAMES.includes(pendingService.name));
+  // Defaults open if a previously-selected service isn't one of the top picks — otherwise it'd
+  // be selected-but-invisible in the collapsed view. Pure derived value (no effect needed) so the
+  // customer's own toggle always wins once they've made one.
+  const needsShowAllByDefault = selectedServices.some((sel) => !TOP_SERVICE_NAMES.includes(sel.service.name));
   const showAll = manualShowAll ?? needsShowAllByDefault;
 
   return (
