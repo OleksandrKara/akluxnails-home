@@ -7,7 +7,12 @@ import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/
 import { useSquareCard } from "../useSquarePayments";
 import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
 import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
-import { CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE } from "@/lib/siteData";
+import {
+  CARD_STEP_GUARANTEE_BODY,
+  CARD_STEP_GUARANTEE_HEADLINE,
+  CARD_STEP_PERK_BODY,
+  CARD_STEP_PERK_HEADLINE,
+} from "@/lib/siteData";
 
 const CARD_CONTAINER_ID = "sq-card-container";
 
@@ -127,11 +132,9 @@ function SecureAppointmentCard({
         </span>
         <span>
           <span className="block text-base font-bold leading-tight text-[var(--color-accent-dark)]">
-            Secure Your Appointment
+            {CARD_STEP_PERK_HEADLINE}
           </span>
-          <span className="mt-0.5 block text-sm text-[var(--color-ink)]">
-            Add a card per our cancellation policy — we&apos;re holding your spot!
-          </span>
+          <span className="mt-0.5 block text-sm text-[var(--color-ink)]">{CARD_STEP_PERK_BODY}</span>
         </span>
       </div>
 
