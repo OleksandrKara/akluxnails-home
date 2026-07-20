@@ -117,15 +117,6 @@ export const NO_SHOW_POLICY_SUMMARY =
 export const CARD_STEP_GUARANTEE_HEADLINE = "14-Day Guarantee";
 export const CARD_STEP_GUARANTEE_BODY = "Not happy? We'll fix it free — no hassle.";
 
-// The card ask's main headline/body — reframes adding a card from a compliance chore ("here's our
-// policy") into a reward: the $25 late-cancellation fee above is real, but a card holder's first
-// one is waived. Costs us nothing we weren't already going to extend as goodwill, and gives a
-// concrete reason to add a card beyond "we're holding your spot." Distinct from (and unrelated to)
-// CARD_STEP_GUARANTEE_* above, which stays as-is — that's a quality promise, not a card perk.
-export const CARD_STEP_PERK_HEADLINE = "Your First Change Is Free";
-export const CARD_STEP_PERK_BODY =
-  "Add a card and if you ever need to reschedule or cancel late, we'll waive the $25 fee the first time — no questions asked.";
-
 // Verbatim from salonLandings' designCopy.ts — the same policy text and SMS consent language
 // already in use (and legally reviewed) for the mani funnel's booking flow.
 export const CANCELLATION_POLICY_TEXT = `We ask that you please reschedule or cancel at least 24 hours before your appointment, or you may be charged a cancellation fee of $25.00.
