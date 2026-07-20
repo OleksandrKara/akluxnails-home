@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { BookingFlow } from "../useBookingFlow";
 import { googleCalendarUrl, icsDataUrl } from "../calendarLinks";
-import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { useSquareCard } from "../useSquarePayments";
 import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
 import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
@@ -174,7 +174,7 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
     ...selectedServices.map((sel) => sel.service.name),
     ...selectedServices.flatMap((sel) => sel.addOns.map((a) => `+ ${a.name}`)),
     technicianName ? `With ${technicianName}` : null,
-    isFourHandsRequest ? null : `Total: ${formatPrice(flow.totalCents)}`,
+    isFourHandsRequest ? `Estimated price: ${formatPrice(FOUR_HANDS_DISPLAY_PRICE_CENTS)}` : `Total: ${formatPrice(flow.totalCents)}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -244,12 +244,12 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
           <dt className="text-[var(--color-muted)]">{isFourHandsRequest ? "Preferred time" : "When"}</dt>
           <dd className="text-[var(--color-ink)]">{formatDateTime(slot.startAt)}</dd>
         </div>
-        {!isFourHandsRequest && (
-          <div className="flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold">
-            <dt className="text-[var(--color-ink)]">Total</dt>
-            <dd className="text-[var(--color-ink)]">{formatPrice(flow.totalCents)}</dd>
-          </div>
-        )}
+        <div className="flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold">
+          <dt className="text-[var(--color-ink)]">{isFourHandsRequest ? "Estimated price" : "Total"}</dt>
+          <dd className="text-[var(--color-ink)]">
+            {formatPrice(isFourHandsRequest ? FOUR_HANDS_DISPLAY_PRICE_CENTS : flow.totalCents)}
+          </dd>
+        </div>
       </dl>
 
       {showSecureCard && customerId && (

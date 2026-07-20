@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ServicesResponse, WireServiceItem } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
-import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 
 // The full menu (6+ items across 4 groups) overwhelms a first-time visitor — most bookings are one
 // of these four, so they're shown first with everything else a tap away via "Show more services".
@@ -104,9 +104,14 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
    * time-picker screen later. */
   function renderServiceRow(svc: WireServiceItem) {
     const selected = selectedServices.find((sel) => sel.service.itemId === svc.itemId);
+    const isFourHands = svc.name === FOUR_HANDS_REQUEST_ITEM_NAME;
     const isTiered = svc.variations.length > 1;
     const cheapest = cheapestVariation(svc);
-    const price = selected ? selected.variation.priceCents : cheapest.priceCents;
+    const price = isFourHands
+      ? FOUR_HANDS_DISPLAY_PRICE_CENTS
+      : selected
+        ? selected.variation.priceCents
+        : cheapest.priceCents;
 
     return (
       <div key={svc.itemId} className={cardClasses(Boolean(selected))}>
