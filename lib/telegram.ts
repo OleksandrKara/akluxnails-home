@@ -4,6 +4,9 @@ interface FourHandNotifyInput {
   customerName?: string;
   phoneNumber?: string;
   preferredStartAt: string;
+  /** Marketing display estimate in dollars (see FOUR_HANDS_DISPLAY_PRICE_CENTS) — not a real
+   * Square price, just enough context for the manager reading the alert. */
+  estimatedPrice?: number;
 }
 
 const INTERNAL_BASE_URL = process.env.SALARYREVIEW_INTERNAL_BASE_URL;

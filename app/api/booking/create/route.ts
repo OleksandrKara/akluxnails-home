@@ -6,7 +6,7 @@ import { resolveBookingIdentity } from "@/lib/bookingIdentity";
 import { recordEvent } from "@/lib/tracking";
 import { notifyFourHandRequest } from "@/lib/telegram";
 import { notifyFourHandRequestSms } from "@/lib/sms";
-import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { linkContactToBooking } from "@/lib/marketingContacts";
 import { getDefaultLandingPageId } from "@/lib/variant";
 
@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
         customerName: wireContact ? `${wireContact.givenName ?? ""} ${wireContact.familyName ?? ""}`.trim() : undefined,
         phoneNumber: wireContact?.phoneNumber,
         preferredStartAt: wireSlot.startAt,
+        estimatedPrice: FOUR_HANDS_DISPLAY_PRICE_CENTS / 100,
       });
       await notifyFourHandRequestSms({
         givenName: wireContact?.givenName,
