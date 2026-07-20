@@ -78,7 +78,7 @@ async function fetchAttribution(
     landing_path: string | null;
   }>(
     `SELECT utm_source, utm_medium, utm_campaign, referrer, fbclid, gclid, landing_path
-       FROM marketing.visits WHERE visitor_id = $1 ORDER BY created_at ASC`,
+       FROM marketing.visits WHERE visitor_id = $1 ORDER BY occurred_at ASC`,
     [visitorId],
   );
   if (rows.length === 0) return { first: null, latest: null };
