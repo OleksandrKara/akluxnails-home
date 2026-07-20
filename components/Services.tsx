@@ -2,6 +2,7 @@ import BookNowButton from "./BookNowButton";
 import { getCuratedMenu } from "@/lib/square/catalog";
 import { toWireItem } from "@/lib/square/wire";
 import { LOCATION } from "@/lib/siteData";
+import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 
 function formatPrice(cents: number): string {
   if (cents === 0) return "Request";
@@ -62,9 +63,11 @@ export default async function Services() {
                     <ServiceIcon />
                     <span className="min-w-0 flex-1 font-medium leading-snug text-[var(--color-ink)]">{service.name}</span>
                     <span className="shrink-0 text-sm font-medium text-[var(--color-accent)]">
-                      {service.variations.length === 1
-                        ? formatPrice(service.variations[0].priceCents)
-                        : `from ${formatPrice(cheapest.priceCents)}`}
+                      {service.name === FOUR_HANDS_REQUEST_ITEM_NAME
+                        ? formatPrice(FOUR_HANDS_DISPLAY_PRICE_CENTS)
+                        : service.variations.length === 1
+                          ? formatPrice(service.variations[0].priceCents)
+                          : `from ${formatPrice(cheapest.priceCents)}`}
                     </span>
                   </BookNowButton>
                 );
