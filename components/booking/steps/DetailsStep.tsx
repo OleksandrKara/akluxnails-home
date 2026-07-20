@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
-import { FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
 
@@ -191,7 +191,9 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           <div key={sel.service.itemId}>
             <div className="flex justify-between">
               <span className="text-[var(--color-ink)]">{sel.service.name}</span>
-              <span className="text-[var(--color-ink)]">{formatPrice(sel.variation.priceCents)}</span>
+              <span className="text-[var(--color-ink)]">
+                {formatPrice(isFourHandsRequest ? FOUR_HANDS_DISPLAY_PRICE_CENTS : sel.variation.priceCents)}
+              </span>
             </div>
             {sel.addOns.map((a) => (
               <div key={a.itemId} className="mt-1 flex justify-between text-[var(--color-muted)]">
@@ -211,12 +213,10 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           {isFourHandsRequest ? "Preferred time: " : ""}
           {formatDateTime(slot.startAt)}
         </div>
-        {!isFourHandsRequest && (
-          <div className="mt-2 flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold text-[var(--color-ink)]">
-            <span>Total</span>
-            <span>{formatPrice(flow.totalCents)}</span>
-          </div>
-        )}
+        <div className="mt-2 flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold text-[var(--color-ink)]">
+          <span>{isFourHandsRequest ? "Estimated price" : "Total"}</span>
+          <span>{formatPrice(isFourHandsRequest ? FOUR_HANDS_DISPLAY_PRICE_CENTS : flow.totalCents)}</span>
+        </div>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -345,7 +345,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         {submitting
           ? "Submitting…"
           : isFourHandsRequest
-            ? "Submit Request"
+            ? `Submit Request — ${formatPrice(FOUR_HANDS_DISPLAY_PRICE_CENTS)} est.`
             : `Confirm & Book — ${formatPrice(flow.totalCents)}`}
       </button>
 
