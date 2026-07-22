@@ -55,18 +55,23 @@ function isItemVariation(
 }
 
 /**
- * Attributes a tiered variation (e.g. "Nail Artist" / "Top Nail Artist") to every named
- * technician Square's own catalog says can perform it — item_variation_data.team_member_ids, the
- * real "assigned team members" setting for that variation in Square's dashboard. This used to be
- * guessed by searching that variation's live availability and reading off whichever team member's
- * slot came back first, which quietly broke the moment more than one team member could be
- * assigned/eligible for the same variation (adding a new technician to the roster who's also
- * eligible on an existing tier made the "first slot" pick arbitrary, and could resolve two
- * different tiers to the same person — collapsing "Choose your nail tech" down to a single option
- * and hiding it entirely). Reading the catalog's own assignment is deterministic, doesn't depend
- * on anyone's calendar having open slots at all, and — critically — resolves *every* assignee
- * rather than assuming exactly one, so two technicians sharing a price tier both stay individually
- * selectable instead of collapsing into "ambiguous, show nothing".
+ * Attributes every variation — a tiered main service (e.g. "Nail Artist" / "Top Nail Artist") or a
+ * single-variation add-on alike — to every named technician Square's own catalog says can perform
+ * it: item_variation_data.team_member_ids, the real "assigned team members" setting for that
+ * variation in Square's dashboard. This used to be guessed by searching a variation's live
+ * availability and reading off whichever team member's slot came back first, which quietly broke
+ * the moment more than one team member could be assigned/eligible for the same variation. Reading
+ * the catalog's own assignment is deterministic, doesn't depend on anyone's calendar having open
+ * slots at all, and resolves *every* assignee rather than assuming exactly one, so two technicians
+ * sharing a price tier both stay individually selectable instead of collapsing into "ambiguous,
+ * show nothing".
+ *
+ * Every variation is resolved, not just tiered ones — an add-on (single variation, no price tiers)
+ * can still be restricted to specific technicians in Square (e.g. only some technicians do a
+ * particular nail-art design), and the booking flow needs that to correctly narrow "Choose your
+ * nail tech" down to people who can actually perform everything the visitor picked, not just the
+ * main service. An add-on with no team_member_ids at all resolves to no `technicians` here, which
+ * callers treat as "no restriction" (anyone can do it), not "nobody can".
  */
 async function resolveTechnicians(itemsByName: Map<string, CatalogServiceItem>): Promise<void> {
   const client = getSquareClient();
@@ -103,7 +108,6 @@ async function resolveTechnicians(itemsByName: Map<string, CatalogServiceItem>):
 
   const tasks: Promise<void>[] = [];
   for (const item of itemsByName.values()) {
-    if (item.variations.length <= 1) continue;
     for (const variation of item.variations) {
       tasks.push(resolveOne(variation));
     }
