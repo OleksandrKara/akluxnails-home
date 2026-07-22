@@ -9,21 +9,26 @@ import { SERVICE_GROUPS } from "../services-config";
 const FIRST_VISIT_CATEGORY_NAME = "1st Visit Specials";
 const FIRST_VISIT_NAME_PREFIX = "1st Time";
 
+export interface TechnicianRef {
+  id: string;
+  name: string;
+}
+
 export interface ServiceVariationOption {
   variationId: string;
   variationVersion: bigint;
   name: string;
   priceCents: number;
   /** Square's own "assigned team members" setting for this variation
-   * (item_variation_data.team_member_ids) — the source resolveTechnicians below reads to decide
-   * whose name to attribute this variation to. */
+   * (item_variation_data.team_member_ids) — the source resolveTechnicians below reads to build
+   * technicians below. */
   teamMemberIds?: string[];
-  /** Resolved once per catalog snapshot, only for items with more than one variation, and only
-   * when exactly one team member is assigned to this variation in Square's own catalog (see
-   * resolveTechnicians below) — undefined if unassigned, assigned to more than one person (a
-   * genuine rotating pool, not a single-person tier), or the name lookup failed. */
-  technicianId?: string;
-  technicianName?: string;
+  /** Every technician Square's catalog assigns to this variation, resolved once per catalog
+   * snapshot (see resolveTechnicians below) — usually one, but can be more than one when several
+   * technicians share the same priced tier (e.g. two people both doing "Nail Artist" while a
+   * third does "Top Nail Artist" alone). Undefined for single-variation (non-tiered) services, or
+   * if nobody's assignment could be resolved to a name. */
+  technicians?: TechnicianRef[];
 }
 
 export interface CatalogServiceItem {
@@ -50,7 +55,7 @@ function isItemVariation(
 }
 
 /**
- * Attributes a tiered variation (e.g. "Nail Artist" / "Top Nail Artist") to the one named
+ * Attributes a tiered variation (e.g. "Nail Artist" / "Top Nail Artist") to every named
  * technician Square's own catalog says can perform it — item_variation_data.team_member_ids, the
  * real "assigned team members" setting for that variation in Square's dashboard. This used to be
  * guessed by searching that variation's live availability and reading off whichever team member's
@@ -58,26 +63,17 @@ function isItemVariation(
  * assigned/eligible for the same variation (adding a new technician to the roster who's also
  * eligible on an existing tier made the "first slot" pick arbitrary, and could resolve two
  * different tiers to the same person — collapsing "Choose your nail tech" down to a single option
- * and hiding it entirely). Reading the catalog's own assignment is deterministic and doesn't
- * depend on anyone's calendar having open slots at all.
- *
- * A variation assigned to more than one team member is a genuine rotating pool, not a
- * single-person tier — deliberately left unresolved so callers fall back to the raw variation
- * name instead of guessing which of several assigned people to show.
+ * and hiding it entirely). Reading the catalog's own assignment is deterministic, doesn't depend
+ * on anyone's calendar having open slots at all, and — critically — resolves *every* assignee
+ * rather than assuming exactly one, so two technicians sharing a price tier both stay individually
+ * selectable instead of collapsing into "ambiguous, show nothing".
  */
 async function resolveTechnicians(itemsByName: Map<string, CatalogServiceItem>): Promise<void> {
   const client = getSquareClient();
   const nameCache = new Map<string, string | undefined>();
 
-  async function resolveOne(variation: ServiceVariationOption): Promise<void> {
-    const teamMemberIds = variation.teamMemberIds;
-    if (!teamMemberIds || teamMemberIds.length !== 1) return;
-    const teamMemberId = teamMemberIds[0];
-    variation.technicianId = teamMemberId;
-    if (nameCache.has(teamMemberId)) {
-      variation.technicianName = nameCache.get(teamMemberId);
-      return;
-    }
+  async function resolveName(teamMemberId: string): Promise<string | undefined> {
+    if (nameCache.has(teamMemberId)) return nameCache.get(teamMemberId);
     try {
       // Given name only — Square's booking-profile display_name is inconsistently formatted
       // ("Tatiana" vs "Susan Alieva" for the two real technicians here), and a single first name
@@ -85,10 +81,24 @@ async function resolveTechnicians(itemsByName: Map<string, CatalogServiceItem>):
       const res = await client.teamMembers.get({ teamMemberId });
       const givenName = res.teamMember?.givenName ?? undefined;
       nameCache.set(teamMemberId, givenName);
-      variation.technicianName = givenName;
+      return givenName;
     } catch (err) {
       console.error("Failed to resolve technician name for", teamMemberId, err);
+      return undefined;
     }
+  }
+
+  async function resolveOne(variation: ServiceVariationOption): Promise<void> {
+    const teamMemberIds = variation.teamMemberIds;
+    if (!teamMemberIds || teamMemberIds.length === 0) return;
+    const resolved = await Promise.all(
+      teamMemberIds.map(async (id) => {
+        const name = await resolveName(id);
+        return name ? { id, name } : null;
+      }),
+    );
+    const technicians = resolved.filter((t): t is TechnicianRef => t !== null);
+    if (technicians.length > 0) variation.technicians = technicians;
   }
 
   const tasks: Promise<void>[] = [];

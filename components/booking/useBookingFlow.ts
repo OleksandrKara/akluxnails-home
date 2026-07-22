@@ -100,7 +100,7 @@ export function useBookingFlow(preselection?: Preselection) {
       selectedServices: technicianId
         ? s.selectedServices.map((sel) => {
             if (sel.service.variations.length <= 1) return sel;
-            const matched = sel.service.variations.find((v) => v.technicianId === technicianId);
+            const matched = sel.service.variations.find((v) => v.technicians?.some((t) => t.id === technicianId));
             return matched ? { ...sel, variation: matched } : sel;
           })
         : s.selectedServices,

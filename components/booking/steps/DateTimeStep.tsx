@@ -35,7 +35,7 @@ function variationIdsFor(selectedServices: SelectedService[], techId?: string): 
   return selectedServices
     .map((sel) => {
       if (!techId || sel.service.variations.length <= 1) return sel.variation.variationId;
-      const matched = sel.service.variations.find((v) => v.technicianId === techId);
+      const matched = sel.service.variations.find((v) => v.technicians?.some((t) => t.id === techId));
       return matched ? matched.variationId : sel.variation.variationId;
     })
     .join(",");
@@ -51,7 +51,8 @@ function totalForTech(selectedServices: SelectedService[], techId: string): numb
     const addOnCents = sel.addOns.reduce((s2, a) => s2 + (a.variations[0]?.priceCents ?? 0), 0);
     const variationCents =
       sel.service.variations.length > 1
-        ? (sel.service.variations.find((v) => v.technicianId === techId)?.priceCents ?? sel.variation.priceCents)
+        ? (sel.service.variations.find((v) => v.technicians?.some((t) => t.id === techId))?.priceCents ??
+          sel.variation.priceCents)
         : sel.variation.priceCents;
     return sum + variationCents + addOnCents;
   }, 0);
@@ -65,8 +66,10 @@ function chipClasses(active: boolean): string {
   }`;
 }
 
-async function fetchSlots(variationIds: string): Promise<WireSlot[]> {
-  const res = await fetch(`/api/booking/availability?variationIds=${encodeURIComponent(variationIds)}`);
+async function fetchSlots(variationIds: string, teamMemberId?: string): Promise<WireSlot[]> {
+  const params = new URLSearchParams({ variationIds });
+  if (teamMemberId) params.set("teamMemberId", teamMemberId);
+  const res = await fetch(`/api/booking/availability?${params.toString()}`);
   const data = await res.json();
   return data.slots ?? [];
 }
@@ -85,10 +88,11 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   for (const sel of selectedServices) {
     if (sel.service.variations.length <= 1) continue;
     for (const v of sel.service.variations) {
-      if (!v.technicianId || !v.technicianName) continue;
       const isTop = /top/i.test(v.name);
-      const existing = techs.get(v.technicianId);
-      techs.set(v.technicianId, { name: v.technicianName, isTop: existing?.isTop || isTop });
+      for (const tech of v.technicians ?? []) {
+        const existing = techs.get(tech.id);
+        techs.set(tech.id, { name: tech.name, isTop: existing?.isTop || isTop });
+      }
     }
   }
   const showTechFilter = techs.size > 1;
@@ -110,15 +114,21 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       try {
         let results: TaggedSlot[];
         if (isAnyMode) {
+          // teamMemberId is required here, not just the variation — two technicians can now
+          // share the same price tier (variation), so without it Square would merge both
+          // people's slots into one search with no way to tell whose is whose.
           const combos = await Promise.all(
             [...techs.entries()].map(async ([techId, info]) => {
-              const slots = await fetchSlots(variationIdsFor(selectedServices, techId));
+              const slots = await fetchSlots(variationIdsFor(selectedServices, techId), techId);
               return slots.map((slot) => ({ slot, technicianName: info.name }));
             }),
           );
           results = combos.flat();
         } else {
-          const slots = await fetchSlots(variationIdsFor(selectedServices, selectedTechId ?? undefined));
+          const slots = await fetchSlots(
+            variationIdsFor(selectedServices, selectedTechId ?? undefined),
+            selectedTechId ?? undefined,
+          );
           results = slots.map((slot) => ({ slot }));
         }
         results.sort((a, b) => a.slot.startAt.localeCompare(b.slot.startAt));

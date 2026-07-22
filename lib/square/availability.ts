@@ -18,10 +18,17 @@ export interface AvailableSlot {
  * segment is covered by a mutually-available team member back-to-back. This is how a visitor
  * booking, say, a manicure + pedicure in one visit gets a single real appointment instead of two
  * separately-booked ones.
+ *
+ * teamMemberId narrows every segment to one specific technician — needed now that a single
+ * variation (price tier) can have more than one technician assigned (see lib/square/catalog.ts):
+ * without this, searching "Nail Artist" would merge two different people's calendars into one
+ * slot list with no way to tell whose slot is whose, or to show just one of them when the visitor
+ * picked a specific person.
  */
 export async function searchAvailability(
   serviceVariationIds: string[],
   daysAhead = 21,
+  teamMemberId?: string,
 ): Promise<AvailableSlot[]> {
   const client = getSquareClient();
   const now = new Date();
@@ -35,7 +42,10 @@ export async function searchAvailability(
           endAt: end.toISOString(),
         },
         locationId: locationId(),
-        segmentFilters: serviceVariationIds.map((serviceVariationId) => ({ serviceVariationId })),
+        segmentFilters: serviceVariationIds.map((serviceVariationId) => ({
+          serviceVariationId,
+          teamMemberIdFilter: teamMemberId ? { any: [teamMemberId] } : undefined,
+        })),
       },
     },
   });
