@@ -88,10 +88,42 @@ function chipClasses(active: boolean): string {
   }`;
 }
 
+// This screen used to be able to hang on "Loading available times…" forever with no way out —
+// a slow/unresponsive upstream Square call (or a dropped connection) meant the fetch below simply
+// never resolved, and nothing here ever set an error state to fall back to. A per-attempt timeout
+// forces every attempt to fail visibly instead of hanging, and a couple of retries absorb a
+// transient blip before the visitor ever sees anything go wrong.
+const FETCH_TIMEOUT_MS = 12_000;
+const FETCH_MAX_ATTEMPTS = 3;
+
+async function fetchWithTimeout(url: string): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= FETCH_MAX_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      // A 4xx is our own bad request — retrying won't fix that. A 5xx (Square failed upstream, or
+      // our own route errored) is worth retrying, same as a network-level throw below.
+      if (res.ok || res.status < 500) return res;
+      lastError = new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      lastError = err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (attempt < FETCH_MAX_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Failed to reach the server");
+}
+
 async function fetchSlots(variationIds: string, teamMemberId?: string): Promise<WireSlot[]> {
   const params = new URLSearchParams({ variationIds });
   if (teamMemberId) params.set("teamMemberId", teamMemberId);
-  const res = await fetch(`/api/booking/availability?${params.toString()}`);
+  const res = await fetchWithTimeout(`/api/booking/availability?${params.toString()}`);
+  if (!res.ok) throw new Error(`Failed to load availability (${res.status})`);
   const data = await res.json();
   return data.slots ?? [];
 }
@@ -102,14 +134,17 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   const [showTechInfo, setShowTechInfo] = useState(false);
   const { selectedServices, selectedTechId } = flow.state;
 
-  // Distinct named technicians across the currently-selected tiered services — scales to
-  // however many real technicians the catalog resolves (see lib/square/catalog.ts), not
-  // hardcoded to any fixed count. Only matters for "any" mode: with more than one real
-  // technician, "any" means searching every one of their calendars and merging the results.
+  // Distinct named technicians across every currently-selected service — a tiered service
+  // contributes every one of its tiers' names (that's the actual point of "choose your nail
+  // tech" for them); a single-variation service contributes its own assigned technician(s), if
+  // Square restricts it to specific people (e.g. only one technician does Japanese manicures) —
+  // a returning visitor who already knows who they want should see that name even for a service
+  // that was never "tiered" in the pricing sense. Scales to however many real technicians the
+  // catalog resolves (see lib/square/catalog.ts), not hardcoded to any fixed count.
   const techs = new Map<string, TechInfo>();
   for (const sel of selectedServices) {
-    if (sel.service.variations.length <= 1) continue;
-    for (const v of sel.service.variations) {
+    const variationsToCheck = sel.service.variations.length > 1 ? sel.service.variations : [sel.variation];
+    for (const v of variationsToCheck) {
       const isTop = /top/i.test(v.name);
       for (const tech of v.technicians ?? []) {
         const existing = techs.get(tech.id);
@@ -126,7 +161,9 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       if (!allowedIds.has(id)) techs.delete(id);
     }
   }
-  const showTechFilter = techs.size > 1;
+  // Shown even for exactly one name — a service only one technician is assigned to still
+  // deserves to say so on this screen, not just when there's an actual choice to make.
+  const showTechFilter = techs.size >= 1;
   // Only worth explaining the tier difference when the currently-selected techs actually differ
   // by tier — a future all-regular or all-top staff wouldn't show a confusing, pointless link.
   const hasMixedTiers =
@@ -160,13 +197,25 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
           // teamMemberId is required here, not just the variation — two technicians can now
           // share the same price tier (variation), so without it Square would merge both
           // people's slots into one search with no way to tell whose is whose.
-          const combos = await Promise.all(
+          //
+          // allSettled, not all: one technician's search failing (even after fetchWithTimeout's
+          // own retries) shouldn't blank out everyone else's real, available times — only fail
+          // outright if every single technician's search failed.
+          const settled = await Promise.allSettled(
             [...techs.entries()].map(async ([techId, info]) => {
               const slots = await fetchSlots(variationIdsFor(selectedServices, techId), techId);
-              return slots.map((slot) => ({ slot, technicianName: info.name }));
+              return slots.map((slot): TaggedSlot => ({ slot, technicianName: info.name }));
             }),
           );
-          results = combos.flat();
+          results = [];
+          let anyFulfilled = false;
+          for (const outcome of settled) {
+            if (outcome.status === "fulfilled") {
+              anyFulfilled = true;
+              results.push(...outcome.value);
+            }
+          }
+          if (!anyFulfilled) throw new Error("Every technician's availability search failed");
         } else {
           const slots = await fetchSlots(
             variationIdsFor(selectedServices, selectedTechId ?? undefined),
@@ -197,23 +246,37 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
    * separates this block from the time-slot list beneath it. */
   function renderTechFilter() {
     if (!showTechFilter) return null;
+    // Exactly one eligible technician isn't a real choice to offer as "Any" vs. their name (both
+    // produce the same result) — just say who does this service, so a returning visitor who
+    // already knows who they want sees it confirmed right away.
+    const onlyTech = techs.size === 1 ? [...techs.values()][0] : null;
     return (
       <div className="mt-4">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-2)]">Nail tech</p>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => flow.setTech(null)} className={chipClasses(selectedTechId === null)}>
-            Any nail tech
-          </button>
-          {[...techs.entries()].map(([id, info]) => (
-            <button key={id} type="button" onClick={() => flow.setTech(id)} className={chipClasses(selectedTechId === id)}>
-              <span className="inline-flex items-center gap-1">
-                {info.isTop && <StarIcon size={11} />}
-                {info.name}
-              </span>{" "}
-              · {formatPrice(totalForTech(selectedServices, id))}
+        {onlyTech ? (
+          <p className="text-sm text-[var(--color-ink)]">
+            <span className="inline-flex items-center gap-1 font-medium">
+              {onlyTech.isTop && <StarIcon size={11} />}
+              {onlyTech.name}
+            </span>{" "}
+            <span className="text-[var(--color-muted)]">does this service.</span>
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => flow.setTech(null)} className={chipClasses(selectedTechId === null)}>
+              Any nail tech
             </button>
-          ))}
-        </div>
+            {[...techs.entries()].map(([id, info]) => (
+              <button key={id} type="button" onClick={() => flow.setTech(id)} className={chipClasses(selectedTechId === id)}>
+                <span className="inline-flex items-center gap-1">
+                  {info.isTop && <StarIcon size={11} />}
+                  {info.name}
+                </span>{" "}
+                · {formatPrice(totalForTech(selectedServices, id))}
+              </button>
+            ))}
+          </div>
+        )}
         {hasMixedTiers && (
           <div className="mt-2">
             <button
