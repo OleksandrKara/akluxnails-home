@@ -1,4 +1,4 @@
-import type { CatalogServiceItem } from "./catalog";
+import type { CatalogServiceItem, TechnicianRef } from "./catalog";
 
 // bigint (variation version) isn't JSON-serializable, and isn't safely passable across the
 // server/client component boundary either — always convert to this "wire" shape (string version)
@@ -11,8 +11,7 @@ export interface WireServiceItem {
     variationVersion: string;
     name: string;
     priceCents: number;
-    technicianId?: string;
-    technicianName?: string;
+    technicians?: TechnicianRef[];
   }[];
 }
 
@@ -25,8 +24,7 @@ export function toWireItem(item: CatalogServiceItem): WireServiceItem {
       variationVersion: v.variationVersion.toString(),
       name: v.name,
       priceCents: v.priceCents,
-      technicianId: v.technicianId,
-      technicianName: v.technicianName,
+      technicians: v.technicians,
     })),
   };
 }

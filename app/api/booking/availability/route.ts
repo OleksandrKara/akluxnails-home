@@ -7,9 +7,10 @@ export async function GET(request: NextRequest) {
   if (variationIds.length === 0) {
     return NextResponse.json({ error: "variationIds is required" }, { status: 400 });
   }
+  const teamMemberId = request.nextUrl.searchParams.get("teamMemberId") ?? undefined;
 
   try {
-    const slots = await searchAvailability(variationIds);
+    const slots = await searchAvailability(variationIds, undefined, teamMemberId);
     return NextResponse.json({
       slots: slots.map((s) => ({
         startAt: s.startAt,

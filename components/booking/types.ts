@@ -1,13 +1,18 @@
+export interface TechnicianRef {
+  id: string;
+  name: string;
+}
+
 export interface WireVariation {
   variationId: string;
   variationVersion: string;
   name: string;
   priceCents: number;
   /** Resolved server-side only for tiered items (see lib/square/catalog.ts's resolveTechnicians)
-   * — the specific technician this variation belongs to. Undefined for single-variation services
-   * and for any tiered variation resolution couldn't confirm. */
-  technicianId?: string;
-  technicianName?: string;
+   * — every technician Square's catalog assigns to this variation. Usually one, but can be more
+   * than one when several technicians share the same priced tier. Undefined for single-variation
+   * services, or if nobody's assignment could be resolved to a name. */
+  technicians?: TechnicianRef[];
 }
 
 export interface WireServiceItem {

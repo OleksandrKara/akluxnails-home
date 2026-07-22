@@ -52,10 +52,16 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const { selectedServices, slot, smsOptIn, cancellationAgreed } = flow.state;
   const isFourHandsRequest =
     selectedServices.length === 1 && selectedServices[0].service.name === FOUR_HANDS_REQUEST_ITEM_NAME;
-  // selectSlot() already re-resolves each tiered service's variation to match whichever
-  // technician the chosen slot actually belongs to — accurate here regardless of whether the
-  // customer picked a specific tech or "any available" on TechStep.
-  const tieredTechName = selectedServices.find((sel) => sel.service.variations.length > 1)?.variation.technicianName;
+  // A tiered variation's own technicians list can now hold more than one name (two people
+  // sharing a price tier), so which one actually got this slot has to come from the slot's own
+  // confirmed team member id, not from the variation in isolation.
+  const confirmedTechId = slot?.segments[0]?.teamMemberId;
+  const tieredTechName = confirmedTechId
+    ? selectedServices
+        .flatMap((sel) => sel.service.variations)
+        .flatMap((v) => v.technicians ?? [])
+        .find((t) => t.id === confirmedTechId)?.name
+    : undefined;
 
   const [givenName, setGivenName] = useState(flow.state.contact.givenName);
   const [familyName, setFamilyName] = useState(flow.state.contact.familyName);
