@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { LOCATION } from "@/lib/siteData";
 import StarIcon from "@/components/icons/StarIcon";
-import type { SelectedService, WireSlot } from "../types";
+import type { SelectedService, TechnicianRef, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 
 function formatDay(iso: string): string {
@@ -58,6 +58,28 @@ function totalForTech(selectedServices: SelectedService[], techId: string): numb
   }, 0);
 }
 
+/** Every currently-selected variation Square explicitly restricts to specific technicians, other
+ * than the main service's own tiering (that's handled separately — tiering *is* the technician
+ * choice, not an extra constraint on top of it): a single-variation main service, or any selected
+ * add-on, that Square's catalog assigns to specific people rather than leaving unrestricted. Used
+ * to narrow "Choose your nail tech" down to people who can actually perform everything the
+ * visitor picked — e.g. a nail-art add-on only some technicians are assigned to do — not just the
+ * main tiered service. A variation with no restriction (technicians undefined/empty) doesn't
+ * narrow anything; only an explicit, non-empty assignment does. */
+function restrictions(selectedServices: SelectedService[]): TechnicianRef[][] {
+  const result: TechnicianRef[][] = [];
+  for (const sel of selectedServices) {
+    if (sel.service.variations.length <= 1 && sel.variation.technicians?.length) {
+      result.push(sel.variation.technicians);
+    }
+    for (const addOn of sel.addOns) {
+      const restriction = addOn.variations[0]?.technicians;
+      if (restriction?.length) result.push(restriction);
+    }
+  }
+  return result;
+}
+
 function chipClasses(active: boolean): string {
   return `rounded-[var(--radius-pill)] px-3.5 py-2 text-sm font-medium transition-colors ${
     active
@@ -95,6 +117,15 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       }
     }
   }
+  // Narrow to technicians who can also perform every restricted add-on (or restricted
+  // single-variation main service) currently selected — someone who can't do a picked nail-art
+  // design shouldn't be offered as a choice at all, not just fail silently later.
+  for (const restriction of restrictions(selectedServices)) {
+    const allowedIds = new Set(restriction.map((t) => t.id));
+    for (const id of [...techs.keys()]) {
+      if (!allowedIds.has(id)) techs.delete(id);
+    }
+  }
   const showTechFilter = techs.size > 1;
   // Only worth explaining the tier difference when the currently-selected techs actually differ
   // by tier — a future all-regular or all-top staff wouldn't show a confusing, pointless link.
@@ -105,6 +136,18 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
     .map((sel) => sel.service.itemId)
     .sort()
     .join(",");
+
+  // If a previously-picked technician can no longer perform everything currently selected (the
+  // visitor went back and added something only some technicians are assigned to do), fall back to
+  // "Any" instead of searching for someone no longer eligible and showing "no openings". This
+  // component remounts fresh every time DateTimeStep is (re-)entered, so a mount-only check is
+  // enough — selectedTechId is the one piece of state that can carry over from before.
+  useEffect(() => {
+    if (selectedTechId !== null && !techs.has(selectedTechId)) {
+      flow.setTech(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (selectedServices.length === 0) return;
