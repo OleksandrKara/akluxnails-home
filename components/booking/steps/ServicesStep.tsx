@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { ServicesResponse, WireServiceItem } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 // The full menu (6+ items across 4 groups) overwhelms a first-time visitor — most bookings are one
 // of these four, so they're shown first with everything else a tap away via "Show more services".
@@ -69,8 +70,13 @@ export default function ServicesStep({ flow }: { flow: BookingFlow }) {
   const [manualShowAll, setManualShowAll] = useState<boolean | null>(null);
 
   useEffect(() => {
-    fetch("/api/booking/services")
-      .then((r) => r.json())
+    // A read (GET), safe to retry — see lib/fetchWithTimeout.ts for why every request here is
+    // bounded: this used to be able to hang on "Loading services…" forever with no way out.
+    fetchWithTimeout("/api/booking/services", { retries: 2 })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(setData)
       .catch(() => setError(true));
   }, []);

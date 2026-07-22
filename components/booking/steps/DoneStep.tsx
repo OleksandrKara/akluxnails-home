@@ -8,6 +8,7 @@ import { useSquareCard } from "../useSquarePayments";
 import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
 import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
 import { CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE } from "@/lib/siteData";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 const CARD_CONTAINER_ID = "sq-card-container";
 
@@ -87,7 +88,11 @@ function SecureAppointmentCard({
         throw new Error(friendlyTokenizeErrorMessage(tokenResult.errors));
       }
 
-      const cardRes = await fetch("/api/booking/card", {
+      // No automatic retry — a write that timed out could have already saved the card
+      // server-side; the timeout still applies so this can't spin forever (see
+      // lib/fetchWithTimeout.ts). A token is single-use, so a genuine retry needs a fresh
+      // tokenize() anyway — this button lets the visitor do exactly that.
+      const cardRes = await fetchWithTimeout("/api/booking/card", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sourceId: tokenResult.token, customerId, cardholderName: `${givenName} ${familyName}`.trim() }),
