@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ServicesResponse, WireAddOnGroup, WireServiceItem } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
@@ -65,8 +66,13 @@ export default function AddOnsStep({ flow }: { flow: BookingFlow }) {
   const { selectedServices } = flow.state;
 
   useEffect(() => {
-    fetch("/api/booking/services")
-      .then((r) => r.json())
+    // A read (GET), safe to retry — see lib/fetchWithTimeout.ts for why every request here is
+    // bounded: this used to be able to hang on "Loading…" forever with no way out.
+    fetchWithTimeout("/api/booking/services", { retries: 2 })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(setData)
       .catch(() => flow.proceedToDateTime());
     // eslint-disable-next-line react-hooks/exhaustive-deps

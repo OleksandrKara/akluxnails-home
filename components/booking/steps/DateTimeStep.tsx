@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LOCATION } from "@/lib/siteData";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import StarIcon from "@/components/icons/StarIcon";
 import type { SelectedService, TechnicianRef, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
@@ -88,41 +89,12 @@ function chipClasses(active: boolean): string {
   }`;
 }
 
-// This screen used to be able to hang on "Loading available times…" forever with no way out —
-// a slow/unresponsive upstream Square call (or a dropped connection) meant the fetch below simply
-// never resolved, and nothing here ever set an error state to fall back to. A per-attempt timeout
-// forces every attempt to fail visibly instead of hanging, and a couple of retries absorb a
-// transient blip before the visitor ever sees anything go wrong.
-const FETCH_TIMEOUT_MS = 12_000;
-const FETCH_MAX_ATTEMPTS = 3;
-
-async function fetchWithTimeout(url: string): Promise<Response> {
-  let lastError: unknown;
-  for (let attempt = 1; attempt <= FETCH_MAX_ATTEMPTS; attempt++) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    try {
-      const res = await fetch(url, { signal: controller.signal });
-      // A 4xx is our own bad request — retrying won't fix that. A 5xx (Square failed upstream, or
-      // our own route errored) is worth retrying, same as a network-level throw below.
-      if (res.ok || res.status < 500) return res;
-      lastError = new Error(`HTTP ${res.status}`);
-    } catch (err) {
-      lastError = err;
-    } finally {
-      clearTimeout(timeoutId);
-    }
-    if (attempt < FETCH_MAX_ATTEMPTS) {
-      await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error("Failed to reach the server");
-}
-
+// A read (this is a GET, safe to repeat) — 2 retries absorb a transient blip before the visitor
+// ever sees anything go wrong. See lib/fetchWithTimeout.ts for why this exists at all.
 async function fetchSlots(variationIds: string, teamMemberId?: string): Promise<WireSlot[]> {
   const params = new URLSearchParams({ variationIds });
   if (teamMemberId) params.set("teamMemberId", teamMemberId);
-  const res = await fetchWithTimeout(`/api/booking/availability?${params.toString()}`);
+  const res = await fetchWithTimeout(`/api/booking/availability?${params.toString()}`, { retries: 2 });
   if (!res.ok) throw new Error(`Failed to load availability (${res.status})`);
   const data = await res.json();
   return data.slots ?? [];

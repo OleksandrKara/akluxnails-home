@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
 import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
+import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
 
@@ -88,7 +89,9 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
 
     let cancelled = false;
     const timer = setTimeout(() => {
-      fetch("/api/booking/customer-lookup", {
+      // Best-effort only (see the catch below) — just needs a bound so a hung call doesn't leave
+      // this never resolving *or* rejecting, which would silently skip the catch's own fallback too.
+      fetchWithTimeout("/api/booking/customer-lookup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,7 +134,12 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
       const contact = { givenName, familyName, phoneNumber, emailAddress };
       flow.setContact(contact);
 
-      const customerRes = await fetch("/api/booking/customer", {
+      // No automatic retry on either call below — see lib/fetchWithTimeout.ts: a write that timed
+      // out could have already succeeded server-side (a real Square customer/booking created),
+      // and blindly retrying risks a duplicate. The timeout still applies, so a hung request fails
+      // visibly (this button's spinner stops and the message below shows) instead of spinning
+      // forever — the visitor can then choose to tap Confirm again themselves.
+      const customerRes = await fetchWithTimeout("/api/booking/customer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...contact, smsOptIn }),
@@ -143,7 +151,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         sel.addOns.map((a) => a.variations[0]?.variationId).filter((id): id is string => Boolean(id)),
       );
 
-      const bookingRes = await fetch("/api/booking/create", {
+      const bookingRes = await fetchWithTimeout("/api/booking/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
