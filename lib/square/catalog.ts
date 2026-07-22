@@ -1,7 +1,6 @@
 import type { Square } from "square";
 import { getSquareClient } from "./client";
 import { SERVICE_GROUPS } from "../services-config";
-import { searchAvailability } from "./availability";
 
 // "1st Visit Specials" is a real category in the live Square catalog covering every first-time-
 // client service (e.g. "1st Time Regular Manicure Gel-Overlay"). Excluded categorically here, plus
@@ -15,8 +14,14 @@ export interface ServiceVariationOption {
   variationVersion: bigint;
   name: string;
   priceCents: number;
-  /** Resolved once per catalog snapshot, only for items with more than one variation (see
-   * resolveTechnicians below) — undefined if resolution failed or this variation isn't tiered. */
+  /** Square's own "assigned team members" setting for this variation
+   * (item_variation_data.team_member_ids) — the source resolveTechnicians below reads to decide
+   * whose name to attribute this variation to. */
+  teamMemberIds?: string[];
+  /** Resolved once per catalog snapshot, only for items with more than one variation, and only
+   * when exactly one team member is assigned to this variation in Square's own catalog (see
+   * resolveTechnicians below) — undefined if unassigned, assigned to more than one person (a
+   * genuine rotating pool, not a single-person tier), or the name lookup failed. */
   technicianId?: string;
   technicianName?: string;
 }
@@ -44,38 +49,36 @@ function isItemVariation(
   return obj.type === "ITEM_VARIATION";
 }
 
-// Wider than searchAvailability's default 21-day window (this is purely for discovering *who*
-// serves a tiered variation, so a technician with a slower calendar shouldn't come back
-// unresolved just because they have nothing open in the next three weeks) but capped at Square's
-// own hard limit — confirmed directly: Square's availability search rejects any start_at_range
-// wider than 32 days with INVALID_TIME_RANGE.
-const TECHNICIAN_RESOLUTION_DAYS_AHEAD = 32;
-
 /**
- * Resolves which specific technician a tiered variation belongs to. In this business's real
- * Square setup, each tier (e.g. "Nail Artist" / "Top Nail Artist") maps to exactly one named
- * person, not a rotating pool — confirmed directly against live availability search results,
- * not assumed. There's no catalog-level field for this, so it's discovered the same way the
- * booking flow itself would: search that one variation's availability and read off whichever
- * team member comes back.
+ * Attributes a tiered variation (e.g. "Nail Artist" / "Top Nail Artist") to the one named
+ * technician Square's own catalog says can perform it — item_variation_data.team_member_ids, the
+ * real "assigned team members" setting for that variation in Square's dashboard. This used to be
+ * guessed by searching that variation's live availability and reading off whichever team member's
+ * slot came back first, which quietly broke the moment more than one team member could be
+ * assigned/eligible for the same variation (adding a new technician to the roster who's also
+ * eligible on an existing tier made the "first slot" pick arbitrary, and could resolve two
+ * different tiers to the same person — collapsing "Choose your nail tech" down to a single option
+ * and hiding it entirely). Reading the catalog's own assignment is deterministic and doesn't
+ * depend on anyone's calendar having open slots at all.
  *
- * Best-effort: a variation with no slots in the next 32 days, or any other failure, is simply
- * left unresolved — callers fall back to showing the raw variation name instead of a real name.
+ * A variation assigned to more than one team member is a genuine rotating pool, not a
+ * single-person tier — deliberately left unresolved so callers fall back to the raw variation
+ * name instead of guessing which of several assigned people to show.
  */
 async function resolveTechnicians(itemsByName: Map<string, CatalogServiceItem>): Promise<void> {
   const client = getSquareClient();
   const nameCache = new Map<string, string | undefined>();
 
   async function resolveOne(variation: ServiceVariationOption): Promise<void> {
+    const teamMemberIds = variation.teamMemberIds;
+    if (!teamMemberIds || teamMemberIds.length !== 1) return;
+    const teamMemberId = teamMemberIds[0];
+    variation.technicianId = teamMemberId;
+    if (nameCache.has(teamMemberId)) {
+      variation.technicianName = nameCache.get(teamMemberId);
+      return;
+    }
     try {
-      const slots = await searchAvailability([variation.variationId], TECHNICIAN_RESOLUTION_DAYS_AHEAD);
-      const teamMemberId = slots[0]?.segments[0]?.teamMemberId;
-      if (!teamMemberId) return;
-      variation.technicianId = teamMemberId;
-      if (nameCache.has(teamMemberId)) {
-        variation.technicianName = nameCache.get(teamMemberId);
-        return;
-      }
       // Given name only — Square's booking-profile display_name is inconsistently formatted
       // ("Tatiana" vs "Susan Alieva" for the two real technicians here), and a single first name
       // reads more naturally in a "choose your nail tech" picker either way.
@@ -84,7 +87,7 @@ async function resolveTechnicians(itemsByName: Map<string, CatalogServiceItem>):
       nameCache.set(teamMemberId, givenName);
       variation.technicianName = givenName;
     } catch (err) {
-      console.error("Failed to resolve technician for variation", variation.variationId, err);
+      console.error("Failed to resolve technician name for", teamMemberId, err);
     }
   }
 
@@ -139,6 +142,7 @@ async function fetchCatalogSnapshot(): Promise<CatalogSnapshot> {
         variationVersion: v.version ?? BigInt(0),
         name: v.itemVariationData?.name || "Regular",
         priceCents: Number(v.itemVariationData?.priceMoney?.amount ?? BigInt(0)),
+        teamMemberIds: v.itemVariationData?.teamMemberIds ?? undefined,
       }));
 
     if (variations.length === 0) continue;
