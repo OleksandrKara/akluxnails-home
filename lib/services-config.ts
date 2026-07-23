@@ -56,7 +56,7 @@ export const FOUR_HANDS_REQUEST_ITEM_NAME = "Request for 4-Hands Manicure & Pedi
  * follow-up call). Shown wherever this item's price would otherwise render as "$0"/"Request";
  * never used for the actual Square booking or any cart total, both of which the 4-hand flow
  * already keeps hidden. Update this constant directly if the owner changes the figure. */
-export const FOUR_HANDS_DISPLAY_PRICE_CENTS = 29900;
+export const FOUR_HANDS_DISPLAY_PRICE_CENTS = 24900;
 
 export const SERVICE_GROUPS: ServiceGroup[] = [
   {
