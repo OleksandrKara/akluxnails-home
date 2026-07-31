@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import BookNowButton from "../BookNowButton";
 import MessageIcon from "../icons/MessageIcon";
+import RebookingPromoBanner from "../RebookingPromoBanner";
 import { BUSINESS_NAME, LOCATION } from "@/lib/siteData";
 
 const NAV_LINKS = [
@@ -58,8 +59,23 @@ function MenuIcon({ open }: { open: boolean }) {
  * hamburger opens a dropdown panel with the same links; Book Now already sits right next to the
  * hamburger at all times, so repeating it inside the panel too would be redundant — instead the
  * panel ends with a lower-key "Text Us" option (same SMS link as StickyBookBar) for anyone with a
- * custom request or a group booking who'd rather just message the salon directly. */
-export default function HeaderV4() {
+ * custom request or a group booking who'd rather just message the salon directly.
+ *
+ * promoVerified/promoExpEpochSeconds: the same-day-rebooking-discount banner used to be rendered
+ * as a sibling before this component, which broke on every screen size — this header is
+ * `fixed`, so it always pins to the true viewport top-0 regardless of what renders before it in
+ * the document, meaning the banner (also anchored at the page's own top) ended up directly
+ * underneath it, hidden. Rendering the banner as this header's own first child instead means it
+ * stacks naturally above the pill nav inside the *same* fixed box — no independent positioning,
+ * no overlap, and the fixed box's height simply grows by the banner's own fixed height (see
+ * RebookingPromoBanner's docs) when a promo is active. */
+export default function HeaderV4({
+  promoVerified,
+  promoExpEpochSeconds,
+}: {
+  promoVerified?: boolean;
+  promoExpEpochSeconds?: number;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -80,6 +96,10 @@ export default function HeaderV4() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-40">
+      {promoVerified && promoExpEpochSeconds !== undefined && (
+        <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} />
+      )}
+
       {/* Backdrop — click anywhere outside the panel to close, no scroll-lock needed since this
           is a small dropdown, not a full-screen takeover. Rendered before (so it stacks behind)
           the topbar/panel below, which both get relative+z-10 to stay clickable above it. */}
