@@ -2,7 +2,21 @@
 
 import { useState } from "react";
 import { exclusivityBucketForItem } from "@/lib/services-config";
-import type { BookingStep, ContactInfo, SelectedService, WireServiceItem, WireSlot, WireVariation } from "./types";
+import type {
+  BookingStep,
+  ContactInfo,
+  SelectedService,
+  VerifiedPromo,
+  WireServiceItem,
+  WireSlot,
+  WireVariation,
+} from "./types";
+
+/** Same-day-rebooking discount — see openspec/changes/same-day-rebooking-discount design.md D7.
+ * Mirrors the $10/$99 minimum enforced server-side by Square's own CatalogPricingRule; this is a
+ * display-only estimate (no payment happens in this flow either way). */
+const PROMO_DISCOUNT_CENTS = 1000;
+const PROMO_MIN_SUBTOTAL_CENTS = 9900;
 
 export interface BookingFlowState {
   step: BookingStep;
@@ -21,6 +35,9 @@ export interface BookingFlowState {
    * Not to be confused with `technicianName` above, which is the *confirmed* appointment's
    * technician, only known after a real booking is created. */
   selectedTechId: string | null;
+  /** Set once, on mount, if this session arrived via a verified same-day-rebooking promo link —
+   * see BookingModalProvider. Never set from anywhere else in the flow. */
+  promo: VerifiedPromo | null;
 }
 
 const initialContact: ContactInfo = { givenName: "", familyName: "", phoneNumber: "", emailAddress: "" };
@@ -33,7 +50,7 @@ export interface Preselection {
   variation: WireVariation;
 }
 
-export function useBookingFlow(preselection?: Preselection) {
+export function useBookingFlow(preselection?: Preselection, initialPromo?: VerifiedPromo | null) {
   const [state, setState] = useState<BookingFlowState>({
     step: "services",
     selectedServices: preselection
@@ -48,7 +65,16 @@ export function useBookingFlow(preselection?: Preselection) {
     customerId: null,
     hasCardOnFile: false,
     selectedTechId: null,
+    promo: initialPromo ?? null,
   });
+
+  // React's component-purity rule disallows reading Date.now() directly in a render body — the
+  // lazy useState initializer is the sanctioned "read an impure value once" escape hatch. A
+  // booking session lasts at most a few minutes, so "mount time" vs. "this exact render's time"
+  // makes no practical difference for a same-day promo window measured in hours; the banner's
+  // own live countdown (a separate component with its own ticking interval) is what actually
+  // needs second-level freshness, not this discount-line gate.
+  const [mountedAtMs] = useState(() => Date.now());
 
   function goTo(step: BookingStep) {
     setState((s) => ({ ...s, step }));
@@ -172,9 +198,18 @@ export function useBookingFlow(preselection?: Preselection) {
     return sum + sel.variation.priceCents + addOnCents;
   }, 0);
 
+  // Display-only — see design.md D7. Below the $99 minimum, no discount is shown even with an
+  // otherwise-active promo; expired or absent promos never show one either. This mirrors the
+  // real enforcement Square's own CatalogPricingRule applies server-side, it doesn't replace it.
+  const promoExpired = !state.promo || mountedAtMs >= state.promo.expEpochSeconds * 1000;
+  const promoDiscountCents = !promoExpired && totalCents >= PROMO_MIN_SUBTOTAL_CENTS ? PROMO_DISCOUNT_CENTS : 0;
+  const finalTotalCents = totalCents - promoDiscountCents;
+
   return {
     state,
     totalCents,
+    promoDiscountCents,
+    finalTotalCents,
     goTo,
     addService,
     removeService,

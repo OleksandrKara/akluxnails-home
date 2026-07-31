@@ -66,3 +66,14 @@ export interface SelectedService {
 }
 
 export type BookingStep = "services" | "addons" | "datetime" | "details" | "done";
+
+/** A promo link whose signature has already been verified server-side (either by the homepage's
+ * own server-rendered check, or by /api/rebooking-promo/verify for the client-held booking-flow
+ * state) — see openspec/changes/same-day-rebooking-discount design.md D8. Carried through the
+ * flow only for display; /api/booking/create independently re-verifies the signature itself
+ * before treating it as real (never trusts that the client already checked). */
+export interface VerifiedPromo {
+  code: string;
+  expEpochSeconds: number;
+  signature: string;
+}

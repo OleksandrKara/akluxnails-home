@@ -8,9 +8,11 @@ import LocationSection from "@/components/LocationSection";
 import Footer from "@/components/Footer";
 import StickyBookBar from "@/components/StickyBookBar";
 import HomePageV4 from "@/components/v4/HomePageV4";
+import RebookingPromoBanner from "@/components/RebookingPromoBanner";
 import { getVariantById } from "@/lib/variant";
 import { recordPageView } from "@/lib/tracking";
 import { accentPaletteToCssVars, deriveAccentPalette } from "@/lib/theme";
+import { verifyRebookingPromoSignature } from "@/lib/rebookingPromo";
 import type { CSSProperties } from "react";
 
 // Every variant key that renders the V4 template (components/v4/HomePageV4.tsx) rather than the
@@ -30,6 +32,21 @@ export default async function HomePage({
 
   const variant = variantId ? await getVariantById(variantId) : null;
   const content = variant?.content ?? {};
+
+  // Verified server-side, directly — this component already runs on the server, so no round-trip
+  // through /api/rebooking-promo/verify is needed here (that route exists for
+  // BookingModalProvider, a client component above any page's own searchParams — see
+  // openspec/changes/same-day-rebooking-discount design.md D6/D8). A tampered/missing/expired-
+  // looking signature is treated as "no promo" — no banner, exactly like a normal visit.
+  const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+  const promoCode = first(sp.promo);
+  const promoExpRaw = first(sp.exp);
+  const promoSignature = first(sp.sig);
+  const promoExpEpochSeconds = promoExpRaw ? Number(promoExpRaw) : NaN;
+  const promoVerified =
+    Boolean(promoCode) &&
+    Number.isFinite(promoExpEpochSeconds) &&
+    verifyRebookingPromoSignature(promoCode!, promoExpEpochSeconds, promoSignature ?? null);
 
   if (visitorId && variant) {
     const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -65,6 +82,7 @@ export default async function HomePage({
 
   return (
     <div style={themeStyle} className="flex min-h-screen flex-col pb-16 sm:pb-0">
+      {promoVerified && <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} />}
       <Header />
       <main>
         <Hero variant={content} />
