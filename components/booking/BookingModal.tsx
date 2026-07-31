@@ -7,7 +7,7 @@ import AddOnsStep from "./steps/AddOnsStep";
 import DateTimeStep from "./steps/DateTimeStep";
 import DetailsStep from "./steps/DetailsStep";
 import DoneStep from "./steps/DoneStep";
-import type { BookingStep } from "./types";
+import type { BookingStep, VerifiedPromo } from "./types";
 import { trackFunnelStep } from "@/lib/trackFunnelStep";
 
 const STEPS: { step: BookingStep; label: string }[] = [
@@ -40,6 +40,7 @@ export default function BookingModal({
   onClose,
   preselection,
   theme,
+  verifiedPromo,
 }: {
   onClose: () => void;
   preselection?: Preselection;
@@ -48,8 +49,11 @@ export default function BookingModal({
    * reads the shared color and font variables) re-themes without any per-step edits. Every
    * other variant opens this with theme=undefined, so it's completely unaffected. */
   theme?: "v4";
+  /** Resolved once by BookingModalProvider (via /api/rebooking-promo/verify) — see
+   * openspec/changes/same-day-rebooking-discount design.md D8. */
+  verifiedPromo?: VerifiedPromo | null;
 }) {
-  const flow = useBookingFlow(preselection);
+  const flow = useBookingFlow(preselection, verifiedPromo);
   const trackedStepsRef = useRef<Set<BookingStep>>(new Set());
 
   useEffect(() => {

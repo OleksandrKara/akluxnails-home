@@ -161,6 +161,9 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           serviceName: selectedServices[0]?.service.name,
           contact,
           smsOptIn,
+          // Re-verified independently server-side before anything is done with it — see
+          // openspec/changes/same-day-rebooking-discount design.md D8.
+          promo: flow.state.promo,
         }),
       });
       if (!bookingRes.ok) throw new Error("Couldn't finish booking your appointment. Please try again.");
@@ -227,9 +230,15 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           {isFourHandsRequest ? "Preferred time: " : ""}
           {formatDateTime(slot.startAt)}
         </div>
+        {!isFourHandsRequest && flow.promoDiscountCents > 0 && (
+          <div className="mt-1 flex justify-between text-[var(--color-accent-dark)]">
+            <span>Same-day rebooking discount</span>
+            <span>-{formatPrice(flow.promoDiscountCents)}</span>
+          </div>
+        )}
         <div className="mt-2 flex justify-between border-t border-[var(--color-accent-border-soft)] pt-2 font-semibold text-[var(--color-ink)]">
           <span>{isFourHandsRequest ? "Estimated price" : "Total"}</span>
-          <span>{formatPrice(isFourHandsRequest ? FOUR_HANDS_DISPLAY_PRICE_CENTS : flow.totalCents)}</span>
+          <span>{formatPrice(isFourHandsRequest ? FOUR_HANDS_DISPLAY_PRICE_CENTS : flow.finalTotalCents)}</span>
         </div>
       </div>
 
@@ -360,7 +369,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           ? "Submitting…"
           : isFourHandsRequest
             ? `Submit Request — ${formatPrice(FOUR_HANDS_DISPLAY_PRICE_CENTS)} est.`
-            : `Confirm & Book — ${formatPrice(flow.totalCents)}`}
+            : `Confirm & Book — ${formatPrice(flow.finalTotalCents)}`}
       </button>
 
       {showPolicy && <CancellationPolicyModal onClose={() => setShowPolicy(false)} />}

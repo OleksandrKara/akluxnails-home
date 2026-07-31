@@ -8,6 +8,10 @@ export interface CreateBookingInput {
   slot: AvailableSlot;
   addOnVariationIds?: string[];
   customerNote?: string;
+  /** Staff-only field on the Square Booking itself, distinct from customerNote — used to flag a
+   * same-day-rebooking-discount booking for staff at checkout (see
+   * openspec/changes/same-day-rebooking-discount design.md D7). Never shown to the customer. */
+  sellerNote?: string;
 }
 
 export interface CreatedBooking {
@@ -54,6 +58,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreatedB
       locationId: locationId(),
       customerId: input.customerId,
       customerNote: input.customerNote,
+      sellerNote: input.sellerNote,
       appointmentSegments,
     },
   });
