@@ -73,7 +73,13 @@ export default async function HomePage({
   // "homepage-v5") is a real, weighted variant of "/" this way, so it gets the same page-view
   // tracking above and shows up in the owner dashboard's variant list automatically.
   if (variant?.key && V4_TEMPLATE_KEYS.has(variant.key)) {
-    return <HomePageV4 content={content} />;
+    return (
+      <HomePageV4
+        content={content}
+        promoVerified={promoVerified}
+        promoExpEpochSeconds={promoExpEpochSeconds}
+      />
+    );
   }
 
   const themeStyle: CSSProperties = content.accentColor
