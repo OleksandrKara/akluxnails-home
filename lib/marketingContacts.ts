@@ -237,7 +237,13 @@ export async function recordStep1Contact(
  * app/api/booking/create/route.ts, called for both a real Square booking and a 4-hand request
  * (which never creates one — see lib/square/bookings.ts). Falls back to inserting a fresh contact
  * if Step 1's own capture never landed, same as salonLandings' link_contact_to_booking. Never
- * throws — marketing attribution must never break a real booking. */
+ * throws — marketing attribution must never break a real booking.
+ *
+ * sms_marketing_consent is OR-merged on conflict, not overwritten: a customer who opted in on an
+ * earlier booking and later books again without re-checking the box keeps their consent — a
+ * blank checkbox on a later visit isn't a revocation, and previously overwriting it here silently
+ * erased real opt-ins (confirmed against a real customer whose Square note recorded an opt-in
+ * that this upsert had since wiped back to false). Only an explicit STOP reply revokes consent. */
 export async function linkContactToBooking(
   params: IdentityParams & {
     givenName: string;
@@ -294,7 +300,7 @@ export async function linkContactToBooking(
          os_version = EXCLUDED.os_version,
          browser_name = EXCLUDED.browser_name,
          browser_version = EXCLUDED.browser_version,
-         sms_marketing_consent = EXCLUDED.sms_marketing_consent,
+         sms_marketing_consent = (COALESCE(marketing.contacts.sms_marketing_consent, false) OR EXCLUDED.sms_marketing_consent),
          email_marketing_consent = EXCLUDED.email_marketing_consent,
          square_customer_id = EXCLUDED.square_customer_id,
          square_booking_id = EXCLUDED.square_booking_id,
