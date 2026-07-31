@@ -16,7 +16,6 @@ import Footer from "../Footer";
 import StickyBookBar from "../StickyBookBar";
 import HeaderV4 from "./HeaderV4";
 import { V4ThemeProvider } from "./V4ThemeContext";
-import RebookingPromoBanner from "../RebookingPromoBanner";
 import type { HomeVariantContent } from "@/lib/variant";
 
 /** The full Homepage V4 template — rendered by app/page.tsx when the resolved variant's key
@@ -31,7 +30,9 @@ import type { HomeVariantContent } from "@/lib/variant";
  * promoVerified/promoExpEpochSeconds: since V4 is currently the dominant live variant (not a
  * secondary path), the same-day-rebooking-discount banner has to render here too, not just on
  * the classic template — see openspec/changes/same-day-rebooking-discount design.md D6. Already
- * verified server-side by app/page.tsx before this component is reached. */
+ * verified server-side by app/page.tsx before this component is reached. Forwarded straight into
+ * HeaderV4 rather than rendered here — see HeaderV4's own docs for why it has to live inside that
+ * component's fixed box instead of as a sibling. */
 export default function HomePageV4({
   content,
   promoVerified,
@@ -44,10 +45,7 @@ export default function HomePageV4({
   return (
     <V4ThemeProvider>
       <div className="v4-theme flex min-h-screen flex-col bg-[var(--color-bg-from)] pb-16 sm:pb-0" style={{ fontFamily: "var(--font-body)" }}>
-        {promoVerified && promoExpEpochSeconds !== undefined && (
-          <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} />
-        )}
-        <HeaderV4 />
+        <HeaderV4 promoVerified={promoVerified} promoExpEpochSeconds={promoExpEpochSeconds} />
         <main>
           <HeroV4
             headlineLine1={content?.v4HeadlineLine1}
