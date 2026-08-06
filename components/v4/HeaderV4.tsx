@@ -72,9 +72,11 @@ function MenuIcon({ open }: { open: boolean }) {
 export default function HeaderV4({
   promoVerified,
   promoExpEpochSeconds,
+  promoCode,
 }: {
   promoVerified?: boolean;
   promoExpEpochSeconds?: number;
+  promoCode?: string;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -96,8 +98,8 @@ export default function HeaderV4({
 
   return (
     <header className="fixed inset-x-0 top-0 z-40">
-      {promoVerified && promoExpEpochSeconds !== undefined && (
-        <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} />
+      {promoVerified && promoExpEpochSeconds !== undefined && promoCode && (
+        <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} code={promoCode} />
       )}
 
       {/* Backdrop — click anywhere outside the panel to close, no scroll-lock needed since this

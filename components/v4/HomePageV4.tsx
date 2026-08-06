@@ -37,15 +37,17 @@ export default function HomePageV4({
   content,
   promoVerified,
   promoExpEpochSeconds,
+  promoCode,
 }: {
   content?: HomeVariantContent;
   promoVerified?: boolean;
   promoExpEpochSeconds?: number;
+  promoCode?: string;
 }) {
   return (
     <V4ThemeProvider>
       <div className="v4-theme flex min-h-screen flex-col bg-[var(--color-bg-from)] pb-16 sm:pb-0" style={{ fontFamily: "var(--font-body)" }}>
-        <HeaderV4 promoVerified={promoVerified} promoExpEpochSeconds={promoExpEpochSeconds} />
+        <HeaderV4 promoVerified={promoVerified} promoExpEpochSeconds={promoExpEpochSeconds} promoCode={promoCode} />
         <main>
           <HeroV4
             headlineLine1={content?.v4HeadlineLine1}
