@@ -11,12 +11,22 @@ function formatCountdown(msRemaining: number): string {
   return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
 }
 
+/** REBOOK10 = $10 off (same-day-rebooking-discount), WINBACK5 = $5 off
+ * (lapsed-customer-winback-automation) — see openspec/changes/lapsed-customer-winback-automation
+ * design.md D9. Falls back to the REBOOK10 wording for an unrecognized code (shouldn't happen —
+ * app/page.tsx only ever verifies these two — but a wrong amount is worse than a slightly-generic
+ * one). */
+function amountFor(code: string): string {
+  return code === "WINBACK5" ? "$5" : "$10";
+}
+
 /**
- * Mobile-first promo banner for the same-day-rebooking-discount link — only ever rendered by
- * app/page.tsx when the promo/exp/sig query params were verified server-side, so this component
- * itself does no verification (see openspec/changes/same-day-rebooking-discount design.md D6/D8).
- * Full-width, not a corner toast — legible without zooming on a phone. Ticks client-side from the
- * fixed expEpochSeconds already in the URL, no server round-trip needed for the countdown itself.
+ * Mobile-first promo banner for the same-day-rebooking-discount ($10) and lapsed-customer-winback
+ * ($5) links — only ever rendered by app/page.tsx when the promo/exp/sig query params were
+ * verified server-side, so this component itself does no verification (see
+ * openspec/changes/same-day-rebooking-discount design.md D6/D8). Full-width, not a corner toast —
+ * legible without zooming on a phone. Ticks client-side from the fixed expEpochSeconds already in
+ * the URL, no server round-trip needed for the countdown itself.
  *
  * Fixed height (h-8/sm:h-11) with breakpoint-specific copy that's deliberately short enough to
  * always stay on one line, rather than letting text wrap grow the box — HeaderV4 stacks its
@@ -24,9 +34,16 @@ function formatCountdown(msRemaining: number): string {
  * height that isn't fixed and predictable would push the nav around. See HeaderV4's own docs
  * for why the two need to live in one fixed box together.
  */
-export default function RebookingPromoBanner({ expEpochSeconds }: { expEpochSeconds: number }) {
+export default function RebookingPromoBanner({
+  expEpochSeconds,
+  code,
+}: {
+  expEpochSeconds: number;
+  code: string;
+}) {
   const expiresAtMs = expEpochSeconds * 1000;
   const [now, setNow] = useState(() => Date.now());
+  const amount = amountFor(code);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -48,17 +65,17 @@ export default function RebookingPromoBanner({ expEpochSeconds }: { expEpochSeco
         <span className="truncate">
           <span className="sm:hidden">Offer expired — see you soon!</span>
           <span className="hidden sm:inline">
-            This same-day rebooking offer has expired — but we&apos;d still love to see you again!
+            This rebooking offer has expired — but we&apos;d still love to see you again!
           </span>
         </span>
       ) : (
         <span className="truncate">
           <span className="sm:hidden">
-            🎁 $10 off next visit —{" "}
+            🎁 {amount} off next visit —{" "}
             <span className="font-mono tabular-nums">{formatCountdown(expiresAtMs - now)}</span> left
           </span>
           <span className="hidden sm:inline">
-            🎁 <strong>$10 off</strong> your next visit (min. $99) if you book before midnight —{" "}
+            🎁 <strong>{amount} off</strong> your next visit (min. $99) if you book before midnight —{" "}
             <span className="font-mono tabular-nums">{formatCountdown(expiresAtMs - now)}</span> left
           </span>
         </span>

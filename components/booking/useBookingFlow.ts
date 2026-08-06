@@ -12,10 +12,15 @@ import type {
   WireVariation,
 } from "./types";
 
-/** Same-day-rebooking discount — see openspec/changes/same-day-rebooking-discount design.md D7.
- * Mirrors the $10/$99 minimum enforced server-side by Square's own CatalogPricingRule; this is a
- * display-only estimate (no payment happens in this flow either way). */
-const PROMO_DISCOUNT_CENTS = 1000;
+/** Same-day-rebooking ($10) and lapsed-customer-winback ($5) discounts — see
+ * openspec/changes/same-day-rebooking-discount design.md D7 and
+ * openspec/changes/lapsed-customer-winback-automation design.md D9. Both mirror the $99 minimum
+ * enforced server-side by their respective Square CatalogPricingRules; this is a display-only
+ * estimate (no payment happens in this flow either way). */
+const PROMO_DISCOUNT_CENTS_BY_CODE: Record<string, number> = {
+  REBOOK10: 1000,
+  WINBACK5: 500,
+};
 const PROMO_MIN_SUBTOTAL_CENTS = 9900;
 
 export interface BookingFlowState {
@@ -202,7 +207,10 @@ export function useBookingFlow(preselection?: Preselection, initialPromo?: Verif
   // otherwise-active promo; expired or absent promos never show one either. This mirrors the
   // real enforcement Square's own CatalogPricingRule applies server-side, it doesn't replace it.
   const promoExpired = !state.promo || mountedAtMs >= state.promo.expEpochSeconds * 1000;
-  const promoDiscountCents = !promoExpired && totalCents >= PROMO_MIN_SUBTOTAL_CENTS ? PROMO_DISCOUNT_CENTS : 0;
+  const promoDiscountCents =
+    !promoExpired && totalCents >= PROMO_MIN_SUBTOTAL_CENTS
+      ? (PROMO_DISCOUNT_CENTS_BY_CODE[state.promo!.code] ?? 0)
+      : 0;
   const finalTotalCents = totalCents - promoDiscountCents;
 
   return {

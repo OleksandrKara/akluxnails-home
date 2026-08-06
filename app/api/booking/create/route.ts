@@ -39,11 +39,18 @@ interface WirePromo {
 
 /** Staff-facing note on the Square Booking for a promo-flagged appointment — the discount itself
  * auto-applies via a Square CatalogPricingRule scoped to a customer group (see
- * openspec/changes/same-day-rebooking-discount design.md D7); this note exists purely so staff
- * don't ALSO apply the old manual "Same day rebooking discount," which would stack to $20 off. */
-const REBOOKING_PROMO_SELLER_NOTE =
-  "🎁 Same-day rebooking promo — the $10 discount auto-applies at checkout (min. $99 order). " +
-  "Do NOT also apply the manual 'Same day rebooking discount' or the customer gets $20 off, not $10.";
+ * openspec/changes/same-day-rebooking-discount design.md D7 and
+ * openspec/changes/lapsed-customer-winback-automation design.md D9); this note exists purely so
+ * staff don't ALSO apply the old manual "Same day rebooking discount," which would stack the
+ * discounts. */
+const REBOOKING_PROMO_SELLER_NOTES: Record<string, string> = {
+  REBOOK10:
+    "🎁 Same-day rebooking promo — the $10 discount auto-applies at checkout (min. $99 order). " +
+    "Do NOT also apply the manual 'Same day rebooking discount' or the customer gets $20 off, not $10.",
+  WINBACK5:
+    "🎁 Win-back promo — the $5 discount auto-applies at checkout (min. $99 order). " +
+    "Do NOT also apply the manual 'Same day rebooking discount' on top of it.",
+};
 
 /** Priced from the catalog rather than trusting a client-sent total — the same reasoning
  * createBooking already applies to add-on service_variation_version. Used only for
@@ -121,7 +128,7 @@ export async function POST(request: NextRequest) {
         },
         addOnVariationIds,
         customerNote,
-        sellerNote: promoValid ? REBOOKING_PROMO_SELLER_NOTE : undefined,
+        sellerNote: promoValid ? REBOOKING_PROMO_SELLER_NOTES[wirePromo!.code] : undefined,
       });
       bookingId = created.bookingId;
       bookingStatus = created.status ?? "ACCEPTED";
@@ -134,6 +141,7 @@ export async function POST(request: NextRequest) {
           squareCustomerId: customerId,
           expEpochSeconds: wirePromo!.expEpochSeconds,
           signature: wirePromo!.signature,
+          promoCode: wirePromo!.code,
           customerName: wireContact ? `${wireContact.givenName ?? ""} ${wireContact.familyName ?? ""}`.trim() : undefined,
           phoneNumber: wireContact?.phoneNumber,
           appointmentStartAt: wireSlot.startAt,

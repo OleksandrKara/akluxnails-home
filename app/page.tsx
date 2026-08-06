@@ -78,6 +78,7 @@ export default async function HomePage({
         content={content}
         promoVerified={promoVerified}
         promoExpEpochSeconds={promoExpEpochSeconds}
+        promoCode={promoCode}
       />
     );
   }
@@ -88,7 +89,7 @@ export default async function HomePage({
 
   return (
     <div style={themeStyle} className="flex min-h-screen flex-col pb-16 sm:pb-0">
-      {promoVerified && <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} />}
+      {promoVerified && <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} code={promoCode!} />}
       <Header />
       <main>
         <Hero variant={content} />
