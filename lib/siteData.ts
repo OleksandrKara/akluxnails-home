@@ -7,11 +7,11 @@ export const HEADLINE = "Nail Care, Done Right — Downtown San Diego";
 export const SUBHEAD =
   "Russian manicures, gel, and nail art in a clean, modern studio. Nail-health first, no acrylics, ever.";
 
-export const GOOGLE_REVIEW_COUNT = 113;
-export const GOOGLE_REVIEW_RATING = "4.7";
+export const GOOGLE_REVIEW_COUNT = 125;
+export const GOOGLE_REVIEW_RATING = "4.8";
 
 export const CREDIBILITY_STATS = [
-  { value: "4.7★", label: `${GOOGLE_REVIEW_COUNT} Google reviews` },
+  { value: `${GOOGLE_REVIEW_RATING}★`, label: `${GOOGLE_REVIEW_COUNT} Google reviews` },
   { value: "4 wks", label: "chip-free wear" },
   { value: "100%", label: "acrylic-free" },
 ];
