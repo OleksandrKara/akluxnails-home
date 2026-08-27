@@ -27,7 +27,10 @@ export interface AvailableSlot {
  */
 export async function searchAvailability(
   serviceVariationIds: string[],
-  daysAhead = 21,
+  // 30 days ahead — clients frequently rebook into next month, and 21 days was cutting that off
+  // partway through (e.g. a visitor on Aug 27 only saw openings through ~Sep 17). Square's own
+  // search_availability API hard-caps the query range at 32 days, so this stays safely under that.
+  daysAhead = 30,
   teamMemberId?: string,
 ): Promise<AvailableSlot[]> {
   const client = getSquareClient();
