@@ -1,4 +1,4 @@
-import { getPool } from "./db";
+import { getPool, MARKETING_BUSINESS_ID } from "./db";
 import { deriveClientContext, isTrackingNoise } from "./requestContext";
 
 export interface UtmParams {
@@ -32,21 +32,21 @@ export async function recordPageView(params: {
       `INSERT INTO marketing.visits
          (visitor_id, landing_path, referrer, utm_source, utm_medium, utm_campaign, utm_term,
           utm_content, fbclid, gclid, user_agent, device_type, os_name, os_version, browser_name,
-          browser_version, ip_address)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+          browser_version, ip_address, business_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
       [
         params.visitorId, params.landingPath, params.referrer,
         params.utm.utmSource ?? null, params.utm.utmMedium ?? null, params.utm.utmCampaign ?? null,
         params.utm.utmTerm ?? null, params.utm.utmContent ?? null,
         params.utm.fbclid ?? null, params.utm.gclid ?? null,
         ctx.userAgent, ctx.deviceType, ctx.osName, ctx.osVersion, ctx.browserName, ctx.browserVersion,
-        ctx.ipAddress,
+        ctx.ipAddress, MARKETING_BUSINESS_ID,
       ],
     );
     await pool.query(
-      `INSERT INTO marketing.events (session_id, landing_page_id, variant_id, event_type, metadata)
-       VALUES ($1,$2,$3,'page_view','{}'::jsonb)`,
-      [params.visitorId, params.landingPageId, params.variantId],
+      `INSERT INTO marketing.events (session_id, landing_page_id, variant_id, event_type, metadata, business_id)
+       VALUES ($1,$2,$3,'page_view','{}'::jsonb,$4)`,
+      [params.visitorId, params.landingPageId, params.variantId, MARKETING_BUSINESS_ID],
     );
   } catch (err) {
     console.error("Failed to record page view", err);
@@ -66,9 +66,9 @@ export async function recordEvent(params: {
   try {
     if (isTrackingNoise(await deriveClientContext())) return;
     await getPool().query(
-      `INSERT INTO marketing.events (session_id, landing_page_id, variant_id, event_type, metadata)
-       VALUES ($1,$2,$3,$4,$5)`,
-      [params.visitorId, params.landingPageId, params.variantId, params.eventType, JSON.stringify(params.metadata ?? {})],
+      `INSERT INTO marketing.events (session_id, landing_page_id, variant_id, event_type, metadata, business_id)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [params.visitorId, params.landingPageId, params.variantId, params.eventType, JSON.stringify(params.metadata ?? {}), MARKETING_BUSINESS_ID],
     );
   } catch (err) {
     console.error("Failed to record event", err);
@@ -93,8 +93,8 @@ export async function recordFunnelEvent(params: {
     if (isTrackingNoise(await deriveClientContext())) return;
     await getPool().query(
       `INSERT INTO marketing.funnel_events
-         (session_id, landing_page_id, variant_id, flow_key, step_key, step_index, step_count_total, metadata)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+         (session_id, landing_page_id, variant_id, flow_key, step_key, step_index, step_count_total, metadata, business_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
       [
         params.visitorId,
         params.landingPageId,
@@ -104,6 +104,7 @@ export async function recordFunnelEvent(params: {
         params.stepIndex,
         params.stepCountTotal,
         JSON.stringify(params.metadata ?? {}),
+        MARKETING_BUSINESS_ID,
       ],
     );
   } catch (err) {

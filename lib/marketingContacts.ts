@@ -1,4 +1,4 @@
-import { getPool } from "./db";
+import { getPool, MARKETING_BUSINESS_ID } from "./db";
 import { deriveClientContext, isTrackingNoise } from "./requestContext";
 import { normalizePhoneE164 } from "./square/customers";
 
@@ -159,9 +159,9 @@ export async function recordStep1Contact(
          utm_source, utm_medium, utm_campaign, referrer,
          landing_page_slug, variant_name,
          device_type, os_name, os_version, browser_name, browser_version,
-         square_customer_id, updated_at
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17, now())
-       ON CONFLICT (phone_number) DO UPDATE SET
+         square_customer_id, business_id, updated_at
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18, now())
+       ON CONFLICT (business_id, phone_number) DO UPDATE SET
          given_name = EXCLUDED.given_name,
          email_address = COALESCE(EXCLUDED.email_address, marketing.contacts.email_address),
          marketing_traffic_source = EXCLUDED.marketing_traffic_source,
@@ -194,6 +194,7 @@ export async function recordStep1Contact(
         ctx.browserName,
         ctx.browserVersion,
         params.squareCustomerId,
+        MARKETING_BUSINESS_ID,
       ],
     );
 
@@ -202,8 +203,8 @@ export async function recordStep1Contact(
          visitor_id, submission_type, customer_email, customer_phone,
          landing_path, referrer, utm_source, utm_medium, utm_campaign, utm_term, utm_content,
          fbclid, gclid, user_agent, device_type, os_name, os_version, browser_name, browser_version,
-         ip_address, landing_page_slug, variant_name, traffic_source
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NULL,NULL,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
+         ip_address, landing_page_slug, variant_name, traffic_source, business_id
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NULL,NULL,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
       [
         params.visitorId,
         "step1",
@@ -226,6 +227,7 @@ export async function recordStep1Contact(
         slug,
         variantName,
         marketingTrafficSource,
+        MARKETING_BUSINESS_ID,
       ],
     );
   } catch (err) {
@@ -282,12 +284,12 @@ export async function linkContactToBooking(
          device_type, os_name, os_version, browser_name, browser_version,
          sms_marketing_consent, email_marketing_consent,
          square_customer_id, square_booking_id, booking_status, booking_start_at,
-         booking_service_name, booking_price, booking_artist_name, updated_at
+         booking_service_name, booking_price, booking_artist_name, business_id, updated_at
        ) VALUES (
          $1,$2,$3,$4,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
-         $16,$17,$18,$19,$20,$21,$22,$23,$24, now()
+         $16,$17,$18,$19,$20,$21,$22,$23,$24,$25, now()
        )
-       ON CONFLICT (phone_number) DO UPDATE SET
+       ON CONFLICT (business_id, phone_number) DO UPDATE SET
          given_name = EXCLUDED.given_name,
          email_address = COALESCE(EXCLUDED.email_address, marketing.contacts.email_address),
          marketing_traffic_source = EXCLUDED.marketing_traffic_source,
@@ -335,6 +337,7 @@ export async function linkContactToBooking(
         params.bookingServiceName,
         bookingPrice,
         params.bookingArtistName,
+        MARKETING_BUSINESS_ID,
       ],
     );
 
@@ -348,10 +351,10 @@ export async function linkContactToBooking(
     // attribution row. ON CONFLICT DO NOTHING matches salonLandings' idempotent insert.
     if (params.landingPageId) {
       await pool.query(
-        `INSERT INTO marketing.attribution (booking_id, landing_page_id, variant_id, source)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO marketing.attribution (booking_id, landing_page_id, variant_id, source, business_id)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (booking_id) DO NOTHING`,
-        [params.squareBookingId, params.landingPageId, params.variantId, current?.utmSource ?? null],
+        [params.squareBookingId, params.landingPageId, params.variantId, current?.utmSource ?? null, MARKETING_BUSINESS_ID],
       );
     }
 
@@ -361,8 +364,8 @@ export async function linkContactToBooking(
          customer_email, customer_phone, landing_path, referrer,
          utm_source, utm_medium, utm_campaign, utm_term, utm_content, fbclid, gclid,
          user_agent, device_type, os_name, os_version, browser_name, browser_version, ip_address,
-         landing_page_slug, variant_name, traffic_source
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NULL,NULL,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)`,
+         landing_page_slug, variant_name, traffic_source, business_id
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NULL,NULL,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
       [
         params.visitorId,
         params.submissionType,
@@ -388,6 +391,7 @@ export async function linkContactToBooking(
         slug,
         variantName,
         trafficSource,
+        MARKETING_BUSINESS_ID,
       ],
     );
   } catch (err) {
