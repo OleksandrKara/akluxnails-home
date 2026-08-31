@@ -1,24 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-function formatCountdown(msRemaining: number): string {
-  const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
-}
-
-/** REBOOK10 = $10 off (same-day-rebooking-discount), WINBACK5 = $5 off
- * (lapsed-customer-winback-automation) — see openspec/changes/lapsed-customer-winback-automation
- * design.md D9. Falls back to the REBOOK10 wording for an unrecognized code (shouldn't happen —
- * app/page.tsx only ever verifies these two — but a wrong amount is worse than a slightly-generic
- * one). */
-function amountFor(code: string): string {
-  return code === "WINBACK5" ? "$5" : "$10";
-}
+import { formatCountdown, promoAmountLabel } from "@/lib/promoDisplay";
 
 /**
  * Mobile-first promo banner for the same-day-rebooking-discount ($10) and lapsed-customer-winback
@@ -43,7 +26,7 @@ export default function RebookingPromoBanner({
 }) {
   const expiresAtMs = expEpochSeconds * 1000;
   const [now, setNow] = useState(() => Date.now());
-  const amount = amountFor(code);
+  const amount = promoAmountLabel(code);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);

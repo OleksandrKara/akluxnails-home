@@ -126,3 +126,58 @@ img {
   max-width: 100%;
   display: block;
 }
+
+/* RebookingPromoModal (see components/RebookingPromoModal.tsx) — a plain CSS class rather than a
+   Tailwind arbitrary animate-[] value so prefers-reduced-motion can cleanly disable it in one
+   place below, same as the rest of this file's plain-CSS conventions. */
+@keyframes promo-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes promo-modal-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.promo-modal-backdrop {
+  animation: promo-modal-backdrop-in 0.2s ease-out;
+}
+
+.promo-modal-card {
+  animation: promo-modal-card-in 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* A slow, barely-there scale breathe on the CTA — draws the eye without reading as a flashing
+   "act now" coupon button. Starts after the card's own entrance animation settles. */
+@keyframes promo-cta-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+}
+
+.promo-modal-cta {
+  animation: promo-cta-breathe 2.6s ease-in-out 0.6s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-modal-backdrop,
+  .promo-modal-card,
+  .promo-modal-cta {
+    animation: none;
+  }
+}

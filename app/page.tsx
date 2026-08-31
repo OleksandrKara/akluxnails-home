@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import StickyBookBar from "@/components/StickyBookBar";
 import HomePageV4 from "@/components/v4/HomePageV4";
 import RebookingPromoBanner from "@/components/RebookingPromoBanner";
+import RebookingPromoModal from "@/components/RebookingPromoModal";
 import { getVariantById } from "@/lib/variant";
 import { recordPageView } from "@/lib/tracking";
 import { accentPaletteToCssVars, deriveAccentPalette } from "@/lib/theme";
@@ -90,6 +91,7 @@ export default async function HomePage({
   return (
     <div style={themeStyle} className="flex min-h-screen flex-col pb-16 sm:pb-0">
       {promoVerified && <RebookingPromoBanner expEpochSeconds={promoExpEpochSeconds} code={promoCode!} />}
+      {promoVerified && <RebookingPromoModal expEpochSeconds={promoExpEpochSeconds} code={promoCode!} />}
       <Header />
       <main>
         <Hero variant={content} />
