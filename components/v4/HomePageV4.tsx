@@ -15,6 +15,7 @@ import FinalCtaV4 from "./FinalCtaV4";
 import Footer from "../Footer";
 import StickyBookBar from "../StickyBookBar";
 import HeaderV4 from "./HeaderV4";
+import RebookingPromoModal from "../RebookingPromoModal";
 import { V4ThemeProvider } from "./V4ThemeContext";
 import type { HomeVariantContent } from "@/lib/variant";
 
@@ -32,7 +33,8 @@ import type { HomeVariantContent } from "@/lib/variant";
  * the classic template — see openspec/changes/same-day-rebooking-discount design.md D6. Already
  * verified server-side by app/page.tsx before this component is reached. Forwarded straight into
  * HeaderV4 rather than rendered here — see HeaderV4's own docs for why it has to live inside that
- * component's fixed box instead of as a sibling. */
+ * component's fixed box instead of as a sibling. RebookingPromoModal (the first-load popup) has
+ * no such layout constraint — position:fixed, so it's rendered directly here instead. */
 export default function HomePageV4({
   content,
   promoVerified,
@@ -48,6 +50,9 @@ export default function HomePageV4({
     <V4ThemeProvider>
       <div className="v4-theme flex min-h-screen flex-col bg-[var(--color-bg-from)] pb-16 sm:pb-0" style={{ fontFamily: "var(--font-body)" }}>
         <HeaderV4 promoVerified={promoVerified} promoExpEpochSeconds={promoExpEpochSeconds} promoCode={promoCode} />
+        {promoVerified && promoExpEpochSeconds !== undefined && promoCode && (
+          <RebookingPromoModal expEpochSeconds={promoExpEpochSeconds} code={promoCode} />
+        )}
         <main>
           <HeroV4
             headlineLine1={content?.v4HeadlineLine1}
