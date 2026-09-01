@@ -1,9 +1,17 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import BookingModal from "./BookingModal";
+import dynamic from "next/dynamic";
 import type { Preselection } from "./useBookingFlow";
 import type { VerifiedPromo } from "./types";
+
+// Lazy-loaded, not rendered until a visitor actually clicks "Book Now" — the full multi-step flow
+// (services/add-ons/date-time/details/card-on-file steps) was previously a static import here,
+// which meant every page load shipped and parsed that whole bundle even for visitors who never
+// open it. This was the single largest "reduce unused JavaScript" finding in a PageSpeed Insights
+// audit (2026-09-01) and a real contributor to mobile LCP "element render delay". `ssr: false`
+// since the modal is pure client interaction, never needed for the initial server-rendered paint.
+const BookingModal = dynamic(() => import("./BookingModal"), { ssr: false });
 
 type ModalTheme = "v4" | undefined;
 
