@@ -36,8 +36,23 @@ export default function BlogIndexPage() {
                 </Link>
                 <p className="mt-1 text-xs text-[var(--color-muted-2)]">
                   {new Date(p.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                  {p.updated && p.updated !== p.date && (
+                    <> · Updated {new Date(p.updated).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</>
+                  )}
                 </p>
                 <p className="mt-2 text-sm text-[var(--color-muted)]">{p.description}</p>
+                {p.tags && p.tags.length > 0 && (
+                  <p className="mt-2 flex flex-wrap gap-2">
+                    {p.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-[var(--radius-pill)] bg-[var(--color-accent-tint)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-accent-dark)]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </p>
+                )}
               </li>
             ))}
           </ul>
