@@ -10,6 +10,11 @@ export const SUBHEAD =
 export const GOOGLE_REVIEW_COUNT = 125;
 export const GOOGLE_REVIEW_RATING = "4.8";
 
+// The business's real, public Instagram profile — same account referenced by handle in
+// siteDataV4's V4_STORY_HEADLINE copy. Centralized here as an actual URL so it can be used both
+// as a real outbound link (not just display text) and in NailSalon structured data's `sameAs`.
+export const INSTAGRAM_URL = "https://www.instagram.com/ak.lux.nails";
+
 export const CREDIBILITY_STATS = [
   { value: `${GOOGLE_REVIEW_RATING}★`, label: `${GOOGLE_REVIEW_COUNT} Google reviews` },
   { value: "4 wks", label: "chip-free wear" },
@@ -81,15 +86,33 @@ export const MORE_REVIEWS: Review[] = [
   },
 ];
 
+// Single source of truth for opening hours — also re-exported as `V4_HOURS` from
+// siteDataV4.ts so the two homepage templates can never silently disagree on this fact.
+export const BUSINESS_HOURS = "Monday – Sunday · 9:00 AM – 7:00 PM";
+
 export const LOCATION = {
   name: BUSINESS_NAME,
   address: "1357 Seventh Ave, Ste C, San Diego, CA 92101",
+  // Structured components of the same address above — kept in sync manually since this is a
+  // single fixed street address, not user-editable data. Used for LocalBusiness/NailSalon
+  // structured data (see getLocalBusinessJsonLd below), which needs a PostalAddress object
+  // rather than a single free-text string.
+  streetAddress: "1357 Seventh Ave, Ste C",
+  addressLocality: "San Diego",
+  addressRegion: "CA",
+  postalCode: "92101",
+  addressCountry: "US",
   note: "Street parking available on 7th Ave · Open 7 days a week by appointment",
   phone: "619-323-1185",
   phoneHref: "tel:+16193231185",
   // Google's "universal" directions URL (api=1) — opens turn-by-turn navigation in the Maps app
   // on mobile or maps.google.com on desktop, unlike a plain `?q=` search-pin link.
   mapsUrl: "https://www.google.com/maps/dir/?api=1&destination=1357+Seventh+Ave+Ste+C+San+Diego+CA+92101",
+  // Google's Maps "search" URL API (distinct from the directions URL above) — lands on the
+  // business's own Maps place card, where its real, live Google reviews actually live. Used for
+  // an honest "read reviews on Google" link instead of a static, self-hosted "Verified" claim.
+  googleProfileUrl:
+    "https://www.google.com/maps/search/?api=1&query=AK.LUX.NAILS+1357+Seventh+Ave+Ste+C+San+Diego+CA+92101",
   // "?&body=" works across both iOS and Android SMS apps, unlike either alone.
   smsHref: "sms:+16193231185?&body=Hi!%20I%20have%20a%20question%20for%20AK.LUX.NAILS.%20",
   groupBookingSmsHref:
@@ -101,6 +124,46 @@ export const LOCATION = {
 };
 
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";
+
+// NailSalon (a schema.org LocalBusiness subtype) structured data — every field here is a real,
+// visible fact (name/address/phone/hours are all rendered on the page; sameAs is the business's
+// real public Instagram). Deliberately does NOT include review/aggregateRating markup: Google
+// only credits review rich results sourced from an independent third party, not a business's own
+// self-published testimonials — see ReviewsSection.tsx's honest "read reviews on Google" link
+// instead of self-hosted review schema.
+export function getLocalBusinessJsonLd(siteUrl: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "NailSalon",
+    name: BUSINESS_NAME,
+    image: `${siteUrl}/images/logo.png`,
+    url: siteUrl,
+    telephone: LOCATION.phoneHref.replace("tel:", ""),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: LOCATION.streetAddress,
+      addressLocality: LOCATION.addressLocality,
+      addressRegion: LOCATION.addressRegion,
+      postalCode: LOCATION.postalCode,
+      addressCountry: LOCATION.addressCountry,
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+      opens: "09:00",
+      closes: "19:00",
+    },
+    sameAs: [INSTAGRAM_URL],
+  };
+}
 
 // Reused from salonLandings' CANCELLATION_POLICY_TEXT (frontend/src/data/designCopy.ts) — same
 // $25 no-show/late-cancellation policy, shown at the card-on-file step so it's clear why a card is

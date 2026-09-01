@@ -7,6 +7,7 @@ import { getAllPosts } from "@/lib/blog";
 export const metadata: Metadata = {
   title: "Blog",
   description: "Nail care tips, trends, and news from AK.LUX.NAILS in Downtown San Diego.",
+  alternates: { canonical: "/blog" },
 };
 
 export default function BlogIndexPage() {

@@ -1,4 +1,4 @@
-import { LOCATION } from "@/lib/siteData";
+import { LOCATION, BUSINESS_HOURS } from "@/lib/siteData";
 
 export default function LocationSection() {
   return (
@@ -12,6 +12,7 @@ export default function LocationSection() {
       <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-5 ring-1 ring-[var(--color-border)]">
         <p className="font-medium text-[var(--color-ink)]">{LOCATION.name}</p>
         <p className="mt-1 text-sm text-[var(--color-muted)]">{LOCATION.address}</p>
+        <p className="mt-1 text-sm text-[var(--color-muted-2)]">{BUSINESS_HOURS}</p>
         <p className="mt-1 text-sm text-[var(--color-muted-2)]">{LOCATION.note}</p>
         <div className="mt-4">
           <a

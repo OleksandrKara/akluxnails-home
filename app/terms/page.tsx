@@ -6,6 +6,7 @@ import { BUSINESS_NAME, LOCATION } from "@/lib/siteData";
 export const metadata: Metadata = {
   title: "Terms & SMS Program",
   description: `Terms of use and text messaging program details for ${BUSINESS_NAME}.`,
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

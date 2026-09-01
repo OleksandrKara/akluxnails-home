@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { REVIEWS, MORE_REVIEWS, GOOGLE_REVIEW_COUNT, GOOGLE_REVIEW_RATING, type Review } from "@/lib/siteData";
+import { REVIEWS, MORE_REVIEWS, GOOGLE_REVIEW_COUNT, GOOGLE_REVIEW_RATING, LOCATION, type Review } from "@/lib/siteData";
 import GoogleLogo from "./GoogleLogo";
 
 function ReviewCard({ review }: { review: Review }) {
@@ -11,10 +11,11 @@ function ReviewCard({ review }: { review: Review }) {
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-accent-tint)] text-sm font-medium text-[var(--color-accent-dark)]">
           {review.initial}
         </span>
-        <div>
-          <div className="text-sm font-medium text-[var(--color-ink)]">{review.name}</div>
-          <div className="text-xs text-[var(--color-muted-2)]">{review.date}</div>
-        </div>
+        {/* No per-review date shown: these are featured testimonials, not a live feed, so a
+            relative-time label ("2 weeks ago") would silently go stale and never actually
+            reflect when it was left — see real, current reviews via the Google link above
+            instead. */}
+        <div className="text-sm font-medium text-[var(--color-ink)]">{review.name}</div>
       </div>
       <div className="mt-2 text-[var(--color-gold)]" aria-hidden>{review.stars}</div>
       <p className="mt-2 text-sm text-[var(--color-muted)]">{review.text}</p>
@@ -42,9 +43,17 @@ export default function ReviewsSection() {
           </div>
           <div className="mt-0.5 text-xs text-[var(--color-muted-2)]">Based on {GOOGLE_REVIEW_COUNT} Google reviews</div>
         </div>
-        <span className="shrink-0 rounded-[var(--radius-pill)] bg-[var(--color-success-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--color-success)]">
-          ✓ Verified
-        </span>
+        {/* Links out to the real, live Google reviews rather than a self-applied "Verified"
+            badge — the count/rating above are our own figures, not something this site can
+            certify, so the honest version of that claim is "see for yourself on Google." */}
+        <a
+          href={LOCATION.googleProfileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 rounded-[var(--radius-pill)] bg-[var(--color-success-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--color-success)] hover:underline"
+        >
+          Read reviews on Google →
+        </a>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
