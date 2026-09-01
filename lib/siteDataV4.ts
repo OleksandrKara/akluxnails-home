@@ -55,5 +55,7 @@ export const V4_GIFTCARD_HEADLINE = "The Gift That's Always the Right Size";
 export const V4_GIFTCARD_BODY = "Any amount, delivered digitally, never expires — the easy gift for someone who deserves to be pampered.";
 
 export const V4_LOCATION_NOTE = "Easy parking nearby · Perfect before work, over lunch, or in the evening.";
-export const V4_HOURS = "Monday – Sunday · 9:00 AM – 7:00 PM";
+// Re-exported from siteData.ts's BUSINESS_HOURS (single source of truth) rather than a separate
+// literal — the two homepage templates must never be able to silently disagree on real hours.
+export { BUSINESS_HOURS as V4_HOURS } from "@/lib/siteData";
 

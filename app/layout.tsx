@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Playfair_Display, Jost, Fraunces, Manrope } from "next/font/google";
 import BookingModalProvider from "@/components/booking/BookingModalProvider";
+import { getLocalBusinessJsonLd } from "@/lib/siteData";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -43,12 +45,25 @@ export const metadata: Metadata = {
   },
   description:
     "AK.LUX.NAILS is a nail-health-first salon in Downtown San Diego specializing in Russian manicures, gel, and nail art. Book your appointment today.",
+  // Applies to "/" only — every other route (blog index, each post, terms, privacy) sets its
+  // own `alternates.canonical` in its own metadata export, since a route that doesn't override
+  // this would otherwise silently inherit "/" as ITS canonical too (Next.js metadata is
+  // inherited as-is, not re-resolved per path).
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: SITE_URL,
     siteName: "AK.LUX.NAILS",
   },
+  // Only emits the `google-site-verification` meta tag once a real token is configured — an
+  // empty/placeholder token would just be invalid markup, so this stays absent until set.
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
+
+const localBusinessJsonLd = getLocalBusinessJsonLd(SITE_URL);
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export default function RootLayout({
   children,
@@ -61,6 +76,29 @@ export default function RootLayout({
       className={`${playfair.variable} ${jost.variable} ${fraunces.variable} ${manrope.variable} antialiased`}
     >
       <body className="min-h-screen flex flex-col">
+        {/* NailSalon structured data — real, visible facts only (name/address/phone/hours are
+            all rendered on the page; sameAs is the business's real public Instagram). No
+            review/aggregateRating markup — see getLocalBusinessJsonLd's own comment for why. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+        />
+        {gaMeasurementId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaMeasurementId}');
+              `}
+            </Script>
+          </>
+        )}
         <BookingModalProvider>{children}</BookingModalProvider>
       </body>
     </html>
