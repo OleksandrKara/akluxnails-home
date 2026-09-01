@@ -5,6 +5,7 @@ import WhyChooseUsV4 from "./WhyChooseUsV4";
 import ValuePropV4 from "./ValuePropV4";
 import GalleryV4 from "./GalleryV4";
 import ReviewsSection from "../ReviewsSection";
+import FAQSection from "../FAQSection";
 import GuaranteeV4 from "./GuaranteeV4";
 import ReferFriendV4 from "./ReferFriendV4";
 import PostStoryV4 from "./PostStoryV4";
@@ -84,6 +85,7 @@ export default function HomePageV4({
           <PrepayV4 />
           <GiftCardV4 />
           <LocationV4 />
+          <FAQSection />
         </main>
         <FinalCtaV4 />
         <Footer />

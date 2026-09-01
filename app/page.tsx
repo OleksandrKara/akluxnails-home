@@ -5,6 +5,7 @@ import Services from "@/components/Services";
 import TrustGrid from "@/components/TrustGrid";
 import ReviewsSection from "@/components/ReviewsSection";
 import LocationSection from "@/components/LocationSection";
+import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import StickyBookBar from "@/components/StickyBookBar";
 import HomePageV4 from "@/components/v4/HomePageV4";
@@ -99,6 +100,7 @@ export default async function HomePage({
         <TrustGrid />
         <ReviewsSection />
         <LocationSection />
+        <FAQSection />
       </main>
       <Footer />
       <StickyBookBar />
