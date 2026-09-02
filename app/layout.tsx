@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Playfair_Display, Jost, Fraunces, Manrope } from "next/font/google";
 import BookingModalProvider from "@/components/booking/BookingModalProvider";
 import { getLocalBusinessJsonLd } from "@/lib/siteData";
+import { getClarityProjectId } from "@/lib/clarityConfig";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -65,11 +66,12 @@ export const metadata: Metadata = {
 const localBusinessJsonLd = getLocalBusinessJsonLd(SITE_URL);
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const clarityProjectId = await getClarityProjectId("akluxnails.com");
   return (
     <html
       lang="en"
@@ -98,6 +100,17 @@ export default function RootLayout({
               `}
             </Script>
           </>
+        )}
+        {clarityProjectId && (
+          <Script id="clarity-init" strategy="afterInteractive">
+            {`
+              (function(c,l,a,r,i,t,y){
+                  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+              })(window, document, "clarity", "script", "${clarityProjectId}");
+            `}
+          </Script>
         )}
         <BookingModalProvider>{children}</BookingModalProvider>
       </body>
