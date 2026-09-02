@@ -1,11 +1,24 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { ComponentProps } from "react";
 import type { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookNowButton from "@/components/BookNowButton";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
+
+// Comparison tables render at their natural width regardless of viewport — on a narrow phone
+// that's wider than the screen, so without this wrapper the table (and the whole page) scrolls
+// sideways instead of just the table itself.
+const mdxComponents = {
+  table: (props: ComponentProps<"table">) => (
+    <div className="not-prose my-6 overflow-x-auto">
+      <table className="prose prose-neutral w-full max-w-none" {...props} />
+    </div>
+  ),
+};
 
 export function generateStaticParams() {
   return getAllPosts().map((p) => ({ slug: p.slug }));
@@ -65,7 +78,11 @@ export default async function BlogPostPage({
               ))}
             </p>
           )}
-          <MDXRemote source={post.content} />
+          <MDXRemote
+            source={post.content}
+            components={mdxComponents}
+            options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+          />
         </article>
 
         {/* The conversion path this blog didn't have before — every post ends with a real path
