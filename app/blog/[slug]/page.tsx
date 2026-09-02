@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookNowButton from "@/components/BookNowButton";
 import BlogPhotoLightbox from "@/components/BlogPhotoLightbox";
+import BlogHero from "@/components/BlogHero";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 
 // Comparison tables render at their natural width regardless of viewport — on a narrow phone
@@ -49,36 +50,12 @@ export default async function BlogPostPage({
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
+      <BlogHero title={post.title} date={post.date} updated={post.updated} tags={post.tags} image={post.heroImage} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
         <article className="prose prose-neutral max-w-none">
-          <h1 style={{ fontFamily: "var(--font-heading)" }}>{post.title}</h1>
-          <p className="text-sm text-[var(--color-muted-2)]">
-            {formatDate(post.date)}
-            {/* Only shown when a post has actually been revised after publishing — an honest
-                freshness signal, not a claim asserted on every post regardless of whether
-                anything changed. */}
-            {post.updated && post.updated !== post.date && (
-              <> · Updated {formatDate(post.updated)}</>
-            )}
-          </p>
-          {post.tags && post.tags.length > 0 && (
-            <p className="not-prose mt-2 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-[var(--radius-pill)] bg-[var(--color-accent-tint)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-accent-dark)]"
-                >
-                  {tag}
-                </span>
-              ))}
-            </p>
-          )}
           <BlogPhotoLightbox>
             <MDXRemote
               source={post.content}

@@ -15,6 +15,18 @@ export interface BlogPostMeta {
 
 export interface BlogPost extends BlogPostMeta {
   content: string; // raw MDX body, rendered by the caller via next-mdx-remote/rsc
+  // Background photo for the article's hero banner — an explicit `heroImage` in frontmatter wins
+  // (lets a specific post pick its best shot); otherwise the first real <img> already embedded in
+  // the post's own content, so the hero never shows a photo that hasn't already been vetted for
+  // this exact article. `undefined` for the handful of posts with no photos of their own at all,
+  // which render a plain color hero instead (see components/BlogHero.tsx).
+  heroImage?: string;
+}
+
+/** First `<img src="...">` in the raw MDX body, in document order — a plain regex is enough since
+ * this only reads content this project's own authors write, never external/untrusted input. */
+function firstImageSrc(content: string): string | undefined {
+  return content.match(/<img[^>]+src="([^"]+)"/)?.[1];
 }
 
 /** Every published post, newest first, excluding drafts. Simple file-based content for now — a
@@ -63,5 +75,6 @@ export function getPostBySlug(slug: string): BlogPost | null {
     updated: data.updated ?? undefined,
     tags: Array.isArray(data.tags) ? data.tags : undefined,
     content,
+    heroImage: data.heroImage ?? firstImageSrc(content),
   };
 }
