@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BookNowButton from "@/components/BookNowButton";
+import BlogPhotoLightbox from "@/components/BlogPhotoLightbox";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 
 // Comparison tables render at their natural width regardless of viewport — on a narrow phone
@@ -78,11 +79,13 @@ export default async function BlogPostPage({
               ))}
             </p>
           )}
-          <MDXRemote
-            source={post.content}
-            components={mdxComponents}
-            options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
-          />
+          <BlogPhotoLightbox>
+            <MDXRemote
+              source={post.content}
+              components={mdxComponents}
+              options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+            />
+          </BlogPhotoLightbox>
         </article>
 
         {/* The conversion path this blog didn't have before — every post ends with a real path
