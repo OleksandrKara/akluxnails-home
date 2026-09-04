@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { after } from "next/server";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
@@ -50,23 +51,35 @@ export default async function HomePage({
     Number.isFinite(promoExpEpochSeconds) &&
     verifyRebookingPromoSignature(promoCode!, promoExpEpochSeconds, promoSignature ?? null);
 
+  // Fired via after() rather than awaited: this write's result feeds nothing in the render below,
+  // but two sequential DB round-trips (see recordPageView) were sitting directly in front of TTFB
+  // on every single homepage visit — a real, measurable contributor to the mobile LCP regression
+  // flagged by the SEO dashboard (2026-09-02, 3.3s vs Google's 2.5s 'good' bar). after() runs this
+  // once the response has already been sent, so tracking no longer delays the hero paint. All
+  // request-time values it needs (visitorId, variant, referrer, utm) are read above during render,
+  // not inside the callback — Server Components can't call headers()/searchParams() from within
+  // after() itself (see next/server docs), so everything is captured by closure instead.
   if (visitorId && variant) {
     const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-    await recordPageView({
-      visitorId,
-      landingPageId: variant.landingPageId,
-      variantId: variant.variantId,
-      landingPath: "/",
-      referrer: h.get("referer"),
-      utm: {
-        utmSource: first(sp.utm_source),
-        utmMedium: first(sp.utm_medium),
-        utmCampaign: first(sp.utm_campaign),
-        utmTerm: first(sp.utm_term),
-        utmContent: first(sp.utm_content),
-        fbclid: first(sp.fbclid),
-        gclid: first(sp.gclid),
-      },
+    const referrer = h.get("referer");
+    const utm = {
+      utmSource: first(sp.utm_source),
+      utmMedium: first(sp.utm_medium),
+      utmCampaign: first(sp.utm_campaign),
+      utmTerm: first(sp.utm_term),
+      utmContent: first(sp.utm_content),
+      fbclid: first(sp.fbclid),
+      gclid: first(sp.gclid),
+    };
+    after(() => {
+      recordPageView({
+        visitorId,
+        landingPageId: variant.landingPageId,
+        variantId: variant.variantId,
+        landingPath: "/",
+        referrer,
+        utm,
+      });
     });
   }
 
