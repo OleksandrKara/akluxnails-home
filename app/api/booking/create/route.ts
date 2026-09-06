@@ -50,6 +50,12 @@ const REBOOKING_PROMO_SELLER_NOTES: Record<string, string> = {
   WINBACK5:
     "🎁 Win-back promo — the $5 discount auto-applies at checkout (min. $99 order). " +
     "Do NOT also apply the manual 'Same day rebooking discount' on top of it.",
+  // Not a dollar-off-the-total discount (no matching entry in PROMO_DISCOUNT_CENTS_BY_CODE / no
+  // Square customer-group pricing rule) — this note is the whole mechanism, since the free design
+  // itself is added by staff at checkout, not selected as a bookable line item online.
+  LABORDAY:
+    "🎁 Labor Day promo, booked by Sept 7. Please waive the $20 regular nail design charge at checkout. " +
+    "Regular design only, this does NOT include ombre.",
 };
 
 /** Priced from the catalog rather than trusting a client-sent total — the same reasoning
