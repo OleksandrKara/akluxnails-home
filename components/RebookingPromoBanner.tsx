@@ -27,6 +27,7 @@ export default function RebookingPromoBanner({
   const expiresAtMs = expEpochSeconds * 1000;
   const [now, setNow] = useState(() => Date.now());
   const amount = promoAmountLabel(code);
+  const isLaborDay = code === "LABORDAY";
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -46,19 +47,32 @@ export default function RebookingPromoBanner({
     >
       {expired ? (
         <span className="truncate">
-          <span className="sm:hidden">Offer expired — see you soon!</span>
+          <span className="sm:hidden">Offer expired, see you soon!</span>
           <span className="hidden sm:inline">
-            This rebooking offer has expired — but we&apos;d still love to see you again!
+            {isLaborDay
+              ? "This Labor Day offer has expired, but we'd still love to see you again!"
+              : "This rebooking offer has expired, but we'd still love to see you again!"}
+          </span>
+        </span>
+      ) : isLaborDay ? (
+        <span className="truncate">
+          <span className="sm:hidden">
+            🎁 Free design if you book by Sep 7,{" "}
+            <span className="font-mono tabular-nums">{formatCountdown(expiresAtMs - now)}</span> left
+          </span>
+          <span className="hidden sm:inline">
+            🎁 <strong>Free nail design</strong> with your next booking if you reserve by September 7,{" "}
+            <span className="font-mono tabular-nums">{formatCountdown(expiresAtMs - now)}</span> left
           </span>
         </span>
       ) : (
         <span className="truncate">
           <span className="sm:hidden">
-            🎁 {amount} off next visit —{" "}
+            🎁 {amount} off next visit,{" "}
             <span className="font-mono tabular-nums">{formatCountdown(expiresAtMs - now)}</span> left
           </span>
           <span className="hidden sm:inline">
-            🎁 <strong>{amount} off</strong> your next visit (min. $99) if you book before midnight —{" "}
+            🎁 <strong>{amount} off</strong> your next visit (min. $99) if you book before midnight,{" "}
             <span className="font-mono tabular-nums">{formatCountdown(expiresAtMs - now)}</span> left
           </span>
         </span>

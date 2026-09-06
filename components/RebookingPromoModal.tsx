@@ -18,6 +18,12 @@ const COPY: Record<string, { eyebrow: string; headline: string; body: string; ct
     body: "It's been a little while, but you're still one of ours. Book before midnight tonight and get $5 off any service $99+. Already applied — just pick your time.",
     cta: "Claim my $5",
   },
+  LABORDAY: {
+    eyebrow: "Labor Day treat",
+    headline: "A free nail design, on us",
+    body: "Book your next appointment by September 7 and we'll add a nail design for free, no extra charge. Your appointment itself can be for any day you like.",
+    cta: "Book my spot",
+  },
 };
 
 /**
