@@ -87,11 +87,18 @@ export default async function RootLayout({
         />
         {gaMeasurementId && (
           <>
+            {/* lazyOnload, not afterInteractive — found live 2026-09-07: PageSpeed's mobile LCP
+                lab run showed the LCP element (the hero H1 text, no image involved) held up by
+                ~1.5s of "element render delay", correlating with GTM/Clarity consuming real
+                main-thread time early in the page lifecycle (158ms/71ms respectively, amplified
+                by Lighthouse's mobile CPU throttling). Neither script needs to load before the
+                page is idle — analytics firing a few hundred ms later than "as soon as possible"
+                has no user-facing effect, unlike the hero text painting late. */}
             <Script
               src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-              strategy="afterInteractive"
+              strategy="lazyOnload"
             />
-            <Script id="ga4-init" strategy="afterInteractive">
+            <Script id="ga4-init" strategy="lazyOnload">
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
@@ -102,7 +109,7 @@ export default async function RootLayout({
           </>
         )}
         {clarityProjectId && (
-          <Script id="clarity-init" strategy="afterInteractive">
+          <Script id="clarity-init" strategy="lazyOnload">
             {`
               (function(c,l,a,r,i,t,y){
                   c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
