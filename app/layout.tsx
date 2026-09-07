@@ -6,16 +6,27 @@ import { getLocalBusinessJsonLd } from "@/lib/siteData";
 import { getClarityProjectId } from "@/lib/clarityConfig";
 import "./globals.css";
 
+// preload: false on both — found live 2026-09-07 diagnosing a mobile LCP regression: these two
+// are the :root (non-V4) heading/body fonts, actually rendered only on /blog, /terms and
+// /privacy-policy (globals.css's .v4-theme scope overrides --font-heading/--font-body to
+// Fraunces/Manrope for the homepage). Declaring a font in the ROOT layout preloads it on every
+// route regardless of whether that route renders it (see next/font's own docs), so the homepage
+// was eagerly downloading 2 completely unused font families in its critical path, alongside the 2
+// it actually needs. preload:false stops the eager <link rel=preload>; blog/terms/privacy still
+// fetch and apply these normally the moment their CSS references the variable — only the
+// homepage's unused early fetch goes away.
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  preload: false,
 });
 
 const jost = Jost({
   variable: "--font-jost",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  preload: false,
 });
 
 // Homepage V4 only (see globals.css's .v4-theme scope). Started as a close match to
