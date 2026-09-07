@@ -51,12 +51,17 @@ const SITE_URL = "https://akluxnails.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Rewritten 2026-09-07 — owner's own real Search Console data showed page-1 rankings (pos. 3-4)
+  // for "nail salon near me"/"nail salon san diego"/"nail salons near me" pulling only 2.6-3.8%
+  // CTR, well under the typical 8-15% for that position — the old title/description were generic
+  // enough to blend into any competitor's snippet. These borrow the homepage's own strongest,
+  // already-proven claims (the hero's "3+ weeks, not 3 days" + the 14-day guarantee) instead.
   title: {
-    default: "AK.LUX.NAILS — Nail Salon in Downtown San Diego",
+    default: "AK.LUX.NAILS | Manicures That Last 3+ Weeks, San Diego",
     template: "%s | AK.LUX.NAILS",
   },
   description:
-    "AK.LUX.NAILS is a nail-health-first salon in Downtown San Diego specializing in Russian manicures, gel, and nail art. Book your appointment today.",
+    "Russian manicure and non-toxic gel that lasts 3-4 weeks, not 3 days. Backed by our 14-day guarantee. Downtown San Diego nail salon. Book today.",
   // Applies to "/" only — every other route (blog index, each post, terms, privacy) sets its
   // own `alternates.canonical` in its own metadata export, since a route that doesn't override
   // this would otherwise silently inherit "/" as ITS canonical too (Next.js metadata is
