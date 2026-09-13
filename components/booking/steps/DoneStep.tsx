@@ -184,7 +184,14 @@ export default function DoneStep({ flow, onClose }: { flow: BookingFlow; onClose
     .filter(Boolean)
     .join("\n");
 
-  const totalDurationMinutes = slot.segments.reduce((sum, seg) => sum + seg.durationMinutes, 0);
+  // slot.segments only covers the primary service(s) (manicure/pedicure) — add-ons (Design,
+  // Removal, Ombre) are tracked separately in selectedServices[].addOns and have to be added in
+  // here too, same as totalCents does for price in useBookingFlow.
+  const addOnDurationMinutes = selectedServices.reduce(
+    (sum, sel) => sum + sel.addOns.reduce((s2, a) => s2 + (a.variations[0]?.durationMinutes ?? 0), 0),
+    0,
+  );
+  const totalDurationMinutes = slot.segments.reduce((sum, seg) => sum + seg.durationMinutes, 0) + addOnDurationMinutes;
   const calendarEvent = { title, startAt: slot.startAt, durationMinutes: totalDurationMinutes || 60, description };
 
   return (

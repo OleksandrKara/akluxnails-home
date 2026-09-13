@@ -8,6 +8,7 @@ export interface WireVariation {
   variationVersion: string;
   name: string;
   priceCents: number;
+  durationMinutes: number;
   /** Resolved server-side only for tiered items (see lib/square/catalog.ts's resolveTechnicians)
    * — every technician Square's catalog assigns to this variation. Usually one, but can be more
    * than one when several technicians share the same priced tier. Undefined for single-variation
