@@ -19,6 +19,10 @@ export interface ServiceVariationOption {
   variationVersion: bigint;
   name: string;
   priceCents: number;
+  /** Minutes, converted from Square's itemVariationData.serviceDuration (milliseconds) — used to
+   * build the appointment_segments sent to Square on booking creation. Add-ons (Design, Removal
+   * *) carry this exactly like a tiered main service does; there's no separate code path. */
+  durationMinutes: number;
   /** Square's own "assigned team members" setting for this variation
    * (item_variation_data.team_member_ids) — the source resolveTechnicians below reads to build
    * technicians below. */
@@ -156,6 +160,7 @@ async function fetchCatalogSnapshot(): Promise<CatalogSnapshot> {
         variationVersion: v.version ?? BigInt(0),
         name: v.itemVariationData?.name || "Regular",
         priceCents: Number(v.itemVariationData?.priceMoney?.amount ?? BigInt(0)),
+        durationMinutes: Number(v.itemVariationData?.serviceDuration ?? BigInt(0)) / 60_000,
         teamMemberIds: v.itemVariationData?.teamMemberIds ?? undefined,
       }));
 

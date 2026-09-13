@@ -33,7 +33,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreatedB
       const resolved = await getServiceVariation(variationId);
       if (!resolved) throw new Error(`Add-on variation ${variationId} not found in catalog`);
       return {
-        durationMinutes: 0,
+        durationMinutes: resolved.variation.durationMinutes,
         serviceVariationId: variationId,
         serviceVariationVersion: resolved.variation.variationVersion,
         teamMemberId: primaryTeamMemberId,
