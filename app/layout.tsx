@@ -56,12 +56,20 @@ export const metadata: Metadata = {
   // CTR, well under the typical 8-15% for that position — the old title/description were generic
   // enough to blend into any competitor's snippet. These borrow the homepage's own strongest,
   // already-proven claims (the hero's "3+ weeks, not 3 days" + the 14-day guarantee) instead.
+  //
+  // Adjusted again 2026-09-14 — real GSC data showed "russian manicure san diego" is by far the
+  // highest-impression striking-distance query (223 impressions, pos. 8.5 — ~5x "nail salon san
+  // diego"'s 48), but the title had no exact-match "Russian" in it at all despite the page's own
+  // badge/subheadline already leading with that phrase. Folded it in alongside the proven "3+
+  // weeks" CTR hook rather than replacing it. Description also picked up "pedicure" to match
+  // "russian pedicure san diego" (54 impressions, pos. 10.1) — see V4_WHY_CHOOSE_US's new
+  // "Dry Russian Pedicure" entry for the matching on-page content.
   title: {
-    default: "AK.LUX.NAILS | Manicures That Last 3+ Weeks, San Diego",
+    default: "AK.LUX.NAILS | Russian Manicure San Diego, Lasts 3+ Weeks",
     template: "%s | AK.LUX.NAILS",
   },
   description:
-    "Russian manicure and non-toxic gel that lasts 3-4 weeks, not 3 days. Backed by our 14-day guarantee. Downtown San Diego nail salon. Book today.",
+    "Russian manicure & pedicure with non-toxic gel that lasts 3-4 weeks, not 3 days. 14-day guarantee. Downtown San Diego nail salon. Book today.",
   // Applies to "/" only — every other route (blog index, each post, terms, privacy) sets its
   // own `alternates.canonical` in its own metadata export, since a route that doesn't override
   // this would otherwise silently inherit "/" as ITS canonical too (Next.js metadata is

@@ -16,6 +16,11 @@ export const V4_PROMO_MICRO = "14-day guarantee · book online in seconds";
 
 export const V4_WHY_CHOOSE_US = [
   { title: "Russian Manicure specialists", desc: "Precise dry-cuticle technique, trained in the method — not a generic gel manicure." },
+  // Added 2026-09-14 — pedicure wasn't mentioned anywhere in the homepage's visible copy despite
+  // "russian pedicure san diego" already pulling real impressions (54, pos. 10.1) purely on
+  // topical spillover from the manicure content. Real, factual claim — matches the actual "Dry
+  // Russian Pedicure" service description in salonLandings' service_catalog.py.
+  { title: "Dry Russian Pedicure", desc: "No water soak — a hygienic dry technique finished with the same long-wearing gel overlay." },
   { title: "Precision cuticle work", desc: "Slow, careful, and exact — the difference shows in the finish and how it grows out." },
   { title: "Long-lasting results", desc: "Done right, your set holds its shape and shine for weeks, not days." },
   { title: "Premium products", desc: "High-quality, non-toxic gels — nothing harsh, nothing that cuts corners." },
