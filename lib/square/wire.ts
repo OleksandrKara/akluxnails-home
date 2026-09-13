@@ -11,6 +11,7 @@ export interface WireServiceItem {
     variationVersion: string;
     name: string;
     priceCents: number;
+    durationMinutes: number;
     technicians?: TechnicianRef[];
   }[];
 }
@@ -24,6 +25,7 @@ export function toWireItem(item: CatalogServiceItem): WireServiceItem {
       variationVersion: v.variationVersion.toString(),
       name: v.name,
       priceCents: v.priceCents,
+      durationMinutes: v.durationMinutes,
       technicians: v.technicians,
     })),
   };
