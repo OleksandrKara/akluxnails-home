@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LOCATION, BUSINESS_HOURS } from "@/lib/siteData";
+import { LOCATION, BUSINESS_HOURS, LOCAL_AREA_NOTE } from "@/lib/siteData";
 
 interface FAQItem {
   question: string;
@@ -62,7 +62,7 @@ const FAQS: FAQItem[] = [
   },
   {
     question: "Is there parking nearby?",
-    answer: LOCATION.note,
+    answer: `${LOCATION.note} ${LOCAL_AREA_NOTE}`,
   },
 ];
 
