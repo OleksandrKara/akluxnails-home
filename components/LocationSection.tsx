@@ -1,4 +1,4 @@
-import { LOCATION, BUSINESS_HOURS } from "@/lib/siteData";
+import { LOCATION, BUSINESS_HOURS, LOCAL_AREA_NOTE, NEARBY_AREAS } from "@/lib/siteData";
 
 export default function LocationSection() {
   return (
@@ -14,6 +14,7 @@ export default function LocationSection() {
         <p className="mt-1 text-sm text-[var(--color-muted)]">{LOCATION.address}</p>
         <p className="mt-1 text-sm text-[var(--color-muted-2)]">{BUSINESS_HOURS}</p>
         <p className="mt-1 text-sm text-[var(--color-muted-2)]">{LOCATION.note}</p>
+        <p className="mt-1 text-sm text-[var(--color-muted-2)]">{LOCAL_AREA_NOTE}</p>
         <div className="mt-4">
           <a
             href={LOCATION.mapsUrl}
@@ -24,6 +25,25 @@ export default function LocationSection() {
             Get directions →
           </a>
         </div>
+      </div>
+
+      {/* Honest "areas we serve" list, not separate per-neighborhood pages — see NEARBY_AREAS'
+          own comment in lib/siteData.ts for why. */}
+      <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-5 ring-1 ring-[var(--color-border)]">
+        <p className="font-medium text-[var(--color-ink)]">Areas we serve</p>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          Most of our clients come from a 15-20 minute drive, mainly:
+        </p>
+        <ul className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-[var(--color-muted-2)] sm:grid-cols-2">
+          {NEARBY_AREAS.map((area) => (
+            <li key={area} className="flex gap-2">
+              <span className="text-[var(--color-accent)]" aria-hidden="true">
+                •
+              </span>
+              {area}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

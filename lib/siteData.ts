@@ -132,6 +132,25 @@ export const LOCATION = {
     "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20prepay%20for%203%2B%20visits%20and%20save%2010%25%20at%20AK.LUX.NAILS.%20I%27m%20interested%20in%20___.",
 };
 
+// Neighborhoods within the ~15-20 minute drive radius the business actually targets (per the
+// published SEO plan). Deliberately an honest, single list rather than a separate landing page per
+// neighborhood — the plan explicitly rejects "doorway pages" as a 2026-core-update penalty risk.
+export const NEARBY_AREAS = [
+  "Downtown San Diego (Gaslamp, East Village, Core-Columbia, Cortez Hill, Marina)",
+  "Bankers Hill",
+  "Hillcrest",
+  "Mission Hills",
+  "North Park",
+  "South Park",
+  "Golden Hill",
+];
+
+// Verified via reverse-geocoding LOCATION's real coordinates (Core-Columbia, not Cortez Hill/
+// Bankers Hill as sometimes assumed from the street address alone) and a straight-line distance
+// check to Balboa Park — both real, checkable facts, not marketing color.
+export const LOCAL_AREA_NOTE =
+  "We're in the Core-Columbia district of Downtown San Diego, about a 5-minute drive from Balboa Park.";
+
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";
 
 // NailSalon (a schema.org LocalBusiness subtype) structured data — every field here is a real,
