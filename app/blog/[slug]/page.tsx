@@ -10,6 +10,11 @@ import BookNowButton from "@/components/BookNowButton";
 import BlogPhotoLightbox from "@/components/BlogPhotoLightbox";
 import BlogHero from "@/components/BlogHero";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import { BUSINESS_NAME } from "@/lib/siteData";
+
+// Matches the literal used in app/layout.tsx — not re-exported from there to avoid a needless
+// cross-file dependency for one constant string.
+const SITE_URL = "https://akluxnails.com";
 
 // Comparison tables render at their natural width regardless of viewport — on a narrow phone
 // that's wider than the screen, so without this wrapper the table (and the whole page) scrolls
@@ -50,8 +55,28 @@ export default async function BlogPostPage({
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
+  // Article structured data — datePublished/dateModified sourced straight from the same
+  // date/updated frontmatter that already drives the sitemap's lastModified and the "Updated"
+  // pill in BlogHero, so this can't drift from what's visibly true on the page.
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    ...(post.heroImage ? { image: `${SITE_URL}${post.heroImage}` } : {}),
+    datePublished: post.date,
+    dateModified: post.updated ?? post.date,
+    author: { "@type": "Organization", name: BUSINESS_NAME },
+    publisher: { "@type": "Organization", name: BUSINESS_NAME },
+    mainEntityOfPage: `${SITE_URL}/blog/${slug}`,
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <Header />
       <BlogHero title={post.title} date={post.date} updated={post.updated} tags={post.tags} image={post.heroImage} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
