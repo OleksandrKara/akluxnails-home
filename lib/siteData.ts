@@ -15,6 +15,15 @@ export const GOOGLE_REVIEW_RATING = "4.8";
 // as a real outbound link (not just display text) and in NailSalon structured data's `sameAs`.
 export const INSTAGRAM_URL = "https://www.instagram.com/ak.lux.nails";
 
+// Real public profiles for the same business, owner-confirmed 2026-09-20 — used in `sameAs` below
+// so Google and AI assistants can resolve every mention of this business (GBP, Yelp, Facebook,
+// Instagram, the website) as one verified real-world entity rather than several half-matches.
+export const FACEBOOK_URL = "https://www.facebook.com/p/AK-Lux-Nails-61562966039138/";
+// Owner's own share link (Yelp's shortlink service doesn't resolve to a canonical /biz/ URL for
+// automated fetches, so this is used as-is rather than guessed at) — real Yelp reviews already
+// exist under this profile.
+export const YELP_URL = "https://yelp.to/a-glAfTu3H";
+
 export const CREDIBILITY_STATS = [
   { value: `${GOOGLE_REVIEW_RATING}★`, label: `${GOOGLE_REVIEW_COUNT} Google reviews` },
   { value: "4 wks", label: "chip-free wear" },
@@ -126,11 +135,11 @@ export const LOCATION = {
 export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";
 
 // NailSalon (a schema.org LocalBusiness subtype) structured data — every field here is a real,
-// visible fact (name/address/phone/hours are all rendered on the page; sameAs is the business's
-// real public Instagram). Deliberately does NOT include review/aggregateRating markup: Google
-// only credits review rich results sourced from an independent third party, not a business's own
-// self-published testimonials — see ReviewsSection.tsx's honest "read reviews on Google" link
-// instead of self-hosted review schema.
+// visible fact (name/address/phone/hours are all rendered on the page; sameAs links the business's
+// real public GBP/Yelp/Facebook/Instagram profiles). Deliberately does NOT include
+// review/aggregateRating markup: Google only credits review rich results sourced from an
+// independent third party, not a business's own self-published testimonials — see
+// ReviewsSection.tsx's honest "read reviews on Google" link instead of self-hosted review schema.
 export function getLocalBusinessJsonLd(siteUrl: string) {
   return {
     "@context": "https://schema.org",
@@ -147,6 +156,14 @@ export function getLocalBusinessJsonLd(siteUrl: string) {
       postalCode: LOCATION.postalCode,
       addressCountry: LOCATION.addressCountry,
     },
+    // Owner-provided 2026-09-20, straight from the business's own Google Maps pin — the direct
+    // input Google AI Overviews reads from a site's own schema (vs. third-party signals for
+    // everything else in this object).
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 32.7194913,
+      longitude: -117.1581270,
+    },
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: [
@@ -161,7 +178,7 @@ export function getLocalBusinessJsonLd(siteUrl: string) {
       opens: "09:00",
       closes: "19:00",
     },
-    sameAs: [INSTAGRAM_URL],
+    sameAs: [INSTAGRAM_URL, FACEBOOK_URL, YELP_URL, LOCATION.googleProfileUrl],
   };
 }
 
