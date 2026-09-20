@@ -7,8 +7,8 @@ export const HEADLINE = "Nail Care, Done Right — Downtown San Diego";
 export const SUBHEAD =
   "Russian manicures, gel, and nail art in a clean, modern studio. Nail-health first, no acrylics, ever.";
 
-export const GOOGLE_REVIEW_COUNT = 125;
-export const GOOGLE_REVIEW_RATING = "4.8";
+export const GOOGLE_REVIEW_COUNT = 138;
+export const GOOGLE_REVIEW_RATING = "4.7";
 
 // The business's real, public Instagram profile — same account referenced by handle in
 // siteDataV4's V4_STORY_HEADLINE copy. Centralized here as an actual URL so it can be used both
