@@ -14,6 +14,7 @@ import RebookingPromoBanner from "@/components/RebookingPromoBanner";
 import RebookingPromoModal from "@/components/RebookingPromoModal";
 import { getVariantById } from "@/lib/variant";
 import { recordPageView } from "@/lib/tracking";
+import { deriveClientContext } from "@/lib/requestContext";
 import { accentPaletteToCssVars, deriveAccentPalette } from "@/lib/theme";
 import { verifyRebookingPromoSignature } from "@/lib/rebookingPromo";
 import type { CSSProperties } from "react";
@@ -71,6 +72,8 @@ export default async function HomePage({
       fbclid: first(sp.fbclid),
       gclid: first(sp.gclid),
     };
+    // Also read here, not inside after(): it calls headers() (see recordPageView's clientContext).
+    const clientContext = await deriveClientContext();
     after(() => {
       recordPageView({
         visitorId,
@@ -79,6 +82,7 @@ export default async function HomePage({
         landingPath: "/",
         referrer,
         utm,
+        clientContext,
       });
     });
   }
