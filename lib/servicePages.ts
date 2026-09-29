@@ -31,9 +31,10 @@ export interface ServicePageConfig {
   heroImage: string;
   heroAlt: string;
   gallery: { src: string; alt: string }[];
-  /** A real "how it looks weeks later" photo, shown on its own with an explanation rather than in
-   * the gallery, so nobody mistakes grown-out nails for a fresh result (owner request 2026-09-29). */
-  wearProof?: { src: string; alt: string; title: string; text: string[] };
+  /** Real "how it looks weeks later" photos, shown together at the end of the page with an
+   * explanation and a "N weeks after" badge on each, never in the gallery, so nobody mistakes
+   * grown-out nails for a fresh result (owner request 2026-09-29; weeks per photo are the owner's). */
+  wearProof?: { title: string; text: string[]; photos: { src: string; alt: string; label: string }[] };
   explainer: { href: string; label: string };
 }
 
@@ -102,18 +103,20 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
       { src: "/images/blog/gel-extension-nude-rhinestone.jpg", alt: "Nude coffin gel extensions with a rhinestone accent" },
       { src: "/images/blog/gel-extension-nude-glitter-almond.jpg", alt: "Nude glitter-tip almond gel extensions" },
       { src: "/images/blog/gel-extension-pink-ombre-coffin.jpg", alt: "Soft pink ombre coffin gel extensions" },
-      { src: "/images/blog/gel-extension-french-tip-square.jpg", alt: "French-tip square gel extensions" },
+      { src: "/images/blog/nail-extension-correction-rhinestone-coffin.jpg", alt: "Pink French-tip square gel extensions" },
       { src: "/images/blog/gel-extension-blue-glitter-ombre.jpg", alt: "Blue glitter ombre gel extensions" },
       { src: "/images/blog/nail-extension-correction-milky-square.jpg", alt: "Milky square gel extensions" },
     ],
     wearProof: {
-      src: "/images/blog/gel-extension-burgundy-coffin.jpg",
-      alt: "Burgundy gel nails after more than 4 weeks of wear, with natural nail regrowth visible at the cuticle",
-      title: "This is 4+ weeks after the appointment",
+      title: "How long our gel really lasts",
       text: [
-        "This photo was not taken right after the service. Our client came back after more than 4 weeks. You can see how much the natural nail has grown at the cuticle, and the gel is still smooth and fully in place, with no chips and no lifting.",
+        "These photos were not taken right after the service. These clients came back 4 and 5 weeks after their appointments. You can see how much the natural nail has grown at the cuticle, and the gel is still smooth and fully in place, with no chips and no lifting.",
         "Our simple rule: book your next appointment no later than 4 weeks after the last one. That way your nails always look neat.",
         "Want a break from gel? Come in and we will remove it properly. Please don't keep wearing it and wait for it to come off on its own, and don't pick it off. That is what damages the natural nail.",
+      ],
+      photos: [
+        { src: "/images/blog/gel-extension-burgundy-coffin.jpg", alt: "Burgundy gel nails 4 weeks after the appointment, with natural nail regrowth visible at the cuticle", label: "4 weeks after" },
+        { src: "/images/blog/gel-extension-french-tip-square.jpg", alt: "French-tip square gel nails 5 weeks after the appointment, still intact", label: "5 weeks after" },
       ],
     },
     explainer: { href: "/blog/gel-nail-extensions-explained", label: "Gel nail extensions explained: shapes, length, and upkeep" },
