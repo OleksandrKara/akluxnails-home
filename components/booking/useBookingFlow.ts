@@ -190,6 +190,18 @@ export function useBookingFlow(preselection?: Preselection, initialPromo?: Verif
     hasCardOnFile: boolean,
   ) {
     setState((s) => ({ ...s, bookingId, technicianName, customerId, hasCardOnFile, step: "done" }));
+    // GA4 conversion (added 2026-09-29), so GA4 can report bookings and their value per traffic
+    // channel (Google organic vs. Instagram ads etc.) on its own. The value is the booked price,
+    // not money collected. No personal data: only the Square booking id, for GA4 de-duplication.
+    try {
+      window.gtag?.("event", "booking_completed", {
+        value: finalTotalCents / 100,
+        currency: "USD",
+        transaction_id: bookingId,
+      });
+    } catch {
+      // analytics must never break the booking confirmation
+    }
   }
 
   /** Called once DoneStep's card prompt succeeds, so a re-render doesn't show it again (e.g. if
