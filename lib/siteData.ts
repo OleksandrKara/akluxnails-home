@@ -42,6 +42,9 @@ export interface Review {
   /** Month only, never a relative "2 weeks ago": that would silently go stale on a static page. */
   date: string;
   text: string;
+  /** The reviewer's own Google profile photo, cropped from the owner's screenshot of the review.
+   * Omitted when the reviewer has none on Google (Google shows a letter there, and so do we). */
+  profileImage?: string;
 }
 
 // Real Google reviews, copied verbatim from the business's Google profile (owner-provided
@@ -57,21 +60,25 @@ export const REVIEWS: Review[] = [
   },
   {
     name: "Alena Story",
+    profileImage: "/images/reviews/alena-story.jpg",
     date: "September 2026",
     text: "I loved my nails, thank you",
   },
   {
     name: "Melis Yurdakul",
+    profileImage: "/images/reviews/melis-yurdakul.jpg",
     date: "September 2026",
     text: "I've been a customer for almost 5 months now and I drive all the way from Carlsbad just to come here. I absolutely love how clean and professional everything is. I'm so glad I found them—Tatiana and Bayan are my favorite ❤️",
   },
   {
     name: "Vanessa Jarrett",
+    profileImage: "/images/reviews/vanessa-jarrett.jpg",
     date: "September 2026",
     text: "Clean, nice Salon. Friendly staff (I enjoy no talking). My nails looks great",
   },
   {
     name: "Svetlana Fadeeva",
+    profileImage: "/images/reviews/svetlana-fadeeva.jpg",
     date: "September 2026",
     text: "Lesya is absolutely wonderful! She's so sweet and professional. Her technique is incredibly clean and precise, and she pays attention to every little detail. If you're looking for a true Russian manicure, this is it! It is Russian manicure at its best. My nails came out absolutely beautiful!",
   },
