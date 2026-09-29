@@ -176,26 +176,6 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
           </div>
         </section>
 
-        {config.wearProof && (
-          <section className="mt-12 grid gap-6 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-accent)] sm:grid-cols-[220px_1fr] sm:items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={config.wearProof.src} alt={config.wearProof.alt} loading="lazy" decoding="async" className="w-full rounded-lg object-cover" />
-            <div>
-              <h2 className="text-xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
-                {config.wearProof.title}
-              </h2>
-              {config.wearProof.text.map((p) => (
-                <p key={p} className="mt-3 text-sm leading-relaxed text-[var(--color-muted)]">
-                  {p}
-                </p>
-              ))}
-              <Link href="/blog/safe-gel-removal-explained" className="mt-3 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
-                How we remove gel safely
-              </Link>
-            </div>
-          </section>
-        )}
-
         <section className="mt-12">
           <h2 className="text-2xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
             Our work
@@ -237,6 +217,32 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
             {config.explainer.label}
           </Link>
         </p>
+        {config.wearProof && (
+          <section className="mt-12 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-accent)]">
+            <h2 className="text-xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+              {config.wearProof.title}
+            </h2>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {config.wearProof.photos.map((p) => (
+                <div key={p.src} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.src} alt={p.alt} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-lg object-cover" />
+                  <span className="absolute top-2 right-2 rounded-full bg-[var(--color-accent)] px-2.5 py-1 text-[11px] font-semibold text-white shadow">
+                    {p.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {config.wearProof.text.map((p) => (
+              <p key={p} className="mt-3 text-sm leading-relaxed text-[var(--color-muted)]">
+                {p}
+              </p>
+            ))}
+            <Link href="/blog/safe-gel-removal-explained" className="mt-3 inline-block text-sm font-medium text-[var(--color-accent)] hover:underline">
+              How we remove gel safely
+            </Link>
+          </section>
+        )}
       </main>
       <Footer />
     </div>
