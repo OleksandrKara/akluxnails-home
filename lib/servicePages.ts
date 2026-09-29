@@ -31,6 +31,9 @@ export interface ServicePageConfig {
   heroImage: string;
   heroAlt: string;
   gallery: { src: string; alt: string }[];
+  /** A real "how it looks weeks later" photo, shown on its own with an explanation rather than in
+   * the gallery, so nobody mistakes grown-out nails for a fresh result (owner request 2026-09-29). */
+  wearProof?: { src: string; alt: string; title: string; text: string[] };
   explainer: { href: string; label: string };
 }
 
@@ -96,13 +99,23 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
     heroImage: "/images/blog/gel-extension-coffin-nude.jpg",
     heroAlt: "Nude coffin-shaped gel extension by AK.LUX.NAILS",
     gallery: [
-      { src: "/images/blog/gel-extension-burgundy-coffin.jpg", alt: "Burgundy coffin-shaped gel extensions" },
       { src: "/images/blog/gel-extension-nude-rhinestone.jpg", alt: "Nude coffin gel extensions with a rhinestone accent" },
       { src: "/images/blog/gel-extension-nude-glitter-almond.jpg", alt: "Nude glitter-tip almond gel extensions" },
       { src: "/images/blog/gel-extension-pink-ombre-coffin.jpg", alt: "Soft pink ombre coffin gel extensions" },
       { src: "/images/blog/gel-extension-french-tip-square.jpg", alt: "French-tip square gel extensions" },
       { src: "/images/blog/gel-extension-blue-glitter-ombre.jpg", alt: "Blue glitter ombre gel extensions" },
+      { src: "/images/blog/nail-extension-correction-milky-square.jpg", alt: "Milky square gel extensions" },
     ],
+    wearProof: {
+      src: "/images/blog/gel-extension-burgundy-coffin.jpg",
+      alt: "Burgundy gel nails after more than 4 weeks of wear, with natural nail regrowth visible at the cuticle",
+      title: "This is 4+ weeks after the appointment",
+      text: [
+        "This photo was not taken right after the service. Our client came back after more than 4 weeks. You can see how much the natural nail has grown at the cuticle, and the gel is still smooth and fully in place, with no chips and no lifting.",
+        "Our simple rule: book your next appointment no later than 4 weeks after the last one. That way your nails always look neat.",
+        "Want a break from gel? Come in and we will remove it properly. Please don't keep wearing it and wait for it to come off on its own, and don't pick it off. That is what damages the natural nail.",
+      ],
+    },
     explainer: { href: "/blog/gel-nail-extensions-explained", label: "Gel nail extensions explained: shapes, length, and upkeep" },
   },
 };
