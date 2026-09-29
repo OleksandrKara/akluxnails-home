@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { REVIEWS, GOOGLE_REVIEW_COUNT, GOOGLE_REVIEW_RATING, LOCATION, type Review } from "@/lib/siteData";
 import GoogleLogo from "./GoogleLogo";
 
@@ -17,12 +18,18 @@ function ReviewCard({ review }: { review: Review }) {
   return (
     <article className="flex h-full flex-col rounded-[var(--radius-lg)] bg-[var(--color-card)] p-5 shadow-[0_1px_3px_rgba(42,33,29,0.06)] ring-1 ring-[var(--color-border)]">
       <header className="flex items-center gap-3">
-        <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-white"
-          aria-hidden
-        >
-          {review.name.charAt(0).toUpperCase()}
-        </span>
+        {review.profileImage ? (
+          <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[var(--color-accent-tint-2)]">
+            <Image src={review.profileImage} alt={`${review.name} profile picture`} fill sizes="40px" className="object-cover" />
+          </span>
+        ) : (
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-semibold text-white"
+            aria-hidden
+          >
+            {review.name.charAt(0).toUpperCase()}
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-[var(--color-ink)]">{review.name}</p>
           <p className="text-xs text-[var(--color-muted-2)]">{review.date}</p>
