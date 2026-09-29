@@ -191,10 +191,13 @@ export function useBookingFlow(preselection?: Preselection, initialPromo?: Verif
   ) {
     setState((s) => ({ ...s, bookingId, technicianName, customerId, hasCardOnFile, step: "done" }));
     // GA4 conversion (added 2026-09-29), so GA4 can report bookings and their value per traffic
-    // channel (Google organic vs. Instagram ads etc.) on its own. The value is the booked price,
-    // not money collected. No personal data: only the Square booking id, for GA4 de-duplication.
+    // channel (Google organic vs. Instagram ads etc.) on its own. Sent as GA4's standard
+    // "purchase" event because the property already has that marked as a key event (a custom
+    // event name would need a manual GA4 admin step). The value is the booked price, not money
+    // collected: a later cancellation or no-show still counts here. No personal data: only the
+    // Square booking id, which GA4 uses to de-duplicate.
     try {
-      window.gtag?.("event", "booking_completed", {
+      window.gtag?.("event", "purchase", {
         value: finalTotalCents / 100,
         currency: "USD",
         transaction_id: bookingId,
