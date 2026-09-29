@@ -163,6 +163,9 @@ export function getLocalBusinessJsonLd(siteUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "NailSalon",
+    // Referenced as the provider by the Service/Offer structured data on /prices and the
+    // service pages (components/ServicePage.tsx), so those tie back to this one business entity.
+    "@id": `${siteUrl}/#salon`,
     name: BUSINESS_NAME,
     image: `${siteUrl}/images/logo.png`,
     url: siteUrl,
