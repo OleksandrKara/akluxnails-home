@@ -39,7 +39,9 @@ export const TRUST_POINTS = [
 
 export interface Review {
   name: string;
-  /** Month only, never a relative "2 weeks ago": that would silently go stale on a static page. */
+  /** Exact date, never a relative "2 weeks ago" (that would silently go stale on a static page).
+   * Google itself only shows "N days/weeks ago", so each date is cross-checked against the
+   * reviewer's visit date in Square (see the akluxnails_reviews_on_site memory note). */
   date: string;
   text: string;
   /** The reviewer's own Google profile photo, cropped from the owner's screenshot of the review.
@@ -55,36 +57,36 @@ export interface Review {
 export const REVIEWS: Review[] = [
   {
     name: "Gemaine Lockett",
-    date: "September 2026",
+    date: "September 25, 2026",
     text: "Thank you so much for accommodating me today. Even though my reservation got mixed up, I really appreciate how quickly you found a way to fit me in and made everything right. Your kindness and professionalism meant a lot. Most importantly, I absolutely LOVE my nails, they turned out beautiful! Thank you again for taking such great care of me. I'll definitely be back!",
   },
   {
     name: "Alena Story",
     profileImage: "/images/reviews/alena-story.jpg",
-    date: "September 2026",
+    date: "September 24, 2026",
     text: "I loved my nails, thank you",
   },
   {
     name: "Melis Yurdakul",
     profileImage: "/images/reviews/melis-yurdakul.jpg",
-    date: "September 2026",
+    date: "September 22, 2026",
     text: "I've been a customer for almost 5 months now and I drive all the way from Carlsbad just to come here. I absolutely love how clean and professional everything is. I'm so glad I found them—Tatiana and Bayan are my favorite ❤️",
   },
   {
     name: "Vanessa Jarrett",
     profileImage: "/images/reviews/vanessa-jarrett.jpg",
-    date: "September 2026",
+    date: "September 22, 2026",
     text: "Clean, nice Salon. Friendly staff (I enjoy no talking). My nails looks great",
   },
   {
     name: "Svetlana Fadeeva",
     profileImage: "/images/reviews/svetlana-fadeeva.jpg",
-    date: "September 2026",
+    date: "September 13, 2026",
     text: "Lesya is absolutely wonderful! She's so sweet and professional. Her technique is incredibly clean and precise, and she pays attention to every little detail. If you're looking for a true Russian manicure, this is it! It is Russian manicure at its best. My nails came out absolutely beautiful!",
   },
   {
     name: "Estacy",
-    date: "September 2026",
+    date: "September 11, 2026",
     text: "First Russian manicure and it was amazing! Lesya did such a great job getting every little cuticle and making sure all of my nails were the shape and length I wanted. I can't wait to go back and get a pedicure!!",
   },
 ];
