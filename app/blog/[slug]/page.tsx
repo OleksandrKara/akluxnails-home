@@ -4,8 +4,7 @@ import type { ComponentProps } from "react";
 import type { Metadata } from "next";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import BookNowButton from "@/components/BookNowButton";
 import BlogPhotoLightbox from "@/components/BlogPhotoLightbox";
 import BlogHero from "@/components/BlogHero";
@@ -77,7 +76,7 @@ export default async function BlogPostPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
-      <Header />
+      <SiteHeader />
       <BlogHero title={post.title} date={post.date} updated={post.updated} tags={post.tags} image={post.heroImage} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
         <article className="prose prose-neutral max-w-none">
@@ -118,7 +117,7 @@ export default async function BlogPostPage({
           </Link>
         </p>
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }
