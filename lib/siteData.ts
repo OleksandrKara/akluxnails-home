@@ -38,60 +38,47 @@ export const TRUST_POINTS = [
 ];
 
 export interface Review {
-  initial: string;
   name: string;
+  /** Month only, never a relative "2 weeks ago": that would silently go stale on a static page. */
   date: string;
-  stars: string;
   text: string;
 }
 
+// Real Google reviews, copied verbatim from the business's Google profile (owner-provided
+// screenshots, 2026-09-29), newest first. Replaced placeholder testimonials that were not real
+// reviews (a real FTC/Google-policy risk). Only add reviews that actually exist on Google, with
+// their real text; don't edit wording, and don't add review/aggregateRating schema for these
+// (Google doesn't credit self-published reviews, see getLocalBusinessJsonLd below).
 export const REVIEWS: Review[] = [
   {
-    initial: "J",
-    name: "Jessica M.",
-    date: "2 weeks ago",
-    stars: "★★★★★",
-    text: "Best Russian manicure I've had in San Diego. Cuticles were flawless and it's still perfect after 3 weeks — no chips at all.",
+    name: "Gemaine Lockett",
+    date: "September 2026",
+    text: "Thank you so much for accommodating me today. Even though my reservation got mixed up, I really appreciate how quickly you found a way to fit me in and made everything right. Your kindness and professionalism meant a lot. Most importantly, I absolutely LOVE my nails, they turned out beautiful! Thank you again for taking such great care of me. I'll definitely be back!",
   },
   {
-    initial: "A",
-    name: "Alina R.",
-    date: "1 month ago",
-    stars: "★★★★★",
-    text: "So clean and precise. No acrylic, just healthy natural nails with a gorgeous glossy finish. Downtown location is easy too.",
+    name: "Alena Story",
+    date: "September 2026",
+    text: "I loved my nails, thank you",
   },
   {
-    initial: "D",
-    name: "Daniela K.",
-    date: "1 month ago",
-    stars: "★★★★★",
-    text: "Finally a place that does a true Russian manicure. Super hygienic, relaxing, and they even offered me tea.",
-  },
-];
-
-// Reused (and lightly trimmed of ads-specific framing) from salonLandings' MORE_REVIEWS — shown
-// on "show more reviews" expansion, both for social proof depth and SEO content.
-export const MORE_REVIEWS: Review[] = [
-  {
-    initial: "M",
-    name: "Marisol T.",
-    date: "2 months ago",
-    stars: "★★★★★",
-    text: "The attention to detail is unreal. My nails have never looked this clean and healthy.",
+    name: "Melis Yurdakul",
+    date: "September 2026",
+    text: "I've been a customer for almost 5 months now and I drive all the way from Carlsbad just to come here. I absolutely love how clean and professional everything is. I'm so glad I found them—Tatiana and Bayan are my favorite ❤️",
   },
   {
-    initial: "S",
-    name: "Sophia L.",
-    date: "2 months ago",
-    stars: "★★★★★",
-    text: "Booked from Instagram and it looked exactly like the photos. Lasted almost 4 weeks with zero lifting. Highly recommend.",
+    name: "Vanessa Jarrett",
+    date: "September 2026",
+    text: "Clean, nice Salon. Friendly staff (I enjoy no talking). My nails looks great",
   },
   {
-    initial: "V",
-    name: "Valeria P.",
-    date: "3 months ago",
-    stars: "★★★★★",
-    text: "Beautiful studio, spotless tools, and the most precise cuticle work I've seen. My new go-to in Downtown SD.",
+    name: "Svetlana Fadeeva",
+    date: "September 2026",
+    text: "Lesya is absolutely wonderful! She's so sweet and professional. Her technique is incredibly clean and precise, and she pays attention to every little detail. If you're looking for a true Russian manicure, this is it! It is Russian manicure at its best. My nails came out absolutely beautiful!",
+  },
+  {
+    name: "Estacy",
+    date: "September 2026",
+    text: "First Russian manicure and it was amazing! Lesya did such a great job getting every little cuticle and making sure all of my nails were the shape and length I wanted. I can't wait to go back and get a pedicure!!",
   },
 ];
 
