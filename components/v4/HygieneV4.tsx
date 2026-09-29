@@ -56,7 +56,7 @@ export default function HygieneV4() {
             alt="Dry pedicure at AK.LUX.NAILS: artist in a mask and gloves, tray of metal tools, disposable cover under the client's feet"
             fill
             sizes="(min-width: 768px) 40vw, 100vw"
-            className="object-cover object-[40%_45%]"
+            className="object-cover object-[45%_50%]"
           />
           <span className="absolute bottom-3 left-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold tracking-wide text-[var(--color-ink)] shadow-sm backdrop-blur">
             Real photo from our studio
