@@ -56,7 +56,7 @@
 | Google Business Profile | ведётся | карты Google, ИИ-ответы Google |
 | Bing Webmaster Tools | подключён 29.09 (импорт из Google) | Bing и ChatGPT-поиск |
 | Bing Places | ожидал публикации до ~03.10, проверить | карты Bing |
-| Apple Business Connect | добавлен 29.09 (лого, сайт) | Apple Maps, Siri, iPhone |
+| Apple Business Connect | 29.09: лого, сайт, часы, описание; на проверке у Apple | Apple Maps, Siri, iPhone |
 | Yelp | есть, 2 отзыва скрыты фильтром | источник данных для ChatGPT и Apple |
 | Facebook | есть, почти пустой | упоминание бренда |
 | salaryReview → Marketing → Contacts | работает | откуда пришёл клиент, брони, деньги |
@@ -92,7 +92,7 @@
 - Исправлена ошибка учёта визитов (с 07.09 клиенты из Google записывались как «Direct»).
 - GA4 считает брони (событие `purchase`, сумма брони).
 - Фото «4 weeks after / 5 weeks after» вынесены в отдельный блок с объяснением.
-- Bing Webmaster Tools подключён. Apple Business Connect: добавлены лого и сайт.
+- Bing Webmaster Tools подключён. Apple Business Connect: лого, сайт, часы 8am–9pm и описание «About» отправлены, на проверке у Apple.
 - Пост с фото в Google Business Profile опубликован.
 - Питчи в СМИ: SDVoyager (интервью в работе), San Diego Magazine, Uptown News, Say Hey San Diego, NBC San Diego (форма). ilovesandiego.co исключён (сайт не работает).
 
@@ -200,7 +200,7 @@
 
 | Когда | Что | Кто |
 |---|---|---|
-| сейчас | Apple Business Connect: исправить часы на 8am–9pm каждый день | владелец |
+| ~03.10 | Apple Business Connect: проверить, что изменения (часы, описание) прошли проверку | владелец |
 | сейчас | Google Business Profile → Услуги: цены (инструкция в чате 29.09) | владелец |
 | по готовности | Папка Google Drive с фото работ | владелец |
 | по готовности | Ответы на вопросы интервью SDVoyager (Claude поможет) | владелец + Claude |
