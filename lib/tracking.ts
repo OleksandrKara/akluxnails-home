@@ -1,5 +1,5 @@
 import { getPool, MARKETING_BUSINESS_ID } from "./db";
-import { deriveClientContext, isTrackingNoise } from "./requestContext";
+import { deriveClientContext, isTrackingNoise, type ClientContext } from "./requestContext";
 
 export interface UtmParams {
   utmSource?: string;
@@ -23,9 +23,14 @@ export async function recordPageView(params: {
   landingPath: string;
   referrer: string | null;
   utm: UtmParams;
+  /** Must be passed when called from inside after(): deriveClientContext() reads headers(),
+   * which Next.js forbids there. Until 2026-09-29 the homepage called this from after() without
+   * it, so every homepage visit since PR #75 (2026-09-04) threw and was never recorded, which in
+   * turn made every new booking's original_traffic_source fall back to "Direct / Unknown". */
+  clientContext?: ClientContext;
 }): Promise<void> {
   try {
-    const ctx = await deriveClientContext();
+    const ctx = params.clientContext ?? (await deriveClientContext());
     if (isTrackingNoise(ctx)) return;
     const pool = getPool();
     await pool.query(
