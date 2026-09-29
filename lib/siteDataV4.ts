@@ -28,7 +28,7 @@ export const V4_WHY_CHOOSE_US = [
   { title: "Personalized consultations", desc: "Every visit starts with a real conversation about what you want." },
   { title: "Luxury experience", desc: "Unhurried appointments, real attention, zero conveyor-belt energy." },
   { title: "Relaxing atmosphere", desc: "Calm, unrushed, and comfortable from the moment you sit down." },
-  { title: "Clean and safe environment", desc: "Sanitized metal tools and disposable files/buffers, every visit." },
+  { title: "Clean and safe environment", desc: "Sterilized metal tools and single-use files and buffers, every visit." },
 ];
 
 export const V4_VALUE_PROPS = [

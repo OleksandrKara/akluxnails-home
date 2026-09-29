@@ -2,6 +2,7 @@ import HeroV4 from "./HeroV4";
 import TrustBarV4 from "./TrustBarV4";
 import ServicesPreviewV4 from "./ServicesPreviewV4";
 import WhyChooseUsV4 from "./WhyChooseUsV4";
+import HygieneV4 from "./HygieneV4";
 import ValuePropV4 from "./ValuePropV4";
 import GalleryV4 from "./GalleryV4";
 import ReviewsSection from "../ReviewsSection";
@@ -74,6 +75,7 @@ export default function HomePageV4({
 
           <ServicesPreviewV4 />
           <WhyChooseUsV4 />
+          <HygieneV4 />
           <ValuePropV4 />
           <GalleryV4 />
 
