@@ -50,22 +50,11 @@ export interface Review {
 }
 
 // Real Google reviews, copied verbatim from the business's Google profile (owner-provided
-// screenshots, 2026-09-29), newest first. Replaced placeholder testimonials that were not real
+// screenshots, 2026-09-29), in the owner's chosen display order. Replaced placeholder testimonials that were not real
 // reviews (a real FTC/Google-policy risk). Only add reviews that actually exist on Google, with
 // their real text; don't edit wording, and don't add review/aggregateRating schema for these
 // (Google doesn't credit self-published reviews, see getLocalBusinessJsonLd below).
 export const REVIEWS: Review[] = [
-  {
-    name: "Gemaine Lockett",
-    date: "September 25, 2026",
-    text: "Thank you so much for accommodating me today. Even though my reservation got mixed up, I really appreciate how quickly you found a way to fit me in and made everything right. Your kindness and professionalism meant a lot. Most importantly, I absolutely LOVE my nails, they turned out beautiful! Thank you again for taking such great care of me. I'll definitely be back!",
-  },
-  {
-    name: "Alena Story",
-    profileImage: "/images/reviews/alena-story.jpg",
-    date: "September 24, 2026",
-    text: "I loved my nails, thank you",
-  },
   {
     name: "Melis Yurdakul",
     profileImage: "/images/reviews/melis-yurdakul.jpg",
@@ -88,6 +77,17 @@ export const REVIEWS: Review[] = [
     name: "Estacy",
     date: "September 11, 2026",
     text: "First Russian manicure and it was amazing! Lesya did such a great job getting every little cuticle and making sure all of my nails were the shape and length I wanted. I can't wait to go back and get a pedicure!!",
+  },
+  {
+    name: "Gemaine Lockett",
+    date: "September 25, 2026",
+    text: "Thank you so much for accommodating me today. Even though my reservation got mixed up, I really appreciate how quickly you found a way to fit me in and made everything right. Your kindness and professionalism meant a lot. Most importantly, I absolutely LOVE my nails, they turned out beautiful! Thank you again for taking such great care of me. I'll definitely be back!",
+  },
+  {
+    name: "Alena Story",
+    profileImage: "/images/reviews/alena-story.jpg",
+    date: "September 24, 2026",
+    text: "I loved my nails, thank you",
   },
 ];
 
