@@ -41,12 +41,16 @@ export default function HeroV4({
       <div className="absolute inset-0 bg-[#3f2c45]/10" />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl px-6 pt-32 pb-16 sm:px-8 sm:pb-24">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.14em] text-white uppercase backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
+        {/* The badge is the page's real H1 (it carries "Russian manicure" + "San Diego", the
+            homepage's main search query) while the big A/B-tested headline below is a <p> with
+            identical styling, so this changes nothing visually. See the 2026-09-29 GSC data:
+            the homepage ranks ~8.5 for "russian manicure san diego" with no keyword in its H1. */}
+        <h1 className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.14em] text-white uppercase backdrop-blur-md">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden />
           {V4_BADGE}
-        </span>
+        </h1>
 
-        <h1
+        <p
           className="mt-6 text-5xl leading-[1.02] font-light tracking-tight text-white sm:text-6xl lg:text-7xl"
           style={{ fontFamily: "var(--font-heading)" }}
         >
@@ -60,7 +64,7 @@ export default function HeroV4({
           </em>
           <br />
           {headlineLine3}
-        </h1>
+        </p>
 
         <p className="mt-6 max-w-md text-base leading-relaxed text-white/80 sm:text-lg">{V4_SUBHEAD}</p>
 
