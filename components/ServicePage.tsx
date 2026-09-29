@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import BookNowButton from "@/components/BookNowButton";
 import { getCuratedMenu, getItemByName, type CatalogServiceItem } from "@/lib/square/catalog";
 import { toWireItem } from "@/lib/square/wire";
@@ -82,7 +81,7 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
       {serviceJsonLd && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
       )}
-      <Header />
+      <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-[1fr_240px] sm:items-start">
           <div>
@@ -244,7 +243,7 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
           </section>
         )}
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }

@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import BookNowButton from "../BookNowButton";
 import MessageIcon from "../icons/MessageIcon";
 import RebookingPromoBanner from "../RebookingPromoBanner";
 import { BUSINESS_NAME, LOCATION } from "@/lib/siteData";
 
+// Homepage sections are plain #anchors on "/" and "/#anchor" everywhere else; /prices is a real
+// page on both.
 const NAV_LINKS = [
   { href: "#services", label: "Services" },
+  { href: "/prices", label: "Prices" },
   { href: "#why-choose-us", label: "Why Us" },
   { href: "#reviews", label: "Reviews" },
   { href: "#gift-cards", label: "Gift Cards" },
@@ -54,7 +58,7 @@ function MenuIcon({ open }: { open: boolean }) {
  * the button group, regardless of how wide either of those is, rather than just being whatever's
  * left over after a plain justify-between (which does not guarantee that).
  *
- * On mobile the inline nav (desktop-only, md:flex) is replaced by a hamburger button next to a
+ * On mobile the inline nav (desktop-only, lg:flex; below 1024px the six links no longer fit on one line) is replaced by a hamburger button next to a
  * Book Now button — previously there was no way at all to reach these links on a phone. The
  * hamburger opens a dropdown panel with the same links; Book Now already sits right next to the
  * hamburger at all times, so repeating it inside the panel too would be redundant — instead the
@@ -73,11 +77,18 @@ export default function HeaderV4({
   promoVerified,
   promoExpEpochSeconds,
   promoCode,
+  variant = "home",
 }: {
   promoVerified?: boolean;
   promoExpEpochSeconds?: number;
   promoCode?: string;
+  /** "page": every page except the homepage (see components/SiteChrome.tsx). Same header, but
+   * with a solid dark pill (there's no hero photo behind it to be translucent over) and section
+   * links pointing back to the homepage. Added 2026-09-29 so the whole site shares one header. */
+  variant?: "home" | "page";
 }) {
+  const isPage = variant === "page";
+  const hrefFor = (href: string) => (isPage && href.startsWith("#") ? `/${href}` : href);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -107,7 +118,7 @@ export default function HeaderV4({
           the topbar/panel below, which both get relative+z-10 to stay clickable above it. */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-black/40 md:hidden"
+          className="fixed inset-0 bg-black/40 lg:hidden"
           onClick={closeMenu}
           aria-hidden
         />
@@ -120,11 +131,11 @@ export default function HeaderV4({
           there's extra room" need two separate boxes. */}
       <div className="relative z-10 mx-4 mt-4 sm:mx-6 sm:mt-6">
         <div
-          className={`mx-auto flex max-w-6xl items-center gap-2 rounded-full border border-white/15 bg-black/20 px-3 py-2 text-white backdrop-blur-md transition-shadow duration-300 sm:gap-4 sm:px-5 ${
+          className={`mx-auto flex max-w-6xl items-center gap-2 rounded-full border border-white/15 ${isPage ? "bg-[#1f1620]/90" : "bg-black/20"} px-3 py-2 text-white backdrop-blur-md transition-shadow duration-300 sm:gap-4 sm:px-5 ${
             scrolled ? "shadow-lg" : ""
           }`}
         >
-          <span className="flex shrink-0 items-center py-1" aria-label={BUSINESS_NAME}>
+          <Link href="/" className="flex shrink-0 items-center py-1" aria-label={`${BUSINESS_NAME} home`}>
             <Image
               src="/images/logo.png"
               alt={BUSINESS_NAME}
@@ -133,14 +144,14 @@ export default function HeaderV4({
               className="h-7 w-auto brightness-0 invert sm:h-8"
               priority
             />
-          </span>
+          </Link>
 
           <nav
-            className="hidden flex-1 items-center justify-center gap-6 text-xs font-bold tracking-[0.12em] text-white/85 uppercase md:flex"
+            className="hidden flex-1 items-center justify-center gap-6 whitespace-nowrap text-xs font-bold tracking-[0.12em] text-white/85 uppercase lg:flex"
             style={{ fontFamily: "var(--font-body)" }}
           >
             {NAV_LINKS.map((link) => (
-              <a key={link.href} href={link.href} className="hover:text-white">
+              <a key={link.href} href={hrefFor(link.href)} className="hover:text-white">
                 {link.label}
               </a>
             ))}
@@ -159,7 +170,7 @@ export default function HeaderV4({
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 md:hidden"
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
             >
               <MenuIcon open={menuOpen} />
             </button>
@@ -168,7 +179,7 @@ export default function HeaderV4({
       </div>
 
       <div
-        className={`relative z-10 mx-4 overflow-hidden transition-[max-height,opacity] duration-300 md:hidden ${
+        className={`relative z-10 mx-4 overflow-hidden transition-[max-height,opacity] duration-300 lg:hidden ${
           menuOpen ? "mt-2 max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
@@ -179,7 +190,7 @@ export default function HeaderV4({
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
-              href={link.href}
+              href={hrefFor(link.href)}
               onClick={closeMenu}
               className="rounded-xl px-3 py-2.5 text-sm font-bold tracking-[0.08em] text-white/85 uppercase transition hover:bg-white/10 hover:text-white"
             >

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { BUSINESS_NAME, LOCATION } from "@/lib/siteData";
 
 export const metadata: Metadata = {
@@ -12,7 +11,7 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 text-sm leading-relaxed text-[var(--color-muted)] sm:px-6">
         <h1
           className="text-3xl text-[var(--color-ink)]"
@@ -86,7 +85,7 @@ export default function PrivacyPolicyPage() {
           .
         </p>
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }

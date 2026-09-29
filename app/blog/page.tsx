@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { getAllPosts } from "@/lib/blog";
 
 export const metadata: Metadata = {
@@ -15,7 +14,7 @@ export default function BlogIndexPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
         <h1
           className="text-3xl text-[var(--color-ink)]"
@@ -58,7 +57,7 @@ export default function BlogIndexPage() {
           </ul>
         )}
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }

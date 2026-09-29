@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import BookNowButton from "@/components/BookNowButton";
 import { getCuratedMenu, type CuratedMenu } from "@/lib/square/catalog";
 import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
@@ -78,7 +77,7 @@ export default async function PricesPage() {
       {menu.groups.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offerCatalogJsonLd) }} />
       )}
-      <Header />
+      <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
         <h1 className="text-3xl leading-tight text-[var(--color-ink)] sm:text-4xl" style={{ fontFamily: "var(--font-heading)" }}>
           Prices
@@ -159,7 +158,7 @@ export default async function PricesPage() {
           </BookNowButton>
         </div>
       </main>
-      <Footer />
+      <SiteFooter />
     </div>
   );
 }
