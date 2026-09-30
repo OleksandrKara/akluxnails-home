@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useBottomSheet } from "@/lib/useBottomSheet";
 import { useBookingModal } from "./booking/BookingModalProvider";
 import { useIsV4Theme } from "./v4/V4ThemeContext";
 import { formatCountdown } from "@/lib/promoDisplay";
@@ -79,13 +80,11 @@ export default function RebookingPromoModal({
     return () => clearInterval(id);
   }, [visible]);
 
-  useEffect(() => {
-    if (!visible) return;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [visible]);
+  // iOS-safe background scroll lock, swipe down from the top bar to close, focus into the card
+  // (lib/useBottomSheet.ts). Declared before the early returns below (rules of hooks).
+  const cardRef = useRef<HTMLDivElement>(null);
+  const closeSheet = useCallback(() => setVisible(false), []);
+  useBottomSheet(cardRef, visible && now < expiresAtMs, closeSheet);
 
   if (!visible) return null;
   // Ticked past expiry while sitting open (or right on the delay boundary) — quietly drop it
@@ -111,9 +110,14 @@ export default function RebookingPromoModal({
       onClick={() => setVisible(false)}
     >
       <div
+        ref={cardRef}
         onClick={(e) => e.stopPropagation()}
         className="promo-modal-card relative w-full max-w-sm overflow-hidden rounded-t-[var(--radius-xl)] bg-[var(--color-card)] shadow-2xl sm:rounded-[var(--radius-xl)]"
       >
+        {/* Top bar = swipe-down-to-close zone on phones (data-sheet-handle, see useBottomSheet). */}
+        <div data-sheet-handle className="absolute inset-x-0 top-0 h-12 sm:hidden" style={{ touchAction: "none" }} aria-hidden>
+          <span className="mx-auto mt-2.5 block h-1 w-10 rounded-full bg-[var(--color-border)]" />
+        </div>
         <button
           type="button"
           onClick={() => setVisible(false)}

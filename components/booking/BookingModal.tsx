@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useBottomSheet } from "@/lib/useBottomSheet";
 import { useBookingFlow, type Preselection } from "./useBookingFlow";
 import ServicesStep from "./steps/ServicesStep";
 import AddOnsStep from "./steps/AddOnsStep";
@@ -56,12 +57,10 @@ export default function BookingModal({
   const flow = useBookingFlow(preselection, verifiedPromo);
   const trackedStepsRef = useRef<Set<BookingStep>>(new Set());
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  // iOS-safe background scroll lock, swipe down from the top bar to close, focus into the sheet
+  // (lib/useBottomSheet.ts). Only mounted while open, hence `true`.
+  const sheetRef = useRef<HTMLDivElement>(null);
+  useBottomSheet(sheetRef, true, onClose);
 
   // Booking-funnel step tracking (see marketing.funnel_events / lib/funnelFlow.ts). This
   // component is only ever mounted while the modal is open (BookingModalProvider conditionally
@@ -79,9 +78,15 @@ export default function BookingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
       <div
-        className={`max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] p-6 shadow-xl sm:rounded-[var(--radius-xl)] ${theme === "v4" ? "v4-theme" : ""}`}
+        ref={sheetRef}
+        className={`max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] px-6 pt-3 pb-6 shadow-xl sm:rounded-[var(--radius-xl)] sm:pt-6 ${theme === "v4" ? "v4-theme" : ""}`}
         style={theme === "v4" ? { fontFamily: "var(--font-body)" } : undefined}
       >
+        {/* Top bar = swipe-down-to-close zone on phones (data-sheet-handle, see useBottomSheet). */}
+        <div data-sheet-handle className="-mx-6 -mt-3 px-6 pt-3 sm:m-0 sm:p-0" style={{ touchAction: "none" }}>
+        <div className="mb-3 flex justify-center sm:hidden" aria-hidden>
+          <span className="h-1 w-10 rounded-full bg-[var(--color-border)]" />
+        </div>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <ProgressBar step={flow.state.step} />
@@ -94,6 +99,7 @@ export default function BookingModal({
           >
             ×
           </button>
+        </div>
         </div>
 
         <div className="mt-5">
