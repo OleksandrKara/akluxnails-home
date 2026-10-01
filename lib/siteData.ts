@@ -247,3 +247,13 @@ AK.LUX.NAILS`;
 
 export const SMS_CONSENT_TEXT =
   "By checking this box, I agree to receive recurring automated marketing & appointment text messages (offers, promotions & reminders) from AK.LUX.NAILS at the number I provided. Consent is not a condition of purchase. Message frequency varies. Msg & data rates may apply. Reply STOP to cancel, HELP for help.";
+
+// Standalone card-on-file page (akluxnails.com/card, 2026-10-01). The exact words the client
+// agrees to; the version is written into the Square customer note with each authorization, so if
+// this text ever changes, bump the version too.
+export const CARD_AUTHORIZATION_VERSION = "2026-10-01";
+export const CARD_AUTHORIZATION_TEXT =
+  "I authorize AK.LUX.NAILS to keep this card securely on file with Square and to charge it only " +
+  "for a $25 fee if I miss an appointment or cancel with less than 24 hours' notice, as described in " +
+  "the Cancellation Policy. Nothing is charged today, and the card is never used to pay for services " +
+  "without my permission. I can ask to remove this card at any time by texting or calling 619-323-1185.";
