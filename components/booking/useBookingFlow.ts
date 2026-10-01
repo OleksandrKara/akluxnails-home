@@ -20,6 +20,9 @@ import type {
 const PROMO_DISCOUNT_CENTS_BY_CODE: Record<string, number> = {
   REBOOK10: 1000,
   WINBACK5: 500,
+  // VIP rebooking perk from the in-salon card (akluxnails.com/vip): same Square discount group
+  // and $99 minimum as REBOOK10 on salaryReview's side, only the booking window differs.
+  VIP10: 1000,
 };
 const PROMO_MIN_SUBTOTAL_CENTS = 9900;
 
@@ -55,7 +58,11 @@ export interface Preselection {
   variation: WireVariation;
 }
 
-export function useBookingFlow(preselection?: Preselection, initialPromo?: VerifiedPromo | null) {
+export function useBookingFlow(
+  preselection?: Preselection,
+  initialPromo?: VerifiedPromo | null,
+  initialTechId?: string | null,
+) {
   const [state, setState] = useState<BookingFlowState>({
     step: "services",
     selectedServices: preselection
@@ -69,7 +76,7 @@ export function useBookingFlow(preselection?: Preselection, initialPromo?: Verif
     technicianName: null,
     customerId: null,
     hasCardOnFile: false,
-    selectedTechId: null,
+    selectedTechId: initialTechId ?? null,
     promo: initialPromo ?? null,
   });
 

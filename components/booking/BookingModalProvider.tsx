@@ -15,9 +15,12 @@ const BookingModal = dynamic(() => import("./BookingModal"), { ssr: false });
 
 type ModalTheme = "v4" | undefined;
 
-const BookingModalContext = createContext<{ open: (preselection?: Preselection, theme?: ModalTheme) => void } | null>(
-  null,
-);
+const BookingModalContext = createContext<{
+  open: (preselection?: Preselection, theme?: ModalTheme) => void;
+  /** Opens the flow with a promo the caller already got signed server-side (the /vip page), and
+   * optionally a preselected nail tech. */
+  openWithPromo: (promo: VerifiedPromo, techId?: string | null) => void;
+} | null>(null);
 
 export function useBookingModal() {
   const ctx = useContext(BookingModalContext);
@@ -30,6 +33,7 @@ export default function BookingModalProvider({ children }: { children: React.Rea
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState<ModalTheme>(undefined);
   const [verifiedPromo, setVerifiedPromo] = useState<VerifiedPromo | null>(null);
+  const [initialTechId, setInitialTechId] = useState<string | null>(null);
 
   // Resolved once, on first mount, regardless of when/whether the modal is ever opened — this
   // provider sits above any page's own server-rendered searchParams (see app/layout.tsx), so a
@@ -62,6 +66,14 @@ export default function BookingModalProvider({ children }: { children: React.Rea
         open: (p, t) => {
           setPreselection(p);
           setTheme(t);
+          setInitialTechId(null);
+          setIsOpen(true);
+        },
+        openWithPromo: (promo, techId) => {
+          setVerifiedPromo(promo);
+          setPreselection(undefined);
+          setTheme("v4");
+          setInitialTechId(techId ?? null);
           setIsOpen(true);
         },
       }}
@@ -73,6 +85,7 @@ export default function BookingModalProvider({ children }: { children: React.Rea
           preselection={preselection ?? undefined}
           theme={theme}
           verifiedPromo={verifiedPromo}
+          initialTechId={initialTechId}
         />
       )}
     </BookingModalContext.Provider>

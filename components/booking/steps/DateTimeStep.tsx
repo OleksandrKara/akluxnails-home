@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LOCATION } from "@/lib/siteData";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import StarIcon from "@/components/icons/StarIcon";
+import { vipLatestStartMs } from "@/lib/promoDisplay";
 import type { SelectedService, TechnicianRef, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 
@@ -104,7 +105,10 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   const [taggedSlots, setTaggedSlots] = useState<TaggedSlot[] | null>(null);
   const [error, setError] = useState(false);
   const [showTechInfo, setShowTechInfo] = useState(false);
-  const { selectedServices, selectedTechId } = flow.state;
+  const { selectedServices, selectedTechId, promo } = flow.state;
+  // VIP card perk: only appointments within its 4-week window are offered at all, so a client
+  // can't pick a date the discount won't cover.
+  const vipLatestMs = promo?.code === "VIP10" ? vipLatestStartMs(promo.expEpochSeconds) : null;
 
   // Distinct named technicians across every currently-selected service — a tiered service
   // contributes every one of its tiers' names (that's the actual point of "choose your nail
@@ -195,6 +199,9 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
           );
           results = slots.map((slot) => ({ slot }));
         }
+        if (vipLatestMs !== null) {
+          results = results.filter((t) => new Date(t.slot.startAt).getTime() < vipLatestMs);
+        }
         results.sort((a, b) => a.slot.startAt.localeCompare(b.slot.startAt));
         if (!cancelled) setTaggedSlots(results);
       } catch {
@@ -216,6 +223,21 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
    * and a collapsed-by-default link explains why, so the reason for the price gap is one tap
    * away without adding permanent weight to an already busy screen. A soft gradient divider below
    * separates this block from the time-slot list beneath it. */
+  function renderVipNotice() {
+    if (vipLatestMs === null) return null;
+    const lastDay = new Date(vipLatestMs - 1).toLocaleDateString(undefined, {
+      timeZone: "America/Los_Angeles",
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    return (
+      <p className="mt-3 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] px-3 py-2 text-xs leading-relaxed text-[var(--color-ink)]">
+        <span className="font-semibold">VIP perk:</span> $10 off ($99+) for any time through {lastDay}.
+      </p>
+    );
+  }
+
   function renderTechFilter() {
     if (!showTechFilter) return null;
     // Exactly one eligible technician isn't a real choice to offer as "Any" vs. their name (both
@@ -283,6 +305,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
         <button type="button" onClick={() => flow.goTo("services")} className="mt-1 text-xs text-[var(--color-accent)] underline">
           Back to services
         </button>
+        {renderVipNotice()}
         {renderTechFilter()}
         <p className="mt-4 text-sm text-[var(--color-muted)]">Loading available times…</p>
       </div>
@@ -298,6 +321,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
         <button type="button" onClick={() => flow.goTo("services")} className="mt-1 text-xs text-[var(--color-accent)] underline">
           Back to services
         </button>
+        {renderVipNotice()}
         {renderTechFilter()}
         <div className="mt-4 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-5 text-center">
           <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-card)] text-xl" aria-hidden>
@@ -336,6 +360,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       <button type="button" onClick={() => flow.goTo("services")} className="mt-1 text-xs text-[var(--color-accent)] underline">
         Back to services
       </button>
+      {renderVipNotice()}
       {renderTechFilter()}
       <div className="mt-4 max-h-96 space-y-4 overflow-y-auto">
         {[...byDay.entries()].map(([day, daySlots]) => (

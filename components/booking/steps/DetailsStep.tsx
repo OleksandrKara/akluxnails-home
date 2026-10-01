@@ -232,7 +232,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         </div>
         {!isFourHandsRequest && flow.promoDiscountCents > 0 && (
           <div className="mt-1 flex justify-between text-[var(--color-accent-dark)]">
-            <span>Same-day rebooking discount</span>
+            <span>{flow.state.promo?.code === "VIP10" ? "VIP rebooking perk" : "Same-day rebooking discount"}</span>
             <span>-{formatPrice(flow.promoDiscountCents)}</span>
           </div>
         )}
