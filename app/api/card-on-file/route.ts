@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SquareError } from "square";
 import { getSquareClient } from "@/lib/square/client";
 import { findOrCreateCustomer, normalizePhoneE164 } from "@/lib/square/customers";
 import { storeCardOnFileDetailed, type SavedCardInfo } from "@/lib/square/cards";
-import { FRIENDLY_MESSAGES, friendlyCardErrorMessage } from "@/lib/square/cardErrors";
+import { friendlyCardErrorMessage, squareErrorCode, staffCardErrorReason } from "@/lib/square/cardErrors";
 import { notifyCardOnFile } from "@/lib/telegram";
 import { CARD_AUTHORIZATION_VERSION } from "@/lib/siteData";
 import { failuresForPhone, ipOverLimit, isPaused, phoneOverLimit, recordFailure } from "@/lib/cardOnFileGuard";
@@ -128,10 +127,10 @@ export async function POST(request: NextRequest) {
   try {
     card = await storeCardOnFileDetailed({ sourceId, customerId, cardholderName: customerName });
   } catch (err) {
-    const code = err instanceof SquareError ? err.errors?.[0]?.code : undefined;
-    const cardProblem = Boolean(code && FRIENDLY_MESSAGES[code]);
+    const code = squareErrorCode(err);
     const message = friendlyCardErrorMessage(err);
-    console.warn("Card-on-file: card refused", code ?? err);
+    if (code) console.warn("Card-on-file: card refused", code);
+    else console.error("Card-on-file: card save failed (not a card error)", err);
     const failure = recordFailure(phone);
     await notifyCardOnFile({
       event: "DECLINED",
@@ -139,7 +138,7 @@ export async function POST(request: NextRequest) {
       phoneNumber: phone,
       email: email || undefined,
       errorCode: code,
-      errorMessage: cardProblem ? message : "Not a card problem: Square/system error, please check",
+      errorMessage: staffCardErrorReason(code),
       failedAttempts: failure.phoneFailures,
     });
     if (failure.pausedNow) {
@@ -149,14 +148,18 @@ export async function POST(request: NextRequest) {
   }
 
   const warnings: string[] = [];
-  if (card.prepaid) warnings.push("Prepaid card: it may not have money on it for a $25 fee / Предоплаченная карта: на ней может не быть денег");
-  if (expiresWithinDays(card, 60)) warnings.push(`Card expires soon (${expiry(card)}) / Карта скоро истекает`);
+  if (card.prepaid) warnings.push("Prepaid card: it may not have money on it for a $25 fee / Предоплаченная карта: на ней может не быть денег на $25");
+  if (expiresWithinDays(card, 60)) warnings.push(`Card expires soon (${expiry(card)}) / Срок карты скоро истекает (${expiry(card)})`);
   if (profileName && !sameName(profileName, customerName)) {
-    warnings.push(`Name on the form "${customerName}" differs from the Square profile "${profileName}" / Имя не совпадает с профилем`);
+    warnings.push(
+      `Name on the form "${customerName}" differs from the Square profile "${profileName}" / Имя в форме "${customerName}" не совпадает с профилем в Square "${profileName}"`,
+    );
   }
   const earlierFailures = failuresForPhone(phone);
   if (earlierFailures > 0) {
-    warnings.push(`Saved after ${earlierFailures} refused card(s) this hour / Сохранена после ${earlierFailures} отказа(ов)`);
+    warnings.push(
+      `Saved after ${earlierFailures} refused attempt(s) this hour / Карта сохранена не с первой попытки: до этого неудачных попыток за час: ${earlierFailures}`,
+    );
   }
 
   // Proof of the client's consent, kept on their Square profile next to the card: what they
