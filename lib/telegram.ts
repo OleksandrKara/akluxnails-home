@@ -32,3 +32,39 @@ export async function notifyFourHandRequest(input: FourHandNotifyInput): Promise
     console.error("4-hand Telegram alert failed (booking flow unaffected)", err);
   }
 }
+
+export interface CardOnFileAlert {
+  event: "SAVED" | "DECLINED" | "BLOCKED";
+  customerName?: string;
+  phoneNumber?: string;
+  email?: string;
+  cardBrand?: string;
+  last4?: string;
+  cardType?: string;
+  expiry?: string;
+  errorCode?: string;
+  errorMessage?: string;
+  warnings?: string[];
+  failedAttempts?: number;
+}
+
+/** Staff Telegram alert for the card-on-file page (akluxnails.com/card): card saved (with any
+ * warning signs), card refused, or page paused after a burst of refusals. Relayed through
+ * salaryReview like every alert here. Never throws. */
+export async function notifyCardOnFile(input: CardOnFileAlert): Promise<void> {
+  if (!INTERNAL_BASE_URL || !INTERNAL_API_KEY) {
+    console.warn("Card-on-file Telegram alert skipped: SALARYREVIEW_INTERNAL_BASE_URL/INTERNAL_API_KEY not configured");
+    return;
+  }
+  try {
+    const res = await fetch(`${INTERNAL_BASE_URL}/api/internal/notifications/card-on-file`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Internal-Api-Key": INTERNAL_API_KEY },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) console.warn("Card-on-file Telegram alert relay responded", res.status);
+  } catch (err) {
+    console.error("Card-on-file Telegram alert failed", err);
+  }
+}

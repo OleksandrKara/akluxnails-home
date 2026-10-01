@@ -28,3 +28,40 @@ export async function storeCardOnFile(input: StoreCardInput): Promise<string> {
   }
   return response.card.id;
 }
+
+export interface SavedCardInfo {
+  id: string;
+  brand?: string;
+  last4?: string;
+  cardType?: string;
+  prepaid: boolean;
+  expMonth?: number;
+  expYear?: number;
+}
+
+/** Same as storeCardOnFile, but returns what Square knows about the saved card (never the
+ * number), so the card-on-file page can flag prepaid or soon-expiring cards to staff. */
+export async function storeCardOnFileDetailed(input: StoreCardInput): Promise<SavedCardInfo> {
+  const client = getSquareClient();
+  const response = await client.cards.create({
+    idempotencyKey: randomUUID(),
+    sourceId: input.sourceId,
+    card: {
+      customerId: input.customerId,
+      cardholderName: input.cardholderName,
+    },
+  });
+  const card = response.card;
+  if (!card?.id) {
+    throw new Error("Square did not return a card id");
+  }
+  return {
+    id: card.id,
+    brand: card.cardBrand ?? undefined,
+    last4: card.last4 ?? undefined,
+    cardType: card.cardType ?? undefined,
+    prepaid: card.prepaidType === "PREPAID",
+    expMonth: card.expMonth != null ? Number(card.expMonth) : undefined,
+    expYear: card.expYear != null ? Number(card.expYear) : undefined,
+  };
+}
