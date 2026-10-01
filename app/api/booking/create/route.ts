@@ -11,6 +11,7 @@ import { linkContactToBooking } from "@/lib/marketingContacts";
 import { getDefaultLandingPageId } from "@/lib/variant";
 import { verifyRebookingPromoSignature } from "@/lib/rebookingPromo";
 import { enrollRebookingPromo } from "@/lib/rebookingPromoEnroll";
+import { vipLatestStartMs } from "@/lib/promoDisplay";
 
 interface WireSegment {
   teamMemberId: string;
@@ -50,6 +51,9 @@ const REBOOKING_PROMO_SELLER_NOTES: Record<string, string> = {
   WINBACK5:
     "🎁 Win-back promo — the $5 discount auto-applies at checkout (min. $99 order). " +
     "Do NOT also apply the manual 'Same day rebooking discount' on top of it.",
+  VIP10:
+    "🎁 VIP rebooking perk (in-salon card, booked same day) — the $10 discount auto-applies at checkout (min. $99 order). " +
+    "Do NOT also apply the manual 'Same day rebooking discount' or the customer gets $20 off, not $10.",
   // Not a dollar-off-the-total discount (no matching entry in PROMO_DISCOUNT_CENTS_BY_CODE / no
   // Square customer-group pricing rule) — this note is the whole mechanism, since the free design
   // itself is added by staff at checkout, not selected as a bookable line item online.
@@ -92,6 +96,16 @@ export async function POST(request: NextRequest) {
     Boolean(wirePromo) &&
     verifyRebookingPromoSignature(wirePromo!.code, wirePromo!.expEpochSeconds, wirePromo!.signature) &&
     wirePromo!.expEpochSeconds * 1000 > Date.now();
+
+  // The VIP card perk only covers a next visit within 4 weeks (the calendar already hides later
+  // dates). Refused before anything is booked, so nobody ends up with an appointment they think
+  // is discounted when it isn't (salaryReview would also decline to enroll it).
+  if (promoValid && wirePromo!.code === "VIP10" && new Date(wireSlot.startAt).getTime() >= vipLatestStartMs(wirePromo!.expEpochSeconds)) {
+    return NextResponse.json(
+      { error: "The VIP perk covers visits within the next 4 weeks. Please pick an earlier date." },
+      { status: 400 },
+    );
+  }
 
   try {
     let bookingId: string;

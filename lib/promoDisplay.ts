@@ -28,3 +28,12 @@ export function midnightLabel(expEpochSeconds: number, nowMs: number): string {
   const lastValidDay = day(expEpochSeconds * 1000 - 1000);
   return lastValidDay === day(nowMs) ? "midnight tonight" : "midnight tomorrow";
 }
+
+/** VIP10 (the in-salon card, akluxnails.com/vip) only covers a next visit within 4 weeks. The
+ * promo expires at the midnight that ends the day it was issued, so the window is measured from
+ * there: appointments must start before exp + 28 days. salaryReview re-checks this at enrollment
+ * (VipRebookEligibilityService.latestStartFor), and /api/booking/create before booking. */
+export const VIP_WINDOW_DAYS = 28;
+export function vipLatestStartMs(expEpochSeconds: number): number {
+  return (expEpochSeconds + VIP_WINDOW_DAYS * 86400) * 1000;
+}

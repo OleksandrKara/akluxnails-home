@@ -42,6 +42,7 @@ export default function BookingModal({
   preselection,
   theme,
   verifiedPromo,
+  initialTechId,
 }: {
   onClose: () => void;
   preselection?: Preselection;
@@ -53,8 +54,11 @@ export default function BookingModal({
   /** Resolved once by BookingModalProvider (via /api/rebooking-promo/verify) — see
    * openspec/changes/same-day-rebooking-discount design.md D8. */
   verifiedPromo?: VerifiedPromo | null;
+  /** Preselected nail tech (Square team member id), e.g. today's artist on the /vip page.
+   * DateTimeStep falls back to "Any" if this person can't do the services picked. */
+  initialTechId?: string | null;
 }) {
-  const flow = useBookingFlow(preselection, verifiedPromo);
+  const flow = useBookingFlow(preselection, verifiedPromo, initialTechId);
   const trackedStepsRef = useRef<Set<BookingStep>>(new Set());
 
   // iOS-safe background scroll lock, swipe down from the top bar to close, focus into the sheet
