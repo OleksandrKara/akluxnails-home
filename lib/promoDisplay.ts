@@ -17,3 +17,14 @@ export function formatCountdown(msRemaining: number): string {
   const pad = (n: number) => n.toString().padStart(2, "0");
   return hours > 0 ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
 }
+
+/** "midnight tonight" or "midnight tomorrow", in salon (Pacific) time, for a promo that expires at
+ * `expEpochSeconds` (always a local midnight). Since 2026-10-01 a same-day rebooking offer sent
+ * late in the evening runs to the NEXT midnight (see salaryReview SameDayRebookingTriggerService),
+ * so the popup can't just hardcode "tonight". */
+export function midnightLabel(expEpochSeconds: number, nowMs: number): string {
+  const day = (ms: number) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" }).format(ms);
+  const lastValidDay = day(expEpochSeconds * 1000 - 1000);
+  return lastValidDay === day(nowMs) ? "midnight tonight" : "midnight tomorrow";
+}

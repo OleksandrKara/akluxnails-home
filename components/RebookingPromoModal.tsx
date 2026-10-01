@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useBottomSheet } from "@/lib/useBottomSheet";
 import { useBookingModal } from "./booking/BookingModalProvider";
 import { useIsV4Theme } from "./v4/V4ThemeContext";
-import { formatCountdown } from "@/lib/promoDisplay";
+import { formatCountdown, midnightLabel } from "@/lib/promoDisplay";
 
 const COPY: Record<string, { eyebrow: string; headline: string; body: string; cta: string }> = {
   REBOOK10: {
@@ -148,7 +148,9 @@ export default function RebookingPromoModal({
         </div>
 
         <div className="px-7 pt-3 pb-7">
-          <p className="text-center text-sm leading-relaxed text-[var(--color-muted)]">{copy.body}</p>
+          <p className="text-center text-sm leading-relaxed text-[var(--color-muted)]">
+            {copy.body.replace("midnight tonight", midnightLabel(expEpochSeconds, now))}
+          </p>
 
           <div
             className="mt-5 flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm"
