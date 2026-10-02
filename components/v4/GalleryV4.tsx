@@ -4,7 +4,22 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import FadeUp from "./FadeUp";
 
+/** Real client work only, no stock or AI images. Newest first: the October 2026 batch came
+ * from the studio's own SMM folder (owner-provided 2026-10-02), resized and stripped of photo
+ * metadata. The first INITIAL_COUNT show right away, the rest behind "See more work". */
 const PHOTOS = [
+  { src: "/images/v4/work-pink-french-almond.jpg", alt: "Pink French manicure with white tips on long almond nails, AK.LUX.NAILS" },
+  { src: "/images/v4/work-chocolate-short.jpg", alt: "Glossy dark chocolate manicure on short nails, AK.LUX.NAILS" },
+  { src: "/images/v4/work-orange-square.jpg", alt: "Bright orange manicure on square nails, AK.LUX.NAILS" },
+  { src: "/images/v4/work-checker-polka-art.jpg", alt: "Nail art with black-and-white checkerboard, polka dots and gold accents, AK.LUX.NAILS" },
+  { src: "/images/v4/work-pink-marble-almond.jpg", alt: "Pink marble nail design on almond nails, AK.LUX.NAILS" },
+  { src: "/images/v4/work-red-pedicure.jpg", alt: "Red pedicure, AK.LUX.NAILS" },
+  { src: "/images/v4/work-pink-heart-accent.jpg", alt: "Pink manicure with a small heart accent, AK.LUX.NAILS" },
+  { src: "/images/v4/work-burgundy-short.jpg", alt: "Deep burgundy manicure on short nails, AK.LUX.NAILS" },
+  { src: "/images/v4/work-tortoiseshell-almond.jpg", alt: "Tortoiseshell nail design on almond nails, AK.LUX.NAILS" },
+  { src: "/images/v4/work-milky-square.jpg", alt: "Milky white manicure on square nails, AK.LUX.NAILS" },
+  { src: "/images/v4/work-shimmer-pink.jpg", alt: "Shimmery pink manicure, AK.LUX.NAILS" },
+  { src: "/images/v4/work-pink-magenta-art.jpg", alt: "Pink and magenta abstract nail art, AK.LUX.NAILS" },
   { src: "/images/v4/gallery-red.jpg", alt: "Glossy red gel manicure by AK.LUX.NAILS" },
   { src: "/images/v4/gallery-yellow-floral.jpg", alt: "Pale yellow manicure with a floral accent nail by AK.LUX.NAILS" },
   { src: "/images/v4/gallery-french-profile.jpg", alt: "Classic white French manicure by AK.LUX.NAILS" },
@@ -12,9 +27,12 @@ const PHOTOS = [
   { src: "/images/v4/gallery-milky.jpg", alt: "Milky white gel manicure by AK.LUX.NAILS" },
   { src: "/images/v4/gallery-bird-art.jpg", alt: "Nude manicure with a hand-painted bird accent nail by AK.LUX.NAILS" },
 ];
+const INITIAL_COUNT = 6;
 
 export default function GalleryV4() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const visible = showAll ? PHOTOS : PHOTOS.slice(0, INITIAL_COUNT);
 
   useEffect(() => {
     if (selectedIndex === null) return;
@@ -38,13 +56,13 @@ export default function GalleryV4() {
         <p className="mt-4 text-[var(--color-muted)]">Real sets, real clients, straight from the studio.</p>
       </FadeUp>
 
-      {/* Every photo is the same aspect-square size — with exactly 6 photos this fills a clean
-          2-row x 3-col grid on desktop (3-row x 2-col on mobile) with no leftover empty cells,
+      {/* Every photo is the same aspect-square size — with 6 shown (and 18 in total, both
+          multiples of 6) this fills a clean 2-row x 3-col grid on desktop (3-row x 2-col on mobile) with no leftover empty cells,
           unlike the previous asymmetric big/wide spans which left gaps once the photo count and
           order changed. */}
       <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {PHOTOS.map((photo, i) => (
-          <FadeUp key={photo.src} delayMs={i * 80}>
+        {visible.map((photo, i) => (
+          <FadeUp key={photo.src} delayMs={(i % INITIAL_COUNT) * 80}>
             <button
               type="button"
               onClick={() => setSelectedIndex(i)}
@@ -62,6 +80,18 @@ export default function GalleryV4() {
           </FadeUp>
         ))}
       </div>
+
+      {!showAll && (
+        <div className="mt-8 text-center">
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-6 py-3 text-sm font-semibold text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] transition hover:bg-[var(--color-accent-tint-2)]"
+          >
+            See more work ({PHOTOS.length - INITIAL_COUNT})
+          </button>
+        </div>
+      )}
 
       {selectedIndex !== null && (
         <div
