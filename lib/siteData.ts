@@ -163,6 +163,14 @@ export function getLocalBusinessJsonLd(siteUrl: string) {
     // service pages (components/ServicePage.tsx), so those tie back to this one business entity.
     "@id": `${siteUrl}/#salon`,
     name: BUSINESS_NAME,
+    // How the salon is actually written elsewhere (Yelp lists it as "Ak Lux Nails", clients type
+    // "AK Lux Nails"), so search engines and AI assistants treat them as this one business.
+    alternateName: ["AK Lux Nails", "AKLuxNails"],
+    description:
+      "Russian manicure studio in Downtown San Diego: Russian (dry, e-file) gel manicures, Russian pedicures, " +
+      "gel nail extensions without acrylic, Japanese manicures and nail design. Tools sterilized after every client, " +
+      "2-week fix guarantee, open daily 8am to 9pm.",
+    knowsAbout: ["Russian manicure", "Russian pedicure", "Gel nail extensions", "Japanese manicure", "Nail art"],
     image: `${siteUrl}/images/logo.png`,
     url: siteUrl,
     telephone: LOCATION.phoneHref.replace("tel:", ""),
