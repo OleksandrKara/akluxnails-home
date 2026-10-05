@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BUSINESS_NAME } from "@/lib/siteData";
+import { BUSINESS_NAME, PRESS_MENTIONS } from "@/lib/siteData";
 
 export default function Footer() {
   return (
@@ -16,6 +16,19 @@ export default function Footer() {
             <Link href="/terms" className="hover:text-[var(--color-ink)]">Terms</Link>
           </nav>
         </div>
+        {PRESS_MENTIONS.length > 0 ? (
+          <p className="text-xs">
+            As featured in{" "}
+            {PRESS_MENTIONS.map((m, i) => (
+              <span key={m.url}>
+                {i > 0 ? ", " : ""}
+                <a href={m.url} target="_blank" rel="noopener" className="underline underline-offset-2 hover:text-[var(--color-ink)]">
+                  {m.outlet}
+                </a>
+              </span>
+            ))}
+          </p>
+        ) : null}
       </div>
     </footer>
   );

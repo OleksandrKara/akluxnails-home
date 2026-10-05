@@ -24,6 +24,16 @@ export const FACEBOOK_URL = "https://www.facebook.com/p/AK-Lux-Nails-61562966039
 // exist under this profile.
 export const YELP_URL = "https://yelp.to/a-glAfTu3H";
 
+// Press coverage, newest first. Real, published articles only.
+export const PRESS_MENTIONS = [
+  {
+    outlet: "SD Voyager",
+    title: "Daily Inspiration: Meet Anna Kara",
+    url: "https://sdvoyager.com/interview/daily-inspiration-meet-anna-kara",
+    date: "2026-10-05",
+  },
+];
+
 export const CREDIBILITY_STATS = [
   { value: `${GOOGLE_REVIEW_RATING}★`, label: `${GOOGLE_REVIEW_COUNT} Google reviews` },
   { value: "4 wks", label: "chip-free wear" },
@@ -205,6 +215,15 @@ export function getLocalBusinessJsonLd(siteUrl: string) {
       closes: "21:00",
     },
     sameAs: [INSTAGRAM_URL, FACEBOOK_URL, YELP_URL, LOCATION.googleProfileUrl],
+    // Independent press about the salon (third-party, editorially published): lets search engines
+    // and AI assistants connect the coverage to this business entity.
+    subjectOf: PRESS_MENTIONS.map((m) => ({
+      "@type": "Article",
+      headline: m.title,
+      url: m.url,
+      datePublished: m.date,
+      publisher: { "@type": "Organization", name: m.outlet },
+    })),
   };
 }
 
