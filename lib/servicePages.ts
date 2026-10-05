@@ -49,10 +49,10 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
     h1: "Russian Pedicure in Downtown San Diego",
     intro: [
       "Our pedicure uses the same dry-cuticle technique as our Russian manicure: careful cuticle and sidewall work, shaping, and callus care, finished with a gel-polish overlay that keeps its color for weeks.",
-      "\"Dry\" describes how the cuticle work is done, not a missing step. You still get a soak and the full treatment.",
+      "\"Dry\" means exactly that: there is no water soak or foot bath. The skin and cuticles are prepared dry, which keeps the work precise and the result neat for longer.",
     ],
     included: [
-      "Soak and nail shaping",
+      "Nail shaping (dry, no water soak)",
       "Dry cuticle and sidewall work",
       "Callus care",
       "Gel-polish overlay in your color (or no polish at all, if you book Pedicure (No Polish))",
