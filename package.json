@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
+    "libphonenumber-js": "^1.13.14",
     "next": "16.2.10",
     "next-mdx-remote": "^6.0.0",
     "pg": "^8.22.0",

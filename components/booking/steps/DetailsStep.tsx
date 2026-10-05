@@ -6,6 +6,14 @@ import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
+import dynamic from "next/dynamic";
+import { emptyPhone, type PhoneState } from "@/lib/phoneState";
+
+// The phone-number metadata (libphonenumber-js, ~40 KB gzipped) loads with this step only.
+const PhoneInput = dynamic(() => import("@/components/PhoneInput"), {
+  ssr: false,
+  loading: () => <div className="h-[42px] rounded-[var(--radius-sm)] border border-[var(--color-border)]" />,
+});
 
 const LOOKUP_DEBOUNCE_MS = 600;
 
@@ -28,9 +36,6 @@ function formatDateTime(iso: string): string {
   });
 }
 
-function looksLikeCompletePhone(value: string): boolean {
-  return value.replace(/\D/g, "").length >= 10;
-}
 function looksLikeCompleteEmail(value: string): boolean {
   return /\S+@\S+\.\S+/.test(value);
 }
@@ -66,9 +71,20 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
 
   const [givenName, setGivenName] = useState(flow.state.contact.givenName);
   const [familyName, setFamilyName] = useState(flow.state.contact.familyName);
-  const [phoneNumber, setPhoneNumber] = useState(flow.state.contact.phoneNumber);
+  // Country picker + number (components/PhoneInput); phoneNumber is its E.164 once valid, else "".
+  const [phone, setPhone] = useState<PhoneState>(emptyPhone());
+  const phoneNumber = phone.valid ? phone.e164 : "";
+  useEffect(() => {
+    // Coming back to this step: re-show what was entered before (parsing needs the phone library,
+    // which loads with this step).
+    const saved = flow.state.contact.phoneNumber;
+    if (!saved) return;
+    import("@/lib/phone").then(({ phoneFromValue }) => setPhone((cur) => (cur.display ? cur : phoneFromValue(saved))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [emailAddress, setEmailAddress] = useState(flow.state.contact.emailAddress);
   const [submitting, setSubmitting] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPolicy, setShowPolicy] = useState(false);
   const [returningCustomer, setReturningCustomer] = useState<ReturningCustomer | null>(null);
@@ -83,7 +99,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
     lookedUpFor?.phoneNumber === phoneNumber && lookedUpFor?.emailAddress === emailAddress ? returningCustomer : null;
 
   useEffect(() => {
-    const phoneReady = looksLikeCompletePhone(phoneNumber);
+    const phoneReady = phoneNumber !== "";
     const emailReady = looksLikeCompleteEmail(emailAddress);
     if (!phoneReady && !emailReady) return;
 
@@ -127,7 +143,8 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!canSubmit) return;
+    setTriedSubmit(true);
+    if (!canSubmit || !phone.valid) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -257,14 +274,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
           onChange={(e) => setFamilyName(e.target.value)}
           className="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-3 py-2"
         />
-        <input
-          required
-          type="tel"
-          placeholder="Phone number"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          className="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-3 py-2"
-        />
+        <PhoneInput value={phone} onChange={setPhone} showErrors={triedSubmit} />
         <input
           type="email"
           placeholder="Email (optional)"

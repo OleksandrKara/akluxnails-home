@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSquareCard } from "./booking/useSquarePayments";
+import PhoneInput from "./PhoneInput";
+import { emptyPhone, type PhoneState } from "@/lib/phoneState";
 import CancellationPolicyModal from "./booking/CancellationPolicyModal";
 import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
@@ -20,12 +22,6 @@ import { CARD_AUTHORIZATION_TEXT, CARD_AUTHORIZATION_VERSION, LOCATION } from "@
 
 const CARD_CONTAINER_ID = "card-on-file-container";
 
-function formatPhone(raw: string): string {
-  const d = raw.replace(/\D/g, "").replace(/^1(?=\d{10})/, "").slice(0, 10);
-  if (d.length <= 3) return d;
-  if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
-  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-}
 
 const inputClass =
   "mt-1.5 w-full rounded-[var(--radius-lg)] bg-[var(--color-card)] px-4 py-3 text-base text-[var(--color-ink)] ring-1 ring-[var(--color-border)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]";
@@ -34,7 +30,8 @@ export default function CardOnFileForm() {
   const { card, error: sdkError } = useSquareCard(CARD_CONTAINER_ID);
   const [givenName, setGivenName] = useState("");
   const [familyName, setFamilyName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<PhoneState>(emptyPhone());
+  const [triedSubmit, setTriedSubmit] = useState(false);
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -43,11 +40,11 @@ export default function CardOnFileForm() {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<{ brand: string | null; last4: string | null; at: string } | null>(null);
 
-  const digits = phone.replace(/\D/g, "");
-  const ready = Boolean(card) && givenName.trim() && familyName.trim() && digits.length === 10 && authorized;
+  const ready = Boolean(card) && givenName.trim() && familyName.trim() && phone.valid && authorized;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setTriedSubmit(true);
     if (!card || !ready || submitting) return;
     setSubmitting(true);
     setError(null);
@@ -57,7 +54,7 @@ export default function CardOnFileForm() {
           givenName: givenName.trim(),
           familyName: familyName.trim(),
           email: email.trim() || undefined,
-          phone: digits,
+          phone: phone.e164,
           countryCode: "US",
         },
         intent: "STORE",
@@ -75,7 +72,7 @@ export default function CardOnFileForm() {
         body: JSON.stringify({
           givenName,
           familyName,
-          phoneNumber: digits,
+          phoneNumber: phone.e164,
           email,
           sourceId: tokenResult.token,
           authorized: true,
@@ -169,19 +166,16 @@ export default function CardOnFileForm() {
               <input className={inputClass} value={familyName} onChange={(e) => setFamilyName(e.target.value)} autoComplete="family-name" required />
             </label>
           </div>
-          <label className="block text-sm font-medium text-[var(--color-ink)]">
-            Phone number you booked with
-            <input
-              className={inputClass}
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel-national"
-              placeholder="(619) 555-0123"
+          <div>
+            <p className="text-sm font-medium text-[var(--color-ink)]">Phone number you booked with</p>
+            <PhoneInput
               value={phone}
-              onChange={(e) => setPhone(formatPhone(e.target.value))}
-              required
+              onChange={setPhone}
+              showErrors={triedSubmit}
+              className="mt-1.5"
+              radiusClassName="rounded-[var(--radius-lg)]"
             />
-          </label>
+          </div>
           <label className="block text-sm font-medium text-[var(--color-ink)]">
             Email <span className="font-normal text-[var(--color-muted-2)]">(optional)</span>
             <input className={inputClass} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
