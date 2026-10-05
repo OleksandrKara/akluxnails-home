@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSquareClient } from "@/lib/square/client";
-import { findOrCreateCustomer, normalizePhoneE164 } from "@/lib/square/customers";
+import { findOrCreateCustomer } from "@/lib/square/customers";
+import { toE164 } from "@/lib/phoneServer";
 import { storeCardOnFileDetailed, type SavedCardInfo } from "@/lib/square/cards";
 import { friendlyCardErrorMessage, squareErrorCode, staffCardErrorReason } from "@/lib/square/cardErrors";
 import { notifyCardOnFile } from "@/lib/telegram";
@@ -77,14 +78,13 @@ export async function POST(request: NextRequest) {
   const familyName = String(body?.familyName ?? "").trim().slice(0, 60);
   const email = String(body?.email ?? "").trim().slice(0, 120);
   const sourceId = typeof body?.sourceId === "string" ? body.sourceId : "";
-  const digits = String(body?.phoneNumber ?? "").replace(/\D/g, "");
-  const national = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  const phoneE164 = toE164(body?.phoneNumber);
 
   // Honeypot: a field real visitors never see. Answer like a success so a bot learns nothing.
   if (body?.website) {
     return NextResponse.json({ ok: true });
   }
-  if (!givenName || !familyName || national.length !== 10 || !sourceId) {
+  if (!givenName || !familyName || !phoneE164 || !sourceId) {
     return NextResponse.json({ error: "Please fill in your name, phone number and card." }, { status: 400 });
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Please confirm the card authorization to continue." }, { status: 400 });
   }
 
-  const phone = normalizePhoneE164(national);
+  const phone = phoneE164;
   const customerName = `${givenName} ${familyName}`;
   if (phoneOverLimit(phone)) {
     return NextResponse.json(

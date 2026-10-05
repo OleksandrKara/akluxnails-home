@@ -1,3 +1,4 @@
+import { toE164 } from "@/lib/phoneServer";
 import { NextRequest, NextResponse } from "next/server";
 
 const INTERNAL_BASE_URL = process.env.SALARYREVIEW_INTERNAL_BASE_URL;
@@ -37,9 +38,8 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => null);
-  const digits = String(body?.phoneNumber ?? "").replace(/\D/g, "");
-  const national = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
-  if (national.length !== 10) {
+  const phoneE164 = toE164(body?.phoneNumber);
+  if (!phoneE164) {
     return NextResponse.json({ eligible: false, reason: "invalid_phone" });
   }
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const res = await fetch(`${INTERNAL_BASE_URL}/api/internal/vip-rebook/check`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Internal-Api-Key": INTERNAL_API_KEY },
-      body: JSON.stringify({ phoneNumber: `+1${national}` }),
+      body: JSON.stringify({ phoneNumber: phoneE164 }),
       signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) {

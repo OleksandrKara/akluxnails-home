@@ -5,6 +5,8 @@ import { useBookingModal } from "./booking/BookingModalProvider";
 import type { VerifiedPromo } from "./booking/types";
 import { LOCATION } from "@/lib/siteData";
 import { formatCountdown, vipLatestStartMs } from "@/lib/promoDisplay";
+import PhoneInput from "./PhoneInput";
+import { emptyPhone, type PhoneState } from "@/lib/phoneState";
 
 /**
  * The /vip page body (owner request 2026-10-01). Artists hand every client a card after the visit:
@@ -31,12 +33,6 @@ type Result =
 const STEPS = ["Finding your profile", "Checking today's visit", "Unlocking your perk"];
 const MIN_CHECK_MS = 1800;
 
-function formatPhone(raw: string): string {
-  const d = raw.replace(/\D/g, "").replace(/^1(?=\d{10})/, "").slice(0, 10);
-  if (d.length <= 3) return d;
-  if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
-  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-}
 
 function lastDayLabel(promo: VerifiedPromo): string {
   return new Date(vipLatestStartMs(promo.expEpochSeconds) - 1).toLocaleDateString("en-US", {
@@ -57,14 +53,13 @@ function track(event: string, params: Record<string, string | boolean> = {}) {
 
 export default function VipCheck() {
   const { openWithPromo, open } = useBookingModal();
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<PhoneState>(emptyPhone());
   const [checking, setChecking] = useState(false);
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<Result | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
-  const digits = phone.replace(/\D/g, "");
-  const phoneComplete = digits.length === 10 || (digits.length === 11 && digits.startsWith("1"));
+  const phoneComplete = phone.valid;
 
   useEffect(() => {
     if (!checking) return;
@@ -90,7 +85,7 @@ export default function VipCheck() {
       const res = await fetch("/api/vip/check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber: digits }),
+        body: JSON.stringify({ phoneNumber: phone.e164 }),
       });
       next = await res.json();
     } catch {
@@ -112,7 +107,7 @@ export default function VipCheck() {
 
   function reset() {
     setResult(null);
-    setPhone("");
+    setPhone(emptyPhone());
   }
 
   const expired = result?.eligible ? now >= result.promo.expEpochSeconds * 1000 : false;
@@ -222,18 +217,15 @@ export default function VipCheck() {
                 </div>
               )}
               <form onSubmit={check}>
-                <label htmlFor="vip-phone" className="block text-sm font-medium text-[var(--color-ink)]">
+                <label className="block text-sm font-medium text-[var(--color-ink)]">
                   Phone number from your appointment
                 </label>
-                <input
-                  id="vip-phone"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel-national"
-                  placeholder="(619) 555-0123"
+                <PhoneInput
                   value={phone}
-                  onChange={(e) => setPhone(formatPhone(e.target.value))}
-                  className="mt-2 w-full rounded-[var(--radius-lg)] bg-[var(--color-card)] px-4 py-3 text-lg tracking-wide text-[var(--color-ink)] ring-1 ring-[var(--color-border)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                  onChange={setPhone}
+                  className="mt-2"
+                  radiusClassName="rounded-[var(--radius-lg)]"
+                  inputClassName="py-3 text-lg tracking-wide"
                 />
                 <button
                   type="submit"
