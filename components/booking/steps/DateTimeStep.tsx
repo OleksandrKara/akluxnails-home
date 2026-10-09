@@ -5,6 +5,7 @@ import { LOCATION } from "@/lib/siteData";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import StarIcon from "@/components/icons/StarIcon";
 import { vipLatestStartMs } from "@/lib/promoDisplay";
+import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 import type { SelectedService, TechnicianRef, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 
@@ -204,9 +205,15 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
           results = results.filter((t) => new Date(t.slot.startAt).getTime() < vipLatestMs);
         }
         results.sort((a, b) => a.slot.startAt.localeCompare(b.slot.startAt));
-        if (!cancelled) setTaggedSlots(results);
+        if (!cancelled) {
+          if (results.length === 0) trackClarityBookingEvent("booking_availability_empty");
+          setTaggedSlots(results);
+        }
       } catch {
-        if (!cancelled) setError(true);
+        if (!cancelled) {
+          trackClarityBookingEvent("booking_availability_failed");
+          setError(true);
+        }
       }
     }
 

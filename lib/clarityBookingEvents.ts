@@ -9,6 +9,8 @@ export type ClarityBookingEvent =
   | `booking_step_${BookingFlowStep}`
   | "booking_completed"
   | "four_hand_request_submitted"
+  | "booking_availability_empty"
+  | "booking_availability_failed"
   | "booking_submit_failed";
 
 export function trackClarityBookingEvent(event: ClarityBookingEvent): void {
