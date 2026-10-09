@@ -10,6 +10,7 @@ import DetailsStep from "./steps/DetailsStep";
 import DoneStep from "./steps/DoneStep";
 import type { BookingStep, VerifiedPromo } from "./types";
 import { trackFunnelStep } from "@/lib/trackFunnelStep";
+import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 
 const STEPS: { step: BookingStep; label: string }[] = [
   { step: "services", label: "Service" },
@@ -77,13 +78,25 @@ export default function BookingModal({
     if (trackedStepsRef.current.has(step)) return;
     trackedStepsRef.current.add(step);
     trackFunnelStep(step);
+    trackClarityBookingEvent(`booking_step_${step}`);
   }, [flow.state.step]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Book an appointment"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+    >
+      <button
+        type="button"
+        aria-label="Close booking dialog"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+      />
       <div
         ref={sheetRef}
-        className={`max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] px-6 pt-3 pb-6 shadow-xl sm:rounded-[var(--radius-xl)] sm:pt-6 ${theme === "v4" ? "v4-theme" : ""}`}
+        className={`relative z-10 h-[90dvh] max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] px-6 pt-3 pb-6 shadow-xl sm:h-auto sm:rounded-[var(--radius-xl)] sm:pt-6 ${theme === "v4" ? "v4-theme" : ""}`}
         style={theme === "v4" ? { fontFamily: "var(--font-body)" } : undefined}
       >
         {/* Top bar = swipe-down-to-close zone on phones (data-sheet-handle, see useBottomSheet). */}
@@ -99,7 +112,7 @@ export default function BookingModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="shrink-0 text-xl leading-none text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center text-xl leading-none text-[var(--color-muted)] hover:text-[var(--color-ink)]"
           >
             ×
           </button>

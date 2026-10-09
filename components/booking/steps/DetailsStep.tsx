@@ -8,6 +8,7 @@ import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
 import dynamic from "next/dynamic";
 import { emptyPhone, type PhoneState } from "@/lib/phoneState";
+import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 
 // The phone-number metadata (libphonenumber-js, ~40 KB gzipped) loads with this step only.
 const PhoneInput = dynamic(() => import("@/components/PhoneInput"), {
@@ -188,6 +189,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
 
       flow.bookingCreated(bookingId, technicianName ?? null, customerId, Boolean(returningCustomerConfirmed?.hasCardOnFile));
     } catch (err) {
+      trackClarityBookingEvent("booking_submit_failed");
       console.error("Booking submission failed", err);
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {

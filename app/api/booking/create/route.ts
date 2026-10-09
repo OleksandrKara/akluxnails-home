@@ -170,7 +170,8 @@ export async function POST(request: NextRequest) {
     }
 
     const identity = await resolveBookingIdentity(request);
-    if (identity.visitorId && identity.landingPageId && identity.variantId) {
+    // A four-hand request only alerts staff; no Square appointment has been created.
+    if (!isFourHandsRequest && identity.visitorId && identity.landingPageId && identity.variantId) {
       await recordEvent({
         visitorId: identity.visitorId,
         landingPageId: identity.landingPageId,

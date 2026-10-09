@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Preselection } from "./useBookingFlow";
 import type { VerifiedPromo } from "./types";
+import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 
 // Lazy-loaded, not rendered until a visitor actually clicks "Book Now" — the full multi-step flow
 // (services/add-ons/date-time/details/card-on-file steps) was previously a static import here,
@@ -64,12 +65,14 @@ export default function BookingModalProvider({ children }: { children: React.Rea
     <BookingModalContext.Provider
       value={{
         open: (p, t) => {
+          trackClarityBookingEvent("booking_opened");
           setPreselection(p);
           setTheme(t);
           setInitialTechId(null);
           setIsOpen(true);
         },
         openWithPromo: (promo, techId) => {
+          trackClarityBookingEvent("booking_opened");
           setVerifiedPromo(promo);
           setPreselection(undefined);
           setTheme("v4");

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { exclusivityBucketForItem } from "@/lib/services-config";
+import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 import type {
   BookingStep,
   ContactInfo,
@@ -197,6 +198,9 @@ export function useBookingFlow(
     hasCardOnFile: boolean,
   ) {
     setState((s) => ({ ...s, bookingId, technicianName, customerId, hasCardOnFile, step: "done" }));
+    trackClarityBookingEvent(
+      bookingId.startsWith("four-hand-request-") ? "four_hand_request_submitted" : "booking_completed",
+    );
     // GA4 conversion (added 2026-09-29), so GA4 can report bookings and their value per traffic
     // channel (Google organic vs. Instagram ads etc.) on its own. Sent as GA4's standard
     // "purchase" event because the property already has that marked as a key event (a custom
