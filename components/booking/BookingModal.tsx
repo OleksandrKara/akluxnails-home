@@ -10,6 +10,7 @@ import DetailsStep from "./steps/DetailsStep";
 import DoneStep from "./steps/DoneStep";
 import type { BookingStep, VerifiedPromo } from "./types";
 import { trackFunnelStep } from "@/lib/trackFunnelStep";
+import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 
 const STEPS: { step: BookingStep; label: string }[] = [
   { step: "services", label: "Service" },
@@ -77,6 +78,7 @@ export default function BookingModal({
     if (trackedStepsRef.current.has(step)) return;
     trackedStepsRef.current.add(step);
     trackFunnelStep(step);
+    trackClarityBookingEvent(`booking_step_${step}`);
   }, [flow.state.step]);
 
   return (
