@@ -341,15 +341,10 @@ export async function linkContactToBooking(
       ],
     );
 
-    // Mirrors salonLandings' TrackingService.record_attribution — this is the row the owner
-    // dashboard's Overview tab actually counts as a "Booking" (see salaryReview's
-    // MarketingDashboardRepository.findAttributedBookingRows). Without it, every real booking on
-    // this page fell through to "follow-up appointment" instead (uncountedAppointments treats any
-    // Square appointment not already in marketing.attribution as one), which is why the Overview
-    // tab always showed 0 bookings for the home page despite real ones going through — confirmed
-    // against a real customer's booking (+17868515178, 2026-07-24) that had a contacts row but no
-    // attribution row. ON CONFLICT DO NOTHING matches salonLandings' idempotent insert.
-    if (params.landingPageId) {
+    // Only real Square appointments belong in attribution: the owner dashboard counts these
+    // rows as bookings. Four-hand requests have a synthetic ID and remain leads in submissions.
+    // ON CONFLICT DO NOTHING matches salonLandings' idempotent insert.
+    if (params.landingPageId && params.submissionType === "booking") {
       await pool.query(
         `INSERT INTO marketing.attribution (booking_id, landing_page_id, variant_id, source, business_id)
          VALUES ($1, $2, $3, $4, $5)

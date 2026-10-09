@@ -104,6 +104,7 @@ async function fetchSlots(variationIds: string, teamMemberId?: string): Promise<
 export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   const [taggedSlots, setTaggedSlots] = useState<TaggedSlot[] | null>(null);
   const [error, setError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const [showTechInfo, setShowTechInfo] = useState(false);
   const { selectedServices, selectedTechId, promo } = flow.state;
   // VIP card perk: only appointments within its 4-week window are offered at all, so a client
@@ -215,7 +216,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       setTaggedSlots(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTechId, serviceItemIds]);
+  }, [selectedTechId, serviceItemIds, retryKey]);
 
   /** "Which nail tech does the work" as a filter right here, rather than a separate step before
    * this one — one screen instead of two, and the price difference between technicians is right
@@ -238,6 +239,22 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
     );
   }
 
+  function retryAvailability() {
+    setError(false);
+    setTaggedSlots(null);
+    setRetryKey((key) => key + 1);
+  }
+
+  function chooseTech(techId: string | null) {
+    if (techId === selectedTechId) {
+      if (error) retryAvailability();
+      return;
+    }
+    setError(false);
+    setTaggedSlots(null);
+    flow.setTech(techId);
+  }
+
   function renderTechFilter() {
     if (!showTechFilter) return null;
     // Exactly one eligible technician isn't a real choice to offer as "Any" vs. their name (both
@@ -257,11 +274,11 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => flow.setTech(null)} className={chipClasses(selectedTechId === null)}>
+            <button type="button" onClick={() => chooseTech(null)} className={chipClasses(selectedTechId === null)}>
               Any nail tech
             </button>
             {[...techs.entries()].map(([id, info]) => (
-              <button key={id} type="button" onClick={() => flow.setTech(id)} className={chipClasses(selectedTechId === id)}>
+              <button key={id} type="button" onClick={() => chooseTech(id)} className={chipClasses(selectedTechId === id)}>
                 <span className="inline-flex items-center gap-1">
                   {info.isTop && <StarIcon size={11} />}
                   {info.name}
@@ -296,7 +313,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
     );
   }
 
-  if (!taggedSlots) {
+  if (!taggedSlots && !error) {
     return (
       <div>
         <h3 className="text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
@@ -312,7 +329,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
     );
   }
 
-  if (error || taggedSlots.length === 0) {
+  if (error || !taggedSlots || taggedSlots.length === 0) {
     return (
       <div>
         <h3 className="text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
@@ -331,10 +348,21 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
             {error ? "Couldn't load availability right now" : "No openings for this combination in the next few weeks"}
           </p>
           <p className="mt-1 text-sm text-[var(--color-muted)]">
-            {showTechFilter && selectedTechId !== null
+            {error
+              ? "Please try again. If it still won't load, call us and we'll help you find a time."
+              : showTechFilter && selectedTechId !== null
               ? "Try “Any nail tech”, or give us a call and we'll find a time that works for you."
               : "Try removing a service, or give us a call and we'll find a time that works for you."}
           </p>
+          {error && (
+            <button
+              type="button"
+              onClick={retryAvailability}
+              className="mt-4 rounded-[var(--radius-pill)] border border-[var(--color-border)] px-6 py-3 text-base font-medium text-[var(--color-ink)]"
+            >
+              Try again
+            </button>
+          )}
           <a
             href={LOCATION.phoneHref}
             className="mt-4 inline-flex items-center gap-2 rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-base font-medium text-white hover:bg-[var(--color-accent-hover)]"
