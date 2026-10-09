@@ -96,7 +96,7 @@ export default function BookingModal({
       />
       <div
         ref={sheetRef}
-        className={`relative z-10 max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] px-6 pt-3 pb-6 shadow-xl sm:rounded-[var(--radius-xl)] sm:pt-6 ${theme === "v4" ? "v4-theme" : ""}`}
+        className={`relative z-10 h-[90dvh] max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-[var(--radius-xl)] bg-[var(--color-card)] px-6 pt-3 pb-6 shadow-xl sm:h-auto sm:rounded-[var(--radius-xl)] sm:pt-6 ${theme === "v4" ? "v4-theme" : ""}`}
         style={theme === "v4" ? { fontFamily: "var(--font-body)" } : undefined}
       >
         {/* Top bar = swipe-down-to-close zone on phones (data-sheet-handle, see useBottomSheet). */}
