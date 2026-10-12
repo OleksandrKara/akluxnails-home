@@ -5,6 +5,7 @@ import { LOCATION } from "@/lib/siteData";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import StarIcon from "@/components/icons/StarIcon";
 import { vipLatestStartMs } from "@/lib/promoDisplay";
+import { trackAvailabilitySignal } from "@/lib/trackFunnelStep";
 import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 import type { SelectedService, TechnicianRef, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
@@ -207,11 +208,29 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
         results.sort((a, b) => a.slot.startAt.localeCompare(b.slot.startAt));
         if (!cancelled) {
           if (results.length === 0) trackClarityBookingEvent("booking_availability_empty");
+          const now = Date.now();
+          const firstMs = results.length ? new Date(results[0].slot.startAt).getTime() : null;
+          trackAvailabilitySignal({
+            outcome: results.length ? "ok" : "empty",
+            slotsNext3Days: results.filter((t) => new Date(t.slot.startAt).getTime() - now < 72 * 3600 * 1000).length,
+            daysToFirstSlot: firstMs === null ? null : Math.max(0, Math.floor((firstMs - now) / (24 * 3600 * 1000))),
+            totalSlots: results.length,
+            technicianChosen: Boolean(selectedTechId),
+            serviceCount: selectedServices.length,
+          });
           setTaggedSlots(results);
         }
       } catch {
         if (!cancelled) {
           trackClarityBookingEvent("booking_availability_failed");
+          trackAvailabilitySignal({
+            outcome: "failed",
+            slotsNext3Days: 0,
+            daysToFirstSlot: null,
+            totalSlots: 0,
+            technicianChosen: Boolean(selectedTechId),
+            serviceCount: selectedServices.length,
+          });
           setError(true);
         }
       }
