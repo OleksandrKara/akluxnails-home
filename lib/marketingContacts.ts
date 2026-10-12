@@ -1,5 +1,5 @@
 import { getPool, MARKETING_BUSINESS_ID } from "./db";
-import { deriveClientContext, isTrackingNoise } from "./requestContext";
+import { deriveClientContext, isAutomatedRequest } from "./requestContext";
 import { normalizePhoneE164 } from "./square/customers";
 
 // marketing.contacts/marketing.submissions are the same tables salonLandings (mani) has always
@@ -142,7 +142,7 @@ export async function recordStep1Contact(
 ): Promise<void> {
   try {
     const ctx = await deriveClientContext();
-    if (isTrackingNoise(ctx)) return;
+    if (isAutomatedRequest(ctx)) return;
 
     const phoneNumber = normalizePhoneE164(params.phoneNumber);
     const { first, latest } = await fetchAttribution(params.visitorId);
@@ -264,7 +264,7 @@ export async function linkContactToBooking(
 ): Promise<void> {
   try {
     const ctx = await deriveClientContext();
-    if (isTrackingNoise(ctx)) return;
+    if (isAutomatedRequest(ctx)) return;
 
     const phoneNumber = normalizePhoneE164(params.phoneNumber);
     const { first, latest } = await fetchAttribution(params.visitorId);
