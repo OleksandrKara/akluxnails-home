@@ -9,6 +9,7 @@ import CancellationPolicyModal from "../CancellationPolicyModal";
 import dynamic from "next/dynamic";
 import { emptyPhone, type PhoneState } from "@/lib/phoneState";
 import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
+import { SALON_TZ } from "@/lib/salonTime";
 
 // The phone-number metadata (libphonenumber-js, ~40 KB gzipped) loads with this step only.
 const PhoneInput = dynamic(() => import("@/components/PhoneInput"), {
@@ -28,7 +29,8 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
 }
 function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: SALON_TZ,
     weekday: "short",
     month: "short",
     day: "numeric",

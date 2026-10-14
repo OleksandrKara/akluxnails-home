@@ -9,6 +9,7 @@ import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
 import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
 import { CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE } from "@/lib/siteData";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { SALON_TZ } from "@/lib/salonTime";
 
 const CARD_CONTAINER_ID = "sq-card-container";
 
@@ -16,7 +17,8 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
 }
 function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: SALON_TZ,
     weekday: "long",
     month: "short",
     day: "numeric",

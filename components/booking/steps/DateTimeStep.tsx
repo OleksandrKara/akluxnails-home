@@ -9,12 +9,13 @@ import { trackAvailabilitySignal } from "@/lib/trackFunnelStep";
 import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 import type { SelectedService, TechnicianRef, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
+import { SALON_TZ, visitorOutsideSalonTz } from "@/lib/salonTime";
 
 function formatDay(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: SALON_TZ });
 }
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: SALON_TZ });
 }
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
@@ -400,6 +401,8 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
     );
   }
 
+  const outsideTz = typeof window !== "undefined" && visitorOutsideSalonTz();
+
   const byDay = new Map<string, TaggedSlot[]>();
   for (const tagged of taggedSlots) {
     const day = formatDay(tagged.slot.startAt);
@@ -416,6 +419,7 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
       </button>
       {renderVipNotice()}
       {renderTechFilter()}
+      {outsideTz ? <p className="mt-3 text-xs text-[var(--color-muted-2)]">Times are shown in San Diego time (PT).</p> : null}
       <div className="mt-4 max-h-96 space-y-4 overflow-y-auto">
         {[...byDay.entries()].map(([day, daySlots]) => (
           <div key={day}>
