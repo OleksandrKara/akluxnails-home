@@ -1,4 +1,5 @@
 import { BOOKING_FLOW, type BookingFlowStep } from "@/lib/funnelFlow";
+import { getDatetimeArm } from "@/lib/datetimeExperiment";
 
 /** Fire-and-forget booking-funnel step event — see marketing.funnel_events. The caller is
  * responsible for deduping per modal session (see BookingModal.tsx's step effect), so
@@ -12,6 +13,7 @@ export function trackFunnelStep(step: BookingFlowStep): void {
         stepKey: step,
         stepIndex: BOOKING_FLOW.steps.indexOf(step),
         stepCountTotal: BOOKING_FLOW.steps.length,
+        arm: getDatetimeArm(),
       }),
     );
   } catch {
@@ -44,6 +46,7 @@ export function trackAvailabilitySignal(signal: AvailabilitySignal): void {
         stepIndex: BOOKING_FLOW.steps.indexOf("datetime"),
         stepCountTotal: BOOKING_FLOW.steps.length,
         signal,
+        arm: getDatetimeArm(),
       }),
     );
   } catch {
