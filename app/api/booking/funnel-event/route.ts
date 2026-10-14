@@ -33,12 +33,18 @@ export async function POST(req: Request) {
       stepKey,
       stepIndex,
       stepCountTotal,
-      metadata: availabilitySignal(body?.signal),
+      metadata: withArm(availabilitySignal(body?.signal), body?.arm),
     });
   } catch (err) {
     console.error("Failed to record funnel event", err);
   }
   return new Response(null, { status: 204 });
+}
+
+/** Date/time-step A/B arm (lib/datetimeExperiment.ts): only "A" or "B" is stored. */
+function withArm(meta: Record<string, unknown> | undefined, arm: unknown): Record<string, unknown> | undefined {
+  if (arm !== "A" && arm !== "B") return meta;
+  return { ...(meta ?? {}), dt_arm: arm };
 }
 
 /** Whitelists trackAvailabilitySignal's fields (numbers/booleans/one enum only), so nothing else a

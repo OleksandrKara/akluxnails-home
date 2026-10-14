@@ -10,6 +10,7 @@ import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 import type { SelectedService, TechnicianRef, WireSlot } from "../types";
 import type { BookingFlow } from "../useBookingFlow";
 import { SALON_TZ, visitorOutsideSalonTz } from "@/lib/salonTime";
+import { getDatetimeArm, tagClarityArm } from "@/lib/datetimeExperiment";
 
 function formatDay(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: SALON_TZ });
@@ -17,6 +18,21 @@ function formatDay(iso: string): string {
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: SALON_TZ });
 }
+/** Salon-time calendar day ("2026-10-15") for grouping, and its short strip label. */
+function dayKey(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: SALON_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+}
+function stripLabel(key: string): { top: string; bottom: string } {
+  const todayKey = dayKey(new Date().toISOString());
+  const tomorrowKey = dayKey(new Date(Date.now() + 864e5).toISOString());
+  const d = new Date(`${key}T12:00:00Z`);
+  const weekday = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+  const date = d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  if (key === todayKey) return { top: "Today", bottom: date };
+  if (key === tomorrowKey) return { top: "Tomorrow", bottom: date };
+  return { top: weekday, bottom: date };
+}
+
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`;
 }
@@ -121,6 +137,13 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   // a returning visitor who already knows who they want should see that name even for a service
   // that was never "tiered" in the pricing sense. Scales to however many real technicians the
   // catalog resolves (see lib/square/catalog.ts), not hardcoded to any fixed count.
+  // Date/time A/B test (lib/datetimeExperiment.ts): read once per mount.
+  const [arm] = useState(() => getDatetimeArm());
+  const [pickedDay, setPickedDay] = useState<string | null>(null);
+  useEffect(() => {
+    tagClarityArm(arm);
+  }, [arm]);
+
   const techs = new Map<string, TechInfo>();
   for (const sel of selectedServices) {
     const variationsToCheck = sel.service.variations.length > 1 ? sel.service.variations : [sel.variation];
@@ -407,6 +430,76 @@ export default function DateTimeStep({ flow }: { flow: BookingFlow }) {
   for (const tagged of taggedSlots) {
     const day = formatDay(tagged.slot.startAt);
     byDay.set(day, [...(byDay.get(day) ?? []), tagged]);
+  }
+
+  if (arm === "B") {
+    // One entry per start time: when several techs are free at the same time, offer the regular
+    // (non-top) tech first, i.e. the lower price, otherwise the first one found.
+    const isTopByName = new Map([...techs.values()].map((t) => [t.name, t.isTop]));
+    const days = new Map<string, Map<string, TaggedSlot>>();
+    for (const tagged of taggedSlots) {
+      const k = dayKey(tagged.slot.startAt);
+      const times = days.get(k) ?? new Map<string, TaggedSlot>();
+      const existing = times.get(tagged.slot.startAt);
+      const better =
+        !existing ||
+        (existing.technicianName && isTopByName.get(existing.technicianName) && tagged.technicianName && !isTopByName.get(tagged.technicianName));
+      if (better) times.set(tagged.slot.startAt, tagged);
+      days.set(k, times);
+    }
+    const dayKeys = [...days.keys()];
+    const activeDay = pickedDay && days.has(pickedDay) ? pickedDay : dayKeys[0];
+    const daySlots = [...(days.get(activeDay)?.values() ?? [])];
+    return (
+      <div>
+        <h3 className="text-lg font-medium text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+          Choose a time
+        </h3>
+        <button type="button" onClick={() => flow.goTo("services")} className="mt-1 text-xs text-[var(--color-accent)] underline">
+          Back to services
+        </button>
+        {renderVipNotice()}
+        {renderTechFilter()}
+        <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Choose a day">
+          {dayKeys.map((k) => {
+            const { top, bottom } = stripLabel(k);
+            const on = k === activeDay;
+            return (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => setPickedDay(k)}
+                className={`flex min-w-[68px] shrink-0 flex-col items-center rounded-2xl px-3 py-2 text-center ring-1 transition-colors ${
+                  on ? "bg-[var(--color-accent)] text-white ring-[var(--color-accent)]" : "bg-white text-[var(--color-ink)] ring-[var(--color-border)]"
+                }`}
+              >
+                <span className="text-sm font-semibold">{top}</span>
+                <span className={`text-xs ${on ? "text-white/85" : "text-[var(--color-muted)]"}`}>{bottom}</span>
+              </button>
+            );
+          })}
+        </div>
+        {outsideTz ? <p className="mt-1 text-xs text-[var(--color-muted-2)]">Times are shown in San Diego time (PT).</p> : null}
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {daySlots.map((tagged) => (
+            <button
+              key={tagged.slot.startAt}
+              type="button"
+              onClick={() => flow.selectSlot(tagged.slot)}
+              className="flex flex-col items-center rounded-xl px-2 py-2.5 text-center ring-1 ring-[var(--color-border)] hover:bg-[var(--color-accent-tint-2)]"
+            >
+              <span className="text-[15px] font-medium text-[var(--color-ink)]">{formatTime(tagged.slot.startAt)}</span>
+              {tagged.technicianName ? <span className="text-[11px] text-[var(--color-muted)]">{tagged.technicianName}</span> : null}
+            </button>
+          ))}
+        </div>
+        <p className="mt-3 text-center text-xs text-[var(--color-muted-2)]">
+          {daySlots.length} {daySlots.length === 1 ? "time" : "times"} on this day · swipe the days above for more
+        </p>
+      </div>
+    );
   }
 
   return (
