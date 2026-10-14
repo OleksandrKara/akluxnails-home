@@ -181,3 +181,11 @@ img {
     animation: none;
   }
 }
+
+/* Chat teaser (components/ChatBubble.tsx): a calm rise-in, no bounce. */
+@keyframes ak-chat-teaser-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.ak-chat-teaser { animation: ak-chat-teaser-in 0.35s ease-out both; transform-origin: bottom right; }
+@media (prefers-reduced-motion: reduce) { .ak-chat-teaser { animation: none; } }
