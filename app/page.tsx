@@ -72,6 +72,19 @@ export default async function HomePage({
       fbclid: first(sp.fbclid),
       gclid: first(sp.gclid),
     };
+    // Links that carry no UTM tags but do say where they came from (Notion #51, 2026-10-14):
+    // Reserve with Google adds rwg_token, our own SMS promos add ?promo=CODE. Without this both
+    // land in "Direct". Saved as UTM so Marketing shows them as their own sources.
+    if (!utm.utmSource && !utm.gclid && !utm.fbclid) {
+      if (first(sp.rwg_token)) {
+        utm.utmSource = "google";
+        utm.utmMedium = "reserve_with_google";
+      } else if (promoCode) {
+        utm.utmSource = "sms";
+        utm.utmMedium = "promo";
+        utm.utmCampaign = promoCode;
+      }
+    }
     // Also read here, not inside after(): it calls headers() (see recordPageView's clientContext).
     const clientContext = await deriveClientContext();
     after(() => {
