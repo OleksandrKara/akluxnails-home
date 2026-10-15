@@ -237,7 +237,7 @@ export default function VipCheck() {
               </form>
               {result && (
                 <div className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">
-                  <a href={LOCATION.smsHref} className="font-semibold text-[var(--color-accent)] underline underline-offset-2">
+                  <a href={LOCATION.smsHref} data-track="vip" className="font-semibold text-[var(--color-accent)] underline underline-offset-2">
                     Text us
                   </a>
                   <button type="button" onClick={reset} className="text-[var(--color-muted)] underline underline-offset-2">

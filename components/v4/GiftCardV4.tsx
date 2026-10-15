@@ -35,7 +35,7 @@ export default function GiftCardV4() {
           <div className="mt-8">
             {/* Pre-filled sms: link, not a lead-capture form — see PrepayV4.tsx for why. */}
             <a
-              href={LOCATION.giftCardSmsHref}
+              href={LOCATION.giftCardSmsHref} data-track="gift_card"
               className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-8 py-4 text-base font-medium text-white transition hover:-translate-y-0.5 hover:bg-[var(--color-accent-hover)]"
             >
               Request a Gift Card

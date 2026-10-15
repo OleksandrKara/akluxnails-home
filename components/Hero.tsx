@@ -41,7 +41,7 @@ export default function Hero({ variant }: { variant: HomeVariantContent }) {
               {variant.ctaText ?? "Book Your Appointment"}
             </BookNowButton>
             <a
-              href={LOCATION.smsHref}
+              href={LOCATION.smsHref} data-track="hero"
               aria-label="Text us"
               title="Text us"
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]"

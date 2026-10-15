@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBookingModal } from "./booking/BookingModalProvider";
 import { useIsV4Theme } from "./v4/V4ThemeContext";
-import { LOCATION } from "@/lib/siteData";
+import { LOCATION, SMS_NUMBER } from "@/lib/siteData";
+import { beacon, get, pageTopic, pushDataLayer, set } from "@/lib/smsAttribution";
+
 
 /**
  * Styled like the site's own header (owner 2026-10-15): the dark #1f1620 of the header pill, champagne
@@ -17,8 +19,9 @@ import { LOCATION } from "@/lib/siteData";
  * salaryReview (staff Telegram alert, inbox) instead of the main line, with a first message that
  * names the page. No texting number on screen.
  *
- * Traffic source (owner: "make sure the traffic source gets through"): the tap is sent to
- * /api/track-click as a `target: "sms"` click with the page, its topic and the visitor's first-touch
+ * Traffic source (owner: "make sure the traffic source gets through"): SmsClickTracker sends the tap
+ * on Text us (like every texting link on the site) to /api/track-click as a `target: "sms"` click
+ * (source "chat_bubble") with the page, its topic and the visitor's first-touch
  * attribution (UTM, gclid/fbclid, referrer, kept in localStorage from the first page of the visit,
  * since only the homepage records marketing.visits). salaryReview's SmsWebsiteLeadService ties the
  * text that arrives next to that tap and saves the contact with that source.
@@ -29,9 +32,6 @@ import { LOCATION } from "@/lib/siteData";
  * 7 days; tapping it opens the chat card. On desktop, where `sms:` often opens nothing, the card's
  * big button opens booking and texting stays a small link.
  */
-const SMS_NUMBER = "+18449814613";
-const ATTR_KEY = "ak_nails_first_touch";
-const ATTR_MAX_AGE_MS = 90 * 86_400_000;
 const TEASER_SESSION_KEY = "ak_chat_teaser_shown";
 const TEASER_DISMISS_KEY = "ak_chat_teaser_dismissed_until";
 const SESSION_START_KEY = "ak_session_started_at";
@@ -39,87 +39,6 @@ const TEASER_AFTER_MS = 30_000;
 const EXIT_MIN_MS = 8_000;
 const DISMISS_DAYS = 7;
 const HIDDEN_ON = ["/card", "/vip"];
-
-type Attribution = Partial<Record<"utm_source" | "utm_medium" | "utm_campaign" | "gclid" | "fbclid" | "referrer" | "landing_path", string>>;
-
-function store(kind: "local" | "session") {
-  try {
-    return kind === "local" ? localStorage : sessionStorage;
-  } catch {
-    return null;
-  }
-}
-function get(kind: "local" | "session", key: string): string | null {
-  try {
-    return store(kind)?.getItem(key) ?? null;
-  } catch {
-    return null;
-  }
-}
-function set(kind: "local" | "session", key: string, value: string) {
-  try {
-    store(kind)?.setItem(key, value);
-  } catch {
-    // private mode: nothing breaks
-  }
-}
-
-/** First touch of this visitor: kept for 90 days, replaced only by a fresh ad click. */
-function captureFirstTouch() {
-  const params = new URLSearchParams(window.location.search);
-  const fresh = ["utm_source", "gclid", "fbclid"].some((k) => params.has(k));
-  if (!fresh && get("local", ATTR_KEY)) {
-    try {
-      const saved = JSON.parse(get("local", ATTR_KEY)!);
-      if (Date.now() - (saved.at ?? 0) < ATTR_MAX_AGE_MS) return;
-    } catch {
-      // unreadable: capture again
-    }
-  }
-  const a: Attribution & { at: number } = { at: Date.now(), landing_path: window.location.pathname };
-  for (const k of ["utm_source", "utm_medium", "utm_campaign", "gclid", "fbclid"] as const) {
-    const v = params.get(k);
-    if (v) a[k] = v.slice(0, 200);
-  }
-  if (!a.utm_source && !a.gclid && !a.fbclid) {
-    if (params.get("rwg_token")) {
-      a.utm_source = "google";
-      a.utm_medium = "reserve_with_google";
-    } else if (params.get("promo")) {
-      a.utm_source = "sms";
-      a.utm_medium = "promo";
-      a.utm_campaign = params.get("promo")!.slice(0, 50);
-    }
-  }
-  if (document.referrer && !document.referrer.startsWith(window.location.origin)) a.referrer = document.referrer.slice(0, 500);
-  set("local", ATTR_KEY, JSON.stringify(a));
-}
-
-function firstTouch(): Attribution {
-  try {
-    const { at: _at, ...rest } = JSON.parse(get("local", ATTR_KEY) ?? "{}");
-    void _at;
-    return rest;
-  } catch {
-    return {};
-  }
-}
-
-function gaClientId(): string | undefined {
-  return document.cookie.match(/(?:^|;\s*)_ga=GA\d\.\d\.(\d+\.\d+)/)?.[1];
-}
-
-/** Page topic for the first message: the title before "|", without "in San Diego". */
-function pageTopic(pathname: string): { body: string; topic?: string } {
-  if (pathname === "/" || pathname.startsWith("/v4")) return { body: "Hi! I have a question about a nail appointment." };
-  const raw = document.title.split(/[|–—]/)[0].replace(/\s+in (Downtown )?San Diego.*$/i, "").trim();
-  if (!raw) return { body: "Hi! I have a question about a nail appointment." };
-  const topic = raw.length > 70 ? raw.slice(0, 69).trimEnd() + "…" : raw;
-  return pathname.startsWith("/blog/")
-    ? { body: `Hi! I just read "${topic}" on your site and have a question.`, topic }
-    : { body: `Hi! I have a question about ${topic}.`, topic };
-}
-
 function busy(): boolean {
   const el = document.activeElement;
   if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return true;
@@ -133,24 +52,6 @@ function teaserAllowed(): boolean {
   return !(until && Date.now() < until);
 }
 
-function pushDataLayer(event: string, params: Record<string, unknown>) {
-  try {
-    const w = window as unknown as { dataLayer?: Record<string, unknown>[] };
-    w.dataLayer = w.dataLayer || [];
-    w.dataLayer.push({ event, ...params });
-  } catch {
-    // analytics only
-  }
-}
-
-function beacon(body: Record<string, unknown>) {
-  try {
-    navigator.sendBeacon?.("/api/track-click", JSON.stringify(body));
-  } catch {
-    // analytics only
-  }
-}
-
 export default function ChatBubble() {
   const pathname = usePathname() ?? "/";
   const { open: openBooking } = useBookingModal();
@@ -159,17 +60,12 @@ export default function ChatBubble() {
   const open = openOn === pathname;
   const setOpen = (v: boolean) => setOpenOn(v ? pathname : null);
   const [href, setHref] = useState(`sms:${SMS_NUMBER}`);
-  const [topic, setTopic] = useState<string | undefined>();
   const [desktop, setDesktop] = useState(false);
   const [teaser, setTeaser] = useState(false);
   // Sits inside the homepage's mobile sticky booking bar while it's up (StickyBookBar leaves the
   // space on its right for it), floats on its own everywhere else.
   const [docked, setDocked] = useState(false);
   const hidden = HIDDEN_ON.some((p) => pathname === p || pathname.startsWith(p + "/"));
-
-  useEffect(() => {
-    captureFirstTouch();
-  }, []);
 
   useEffect(() => {
     const check = () =>
@@ -232,7 +128,6 @@ export default function ChatBubble() {
     if (open) return setOpen(false);
     setTeaser(false);
     const t = pageTopic(pathname);
-    setTopic(t.topic);
     setHref(`sms:${SMS_NUMBER}?&body=${encodeURIComponent(t.body)}`);
     setDesktop(window.matchMedia("(pointer: fine) and (min-width: 1024px)").matches);
     pushDataLayer("chat_open", { source, page_path: pathname });
@@ -245,11 +140,7 @@ export default function ChatBubble() {
     set("local", TEASER_DISMISS_KEY, String(Date.now() + DISMISS_DAYS * 86_400_000));
   }
 
-  /** The tap salaryReview ties the incoming text to: page, topic and first-touch source. */
-  function onTextTap() {
-    pushDataLayer("sms_click", { link_location: "chat_bubble", page_path: pathname });
-    beacon({ target: "sms", source: "chat_bubble", path: pathname, topic, ...firstTouch(), ga_client_id: gaClientId() });
-  }
+
 
   const avatars = ["lucy", "christine", "jane"];
 
@@ -335,7 +226,7 @@ export default function ChatBubble() {
                   Book an appointment
                 </button>
                 <p className="mt-3 text-center text-[13px] text-[var(--color-muted-2)]">
-                  <a href={href} onClick={onTextTap} className="whitespace-nowrap font-medium text-[var(--color-ink)] underline underline-offset-2">
+                  <a href={href} className="whitespace-nowrap font-medium text-[var(--color-ink)] underline underline-offset-2">
                     Text us
                   </a>{" "}
                   or call{" "}
@@ -348,7 +239,7 @@ export default function ChatBubble() {
               <>
                 <a
                   href={href}
-                  onClick={onTextTap}
+                 
                   className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] py-4 text-[14px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink)] transition hover:bg-[var(--color-accent-hover)]"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
