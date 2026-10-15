@@ -8,6 +8,9 @@ import { useIsV4Theme } from "./v4/V4ThemeContext";
 import { LOCATION } from "@/lib/siteData";
 
 /**
+ * Styled like the site's own header (owner 2026-10-15): the dark #1f1620 of the header pill, champagne
+ * gold accent and plum ink from .v4-theme, Fraunces headings, uppercase gold buttons like Book Now.
+ *
  * Floating chat button + a "hi from the team" teaser, bottom right on every page (owner request
  * 2026-10-14, same as pmu-annakara.com's): the faces of Lucy, Christine and Jane, who answer the
  * texts. "Text us" opens a text to the nails Twilio number (+1 844-981-4613), so the text lands in
@@ -231,12 +234,12 @@ export default function ChatBubble() {
   }
 
   const avatars = ["lucy", "christine", "jane"];
-  const button = "#2a211d";
 
   return (
     <div
       data-track="chat_bubble"
-      className="fixed right-4 z-40 flex flex-col items-end gap-3 print:hidden max-sm:bottom-[calc(88px+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(16px+env(safe-area-inset-bottom,0px))]"
+      style={{ fontFamily: "var(--font-body)" }}
+      className="v4-theme fixed right-4 z-40 flex flex-col items-end gap-3 print:hidden max-sm:bottom-[calc(88px+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(16px+env(safe-area-inset-bottom,0px))]"
     >
       {teaser && !open ? (
         <div className="ak-chat-teaser relative w-[min(320px,calc(100vw-32px))]">
@@ -257,9 +260,11 @@ export default function ChatBubble() {
                 />
               ))}
             </span>
-            <span className="mt-2 block text-[13px] font-semibold leading-snug text-black">AK.LUX.NAILS</span>
-            <span className="block text-[11px] text-black/50">Lucy, Christine &amp; Jane</span>
-            <span className="mt-2 block text-[14px] leading-snug text-black/80">
+            <span className="mt-2 block text-[16px] leading-snug text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+              AK.LUX.NAILS
+            </span>
+            <span className="block text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--color-gold-text)]">Lucy, Christine &amp; Jane</span>
+            <span className="mt-2 block text-[14px] leading-snug text-[var(--color-muted)]">
               Hi! Have a question about nails or prices? Text us and we&apos;ll be happy to help.
             </span>
           </button>
@@ -281,16 +286,16 @@ export default function ChatBubble() {
           aria-label="Questions? Text us"
           className="w-[min(320px,calc(100vw-32px))] overflow-hidden rounded-2xl bg-white text-left shadow-[0_12px_40px_rgba(0,0,0,0.18)] ring-1 ring-black/5"
         >
-          <div className="flex items-start justify-between gap-3 bg-[var(--color-accent-tint-2)] px-5 pb-3 pt-4">
+          <div className="flex items-start justify-between gap-3 bg-[#1f1620] px-5 pb-4 pt-4 text-white">
             <div>
-              <p className="text-[16px] font-semibold leading-snug text-black">Questions? Text us</p>
-              <p className="mt-1 text-[13px] leading-snug text-black/60">About a service, prices or an appointment.</p>
+              <p className="text-[18px] leading-snug" style={{ fontFamily: "var(--font-heading)" }}>Questions? Text us</p>
+              <p className="mt-1 text-[13px] leading-snug text-white/70">About a service, prices or an appointment.</p>
             </div>
             <button
               type="button"
               aria-label="Close"
               onClick={() => setOpen(false)}
-              className="-mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-black/50 hover:bg-black/5"
+              className="-mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/60 hover:bg-white/10"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                 <path d="M6 6l12 12M18 6L6 18" />
@@ -302,8 +307,7 @@ export default function ChatBubble() {
               <>
                 <button
                   type="button"
-                  className="flex w-full items-center justify-center rounded-full py-3.5 text-[15px] font-semibold text-white"
-                  style={{ background: button }}
+                  className="flex w-full items-center justify-center rounded-full bg-[var(--color-accent)] py-3.5 text-[13px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink)] transition hover:bg-[var(--color-accent-hover)]"
                   onClick={() => {
                     setOpen(false);
                     beacon({ target: "book_now", source: "chat_bubble" });
@@ -312,12 +316,12 @@ export default function ChatBubble() {
                 >
                   Book an appointment
                 </button>
-                <p className="mt-3 text-center text-[13px] text-black/55">
-                  <a href={href} onClick={onTextTap} className="whitespace-nowrap font-medium text-black/80 underline underline-offset-2">
+                <p className="mt-3 text-center text-[13px] text-[var(--color-muted-2)]">
+                  <a href={href} onClick={onTextTap} className="whitespace-nowrap font-medium text-[var(--color-ink)] underline underline-offset-2">
                     Text us
                   </a>{" "}
                   or call{" "}
-                  <a href={LOCATION.phoneHref} className="whitespace-nowrap font-medium text-black/80 underline underline-offset-2">
+                  <a href={LOCATION.phoneHref} className="whitespace-nowrap font-medium text-[var(--color-ink)] underline underline-offset-2">
                     {LOCATION.phone}
                   </a>
                 </p>
@@ -327,17 +331,16 @@ export default function ChatBubble() {
                 <a
                   href={href}
                   onClick={onTextTap}
-                  className="flex w-full items-center justify-center gap-2 rounded-full py-4 text-[16px] font-semibold text-white"
-                  style={{ background: button }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] py-4 text-[14px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink)] transition hover:bg-[var(--color-accent-hover)]"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                     <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.9-.9L3 21l1.9-4.6A8.4 8.4 0 1 1 21 11.5z" />
                   </svg>
                   Text us
                 </a>
-                <p className="mt-3 text-center text-[13px] text-black/55">
+                <p className="mt-3 text-center text-[13px] text-[var(--color-muted-2)]">
                   or call{" "}
-                  <a href={LOCATION.phoneHref} className="whitespace-nowrap font-medium text-black/80 underline underline-offset-2">
+                  <a href={LOCATION.phoneHref} className="whitespace-nowrap font-medium text-[var(--color-ink)] underline underline-offset-2">
                     {LOCATION.phone}
                   </a>
                 </p>
@@ -351,7 +354,7 @@ export default function ChatBubble() {
         aria-label={open ? "Close chat" : "Questions? Text us"}
         aria-expanded={open}
         onClick={() => toggle("bubble")}
-        className="grid h-14 w-14 place-items-center rounded-full bg-[var(--color-accent-tint)] text-[var(--color-accent)] shadow-[0_6px_20px_rgba(0,0,0,0.18)] ring-2 ring-white transition-transform hover:scale-105 active:scale-95"
+        className="grid h-14 w-14 place-items-center rounded-full border border-white/15 bg-[#1f1620] text-[var(--color-accent)] shadow-[0_8px_24px_rgba(31,22,32,0.35)] transition-transform hover:scale-105 active:scale-95"
       >
         {open ? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
