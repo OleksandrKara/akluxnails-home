@@ -105,6 +105,10 @@ export const REVIEWS: Review[] = [
 // siteDataV4.ts so the two homepage templates can never silently disagree on this fact.
 export const BUSINESS_HOURS = "Monday – Sunday · 8:00 AM – 9:00 PM";
 
+/** The nails Twilio number (toll-free, approved): texts to it reach salaryReview (staff Telegram
+ * alert, inbox) and get the website visit's traffic source. Calls still go to LOCATION.phone. */
+export const SMS_NUMBER = "+18449814613";
+
 export const LOCATION = {
   name: BUSINESS_NAME,
   address: "1357 Seventh Ave, Ste C, San Diego, CA 92101",
@@ -128,14 +132,16 @@ export const LOCATION = {
   // an honest "read reviews on Google" link instead of a static, self-hosted "Verified" claim.
   googleProfileUrl:
     "https://www.google.com/maps/search/?api=1&query=AK.LUX.NAILS+1357+Seventh+Ave+Ste+C+San+Diego+CA+92101",
-  // "?&body=" works across both iOS and Android SMS apps, unlike either alone.
-  smsHref: "sms:+16193231185?&body=Hi!%20I%20have%20a%20question%20for%20AK.LUX.NAILS.%20",
+  // "?&body=" works across both iOS and Android SMS apps, unlike either alone. Every texting link
+  // goes to the Twilio number (SMS_NUMBER, owner 2026-10-15) so texts land in salaryReview with
+  // their traffic source (components/SmsClickTracker.tsx).
+  smsHref: `sms:${SMS_NUMBER}?&body=Hi!%20I%20have%20a%20question%20for%20AK.LUX.NAILS.%20`,
   groupBookingSmsHref:
-    "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20book%20for%20a%20group%20at%20AK.LUX.NAILS.%20We%20are%20___%20people%2C%20looking%20for%20___.",
+    `sms:${SMS_NUMBER}?&body=Hi!%20I%27d%20like%20to%20book%20for%20a%20group%20at%20AK.LUX.NAILS.%20We%20are%20___%20people%2C%20looking%20for%20___.`,
   giftCardSmsHref:
-    "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20request%20a%20gift%20card%20for%20%24___%20at%20AK.LUX.NAILS.",
+    `sms:${SMS_NUMBER}?&body=Hi!%20I%27d%20like%20to%20request%20a%20gift%20card%20for%20%24___%20at%20AK.LUX.NAILS.`,
   prepaySmsHref:
-    "sms:+16193231185?&body=Hi!%20I%27d%20like%20to%20prepay%20for%203%2B%20visits%20and%20save%2010%25%20at%20AK.LUX.NAILS.%20I%27m%20interested%20in%20___.",
+    `sms:${SMS_NUMBER}?&body=Hi!%20I%27d%20like%20to%20prepay%20for%203%2B%20visits%20and%20save%2010%25%20at%20AK.LUX.NAILS.%20I%27m%20interested%20in%20___.`,
 };
 
 // Neighborhoods within the ~15-20 minute drive radius the business actually targets (per the

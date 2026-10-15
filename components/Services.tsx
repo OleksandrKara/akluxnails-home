@@ -87,7 +87,7 @@ export default async function Services() {
           Book an Appointment
         </BookNowButton>
         <a
-          href={LOCATION.groupBookingSmsHref}
+          href={LOCATION.groupBookingSmsHref} data-track="group_booking"
           className="inline-flex items-center gap-2 rounded-[var(--radius-pill)] px-6 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent-border-soft)] hover:bg-[var(--color-accent-tint-2)]"
         >
           💬 Booking for a group? Text us
