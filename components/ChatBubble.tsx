@@ -162,11 +162,29 @@ export default function ChatBubble() {
   const [topic, setTopic] = useState<string | undefined>();
   const [desktop, setDesktop] = useState(false);
   const [teaser, setTeaser] = useState(false);
+  // Sits inside the homepage's mobile sticky booking bar while it's up (StickyBookBar leaves the
+  // space on its right for it), floats on its own everywhere else.
+  const [docked, setDocked] = useState(false);
   const hidden = HIDDEN_ON.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   useEffect(() => {
     captureFirstTouch();
   }, []);
+
+  useEffect(() => {
+    const check = () =>
+      setDocked(
+        !!document.querySelector('[data-sticky-book-bar="visible"]') && window.matchMedia("(max-width: 639px)").matches,
+      );
+    window.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    const t = window.setTimeout(check, 300);
+    return () => {
+      window.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+      window.clearTimeout(t);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (hidden || !teaserAllowed()) return;
@@ -238,8 +256,8 @@ export default function ChatBubble() {
   return (
     <div
       data-track="chat_bubble"
-      style={{ fontFamily: "var(--font-body)" }}
-      className="v4-theme fixed right-4 z-40 flex flex-col items-end gap-3 print:hidden max-sm:bottom-[calc(88px+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(16px+env(safe-area-inset-bottom,0px))]"
+      style={{ fontFamily: "var(--font-body)", bottom: docked ? "calc(8px + env(safe-area-inset-bottom, 0px))" : "calc(16px + env(safe-area-inset-bottom, 0px))" }}
+      className="v4-theme fixed right-4 z-40 flex flex-col items-end gap-3 print:hidden"
     >
       {teaser && !open ? (
         <div className="ak-chat-teaser relative w-[min(320px,calc(100vw-32px))]">

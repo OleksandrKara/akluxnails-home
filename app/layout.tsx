@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Playfair_Display, Jost, Fraunces, Manrope } from "next/font/google";
 import BookingModalProvider from "@/components/booking/BookingModalProvider";
 import ChatBubble from "@/components/ChatBubble";
+import ReviewBadge from "@/components/ReviewBadge";
 import { getLocalBusinessJsonLd } from "@/lib/siteData";
 import { getClarityProjectId } from "@/lib/clarityConfig";
 import "./globals.css";
@@ -146,6 +147,7 @@ export default async function RootLayout({
         )}
         <BookingModalProvider>
           {children}
+          <ReviewBadge />
           <ChatBubble />
         </BookingModalProvider>
       </body>
