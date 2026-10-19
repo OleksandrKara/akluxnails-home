@@ -11,6 +11,9 @@
  *   no such parameters, so lab scores are unaffected);
  * - a gclid is written to the Google Ads click cookie (_gcl_aw) at once, in case the page
  *   changes before gtag.js does it itself.
+ * - a link that opens a new page (not a client-side route change) before gtag.js arrived would
+ *   otherwise lose the landing page entirely; the landing address waits in sessionStorage until
+ *   the tags have loaded, and the next page sends it first.
  * Everyone else: loaded on first interaction or once the page is idle after load, as before.
  */
 export function googleTagsLoader(opts: { ga4Id: string; adsId?: string; gtmId?: string; fallbackMs?: number }): string {
@@ -18,18 +21,22 @@ export function googleTagsLoader(opts: { ga4Id: string; adsId?: string; gtmId?: 
   return `window.dataLayer=window.dataLayer||[];
 function gtag(){dataLayer.push(arguments);}
 (function(){
-var L=location.href,R=document.referrer,q=location.search,done=false;
+var L=location.href,R=document.referrer,q=location.search,done=false,K='_gt_landing',P=null,st=null;
+try{st=JSON.parse(sessionStorage.getItem(K)||'null');if(st&&!st.s&&st.l!==L){P=st;q=q+'&'+st.l.split('?').slice(1).join('?');}
+else if(!st){st={l:L,r:R,s:0};sessionStorage.setItem(K,JSON.stringify(st));}}catch(e){}
 var AD=/[?&](gclid|gbraid|wbraid|gad_source|gad_campaignid|dclid|msclkid|fbclid|ttclid|utm_source|utm_medium|utm_campaign)=/i.test(q);
 try{var g=q.match(/[?&]gclid=([^&#]+)/);if(g&&document.cookie.indexOf('_gcl_aw=')<0){var h=location.hostname.split('.').slice(-2).join('.');
 document.cookie='_gcl_aw=GCL.'+Math.round(Date.now()/1000)+'.'+g[1]+';max-age=7776000;path=/;domain=.'+h+';SameSite=Lax';}}catch(e){}
 gtag('js',new Date());
 gtag('config','${ga4Id}',{send_page_view:false});
-gtag('event','page_view',{send_to:'${ga4Id}',page_location:L,page_referrer:R});
-${adsId ? `gtag('config','${adsId}',{page_location:L,page_referrer:R});\n` : ""}${gtmId ? `dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});\n` : ""}var ev=['pointerdown','touchstart','scroll','mousemove','keydown','wheel'];
-function add(src){var s=document.createElement('script');s.async=true;s.src=src;document.head.appendChild(s);}
+if(P)gtag('event','page_view',{send_to:'${ga4Id}',page_location:P.l,page_referrer:P.r});
+gtag('event','page_view',{send_to:'${ga4Id}',page_location:L,page_referrer:P?P.l:R});
+${adsId ? `gtag('config','${adsId}',{page_location:P?P.l:L,page_referrer:P?P.r:R});\n` : ""}${gtmId ? `dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});\n` : ""}var ev=['pointerdown','touchstart','scroll','mousemove','keydown','wheel'];
+function add(src,cb){var s=document.createElement('script');s.async=true;s.src=src;if(cb)s.onload=cb;document.head.appendChild(s);}
+function sent(){try{if(st){st.s=1;sessionStorage.setItem(K,JSON.stringify(st));}}catch(e){}}
 function go(){if(done)return;done=true;ev.forEach(function(e){removeEventListener(e,go,{passive:true});});
 if(location.href!==L)gtag('event','page_view',{send_to:'${ga4Id}'});
-add('https://www.googletagmanager.com/gtag/js?id=${ga4Id}');
+add('https://www.googletagmanager.com/gtag/js?id=${ga4Id}',sent);
 ${gtmId ? `add('https://www.googletagmanager.com/gtm.js?id=${gtmId}');` : ""}}
 if(AD){go();return;}
 ev.forEach(function(e){addEventListener(e,go,{passive:true});});
