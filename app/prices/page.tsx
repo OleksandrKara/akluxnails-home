@@ -18,7 +18,8 @@ export const metadata: Metadata = {
 
 // Which dedicated page (if any) to link each service name to.
 const SERVICE_LINKS: Record<string, string> = {
-  "Russian Gel-Overlay Manicure": "/blog/russian-manicure-explained",
+  "Russian Gel-Overlay Manicure": "/gel-manicure",
+  "Manicure (No Polish)": "/gel-manicure",
   "Gel Nail Extension": "/gel-nail-extensions",
   "Regular Pedicure Gel-Overlay (Dry)": "/russian-pedicure",
   "Pedicure (No Polish)": "/russian-pedicure",

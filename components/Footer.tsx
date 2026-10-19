@@ -9,6 +9,7 @@ export default function Footer() {
           <span>© {new Date().getFullYear()} {BUSINESS_NAME}. All rights reserved.</span>
           <nav className="flex flex-wrap gap-x-4 gap-y-2">
             <Link href="/prices" className="hover:text-[var(--color-ink)]">Prices</Link>
+            <Link href="/gel-manicure" className="hover:text-[var(--color-ink)]">Gel Manicure</Link>
             <Link href="/russian-pedicure" className="hover:text-[var(--color-ink)]">Russian Pedicure</Link>
             <Link href="/gel-nail-extensions" className="hover:text-[var(--color-ink)]">Gel Extensions</Link>
             <Link href="/blog" className="hover:text-[var(--color-ink)]">Blog</Link>
