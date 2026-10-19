@@ -4,7 +4,7 @@ import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import BookNowButton from "@/components/BookNowButton";
 import { getCuratedMenu, getItemByName, type CatalogServiceItem } from "@/lib/square/catalog";
 import { toWireItem } from "@/lib/square/wire";
-import { BUSINESS_HOURS, LOCATION } from "@/lib/siteData";
+import { BUSINESS_HOURS, GOOGLE_REVIEW_COUNT, GOOGLE_REVIEW_RATING, LOCATION, REVIEWS } from "@/lib/siteData";
 import type { ServicePageConfig } from "@/lib/servicePages";
 
 const SITE_URL = "https://akluxnails.com";
@@ -73,6 +73,34 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
       }
     : null;
 
+  // Blocks competitors' pages had and ours didn't (2026-10-19 comparison): questions answered on
+  // the page with FAQPage data, and real Google reviews about this service.
+  const faq = [
+    ...(main && cheapest
+      ? [
+          {
+            q: ((name: string) => (name.endsWith("s") ? `How much do ${name} cost?` : `How much does a ${name} cost?`))(
+              config.h1.replace(/ in Downtown San Diego$/, ""),
+            ),
+            a: `${main.name} starts at ${formatPrice(cheapest.priceCents)} at AK.LUX.NAILS, 1357 Seventh Ave, Downtown San Diego. Current prices for every option are listed on this page.`,
+          },
+          {
+            q: "How long does the appointment take?",
+            a: `About ${formatDuration(cheapest.durationMinutes)} for ${main.name}. The exact length for each option is listed on this page.`,
+          },
+        ]
+      : []),
+    ...config.faq,
+  ];
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  };
+  const kw = config.reviewKeywords.map((k) => k.toLowerCase());
+  const matched = REVIEWS.filter((r) => kw.some((k) => r.text.toLowerCase().includes(k)));
+  const reviews = [...matched, ...REVIEWS.filter((r) => !matched.includes(r) && r.text.length > 60)].slice(0, 3);
+
   const buttonClass =
     "inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]";
 
@@ -81,6 +109,7 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
       {serviceJsonLd && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }} />
       )}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-[1fr_240px] sm:items-start">
@@ -187,6 +216,39 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
           </div>
         </section>
 
+        <section className="mt-12">
+          <h2 className="text-2xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+            What clients say
+          </h2>
+          <a href={LOCATION.googleProfileUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm text-[var(--color-accent)] hover:underline">
+            {GOOGLE_REVIEW_RATING} ★ from {GOOGLE_REVIEW_COUNT} Google reviews
+          </a>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {reviews.map((r) => (
+              <figure key={r.name + r.date} className="rounded-[var(--radius-lg)] bg-[var(--color-card)] p-4 ring-1 ring-[var(--color-border)]">
+                <blockquote className="text-sm leading-relaxed text-[var(--color-ink)]">“{r.text}”</blockquote>
+                <figcaption className="mt-2 text-xs text-[var(--color-muted)]">
+                  {r.name} · Google review · {r.date}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-12">
+          <h2 className="text-2xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+            Questions
+          </h2>
+          <div className="mt-4 divide-y divide-[var(--color-border)]">
+            {faq.map((f) => (
+              <div key={f.q} className="py-3">
+                <h3 className="text-base font-medium text-[var(--color-ink)]">{f.q}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-[var(--color-muted)]">{f.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-12 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-border)]">
           <h2 className="text-xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
             Where we are
@@ -207,6 +269,9 @@ export default async function ServicePage({ config }: { config: ServicePageConfi
             <Link href="/prices" className="text-sm font-medium text-[var(--color-accent)] hover:underline">
               All prices
             </Link>
+            <a href={LOCATION.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-[var(--color-accent)] hover:underline">
+              Get directions
+            </a>
           </div>
         </section>
 
