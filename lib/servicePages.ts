@@ -43,7 +43,9 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
     slug: "russian-pedicure",
     itemNames: ["Regular Pedicure Gel-Overlay (Dry)", "Pedicure (No Polish)"],
     menuGroupTitle: "Pedicures",
-    metaTitle: "Russian Pedicure in Downtown San Diego",
+    // "Gel Pedicure" added 2026-10-19 (TECH-8): GSC had 0 impressions for general pedicure
+    // searches and AI answers never named us for "best pedicure in San Diego" (0 of 29 checks).
+    metaTitle: "Russian Pedicure & Gel Pedicure in Downtown San Diego",
     metaDescription:
       "Dry Russian pedicure with a gel-polish overlay at AK.LUX.NAILS, 1357 Seventh Ave, Downtown San Diego. Current prices, appointment length, and online booking.",
     h1: "Russian Pedicure in Downtown San Diego",
@@ -73,6 +75,45 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
       { src: "/images/blog/pedicure-blue-process-poster.jpg", alt: "Blue gel pedicure during the appointment" },
     ],
     explainer: { href: "/blog/pedicure-options-explained", label: "Gel-overlay vs. no-polish pedicure: which to book" },
+  },
+  // Added 2026-10-19 (TECH-8): gel manicure is the salon's biggest service, yet the site had no page
+  // for it: 0 Search Console impressions for gel manicure/gel nails searches, and AI answers named
+  // us for "best gel manicure in San Diego" in 3 of 24 checks. Same rules as the pages above.
+  "gel-manicure": {
+    slug: "gel-manicure",
+    itemNames: ["Russian Gel-Overlay Manicure", "Manicure (No Polish)"],
+    menuGroupTitle: "Manicures",
+    metaTitle: "Gel Manicure in Downtown San Diego",
+    metaDescription:
+      "Gel manicure with dry Russian cuticle work at AK.LUX.NAILS, 1357 Seventh Ave, Downtown San Diego. Gel only, no acrylic. Current prices, appointment length, and online booking.",
+    h1: "Gel Manicure in Downtown San Diego",
+    intro: [
+      "Our gel manicure is a Russian gel-overlay manicure: the cuticle and sidewall area is cleaned dry with an e-file and fine bits, then the nails are shaped and finished with a base coat, gel overlay in your color, and a top coat.",
+      "The careful cuticle work lets the gel sit close to the cuticle line, so the manicure stays neat as your nails grow. It is gel only: we never use acrylic, on any service.",
+    ],
+    included: [
+      "Nail shaping",
+      "Dry cuticle and sidewall work with an e-file (no water soak)",
+      "Base coat, gel overlay, and gel color of your choice",
+      "Top coat",
+    ],
+    goodToKnow: [
+      "Book your next appointment no later than 4 weeks after the last one, so your nails always look neat.",
+      "Coming in with old gel? Add a removal when you book, so we have time to take it off properly.",
+      "Every manicure is covered by our 14-day guarantee: if something isn't right, we fix it free.",
+      "Prefer no color? Book Manicure (No Polish): the same cuticle work and shaping, without gel.",
+    ],
+    heroImage: "/images/blog/gel-manicure-nude-lifestyle.jpg",
+    heroAlt: "Nude gel manicure by AK.LUX.NAILS",
+    gallery: [
+      { src: "/images/blog/gel-manicure-milky-nude-result.jpg", alt: "Milky nude gel manicure" },
+      { src: "/images/blog/gel-manicure-red-result.jpg", alt: "Classic red gel manicure" },
+      { src: "/images/blog/gel-manicure-burgundy-result.jpg", alt: "Burgundy gel manicure" },
+      { src: "/images/blog/gel-manicure-sage-green-result.jpg", alt: "Sage green gel manicure" },
+      { src: "/images/blog/gel-manicure-sky-blue-result.jpg", alt: "Sky blue gel manicure" },
+      { src: "/images/blog/gel-manicure-clean-pink.jpg", alt: "Clean pink gel manicure" },
+    ],
+    explainer: { href: "/blog/gel-overlay-vs-extension-vs-no-polish", label: "Gel overlay vs. extension vs. no polish: which manicure to book" },
   },
   "gel-nail-extensions": {
     slug: "gel-nail-extensions",
