@@ -36,6 +36,12 @@ export interface ServicePageConfig {
    * grown-out nails for a fresh result (owner request 2026-09-29; weeks per photo are the owner's). */
   wearProof?: { title: string; text: string[]; photos: { src: string; alt: string; label: string }[] };
   explainer: { href: string; label: string };
+  /** Questions answered on the page (and in its FAQPage structured data). Price and appointment
+   * length are added automatically from the live Square catalog; these are the other facts. */
+  faq: { q: string; a: string }[];
+  /** Words that pick the real Google reviews (lib/siteData REVIEWS) shown on this page; the
+   * newest general reviews fill the rest. */
+  reviewKeywords: string[];
 }
 
 export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
@@ -75,6 +81,13 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
       { src: "/images/blog/pedicure-blue-process-poster.jpg", alt: "Blue gel pedicure during the appointment" },
     ],
     explainer: { href: "/blog/pedicure-options-explained", label: "Gel-overlay vs. no-polish pedicure: which to book" },
+    faq: [
+      { q: "Is the pedicure done in water?", a: "No. It is a dry pedicure: there is no water soak or foot bath. The skin and cuticles are prepared dry." },
+      { q: "Can I get a pedicure without polish?", a: "Yes. Book Pedicure (No Polish): the same shaping, cuticle work, and callus care, without color. Men's no-polish pedicures are available too." },
+      { q: "Do you use acrylic?", a: "No. We work with gel only and never use acrylic, on any service." },
+      { q: "What if something isn't right after my visit?", a: "Every pedicure is covered by our 14-day guarantee: if something isn't right, we fix it free." },
+    ],
+    reviewKeywords: ["pedicure"],
   },
   // Added 2026-10-19 (TECH-8): gel manicure is the salon's biggest service, yet the site had no page
   // for it: 0 Search Console impressions for gel manicure/gel nails searches, and AI answers named
@@ -114,6 +127,13 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
       { src: "/images/blog/gel-manicure-clean-pink.jpg", alt: "Clean pink gel manicure" },
     ],
     explainer: { href: "/blog/gel-overlay-vs-extension-vs-no-polish", label: "Gel overlay vs. extension vs. no polish: which manicure to book" },
+    faq: [
+      { q: "Do you use acrylic?", a: "No. Our gel manicure is gel only, and we never use acrylic, on any service." },
+      { q: "How often should I come back?", a: "Book your next appointment no later than 4 weeks after the last one, so your nails always look neat as they grow." },
+      { q: "Can you remove my old gel first?", a: "Yes. Add a removal when you book, so we have time to take it off properly without damaging the natural nail." },
+      { q: "What if something isn't right after my visit?", a: "Every manicure is covered by our 14-day guarantee: if something isn't right, we fix it free." },
+    ],
+    reviewKeywords: ["manicure", "cuticle"],
   },
   "gel-nail-extensions": {
     slug: "gel-nail-extensions",
@@ -161,5 +181,12 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
       ],
     },
     explainer: { href: "/blog/gel-nail-extensions-explained", label: "Gel nail extensions explained: shapes, length, and upkeep" },
+    faq: [
+      { q: "Do you use acrylic for extensions?", a: "No. Length is built with a gel tip or a sculpted gel form. No acrylic is used at any point." },
+      { q: "How often do extensions need a fill?", a: "Plan a fill appointment every 2 to 3 weeks, as your natural nail grows out." },
+      { q: "Can you take off my old set?", a: "Yes. Add a removal when you book, so we have time to take it off properly." },
+      { q: "What if something isn't right after my visit?", a: "Every set is covered by our 14-day guarantee: if something isn't right, we fix it free." },
+    ],
+    reviewKeywords: ["extension", "length"],
   },
 };
