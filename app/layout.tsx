@@ -1,3 +1,4 @@
+import GoogleTagsHead from "@/components/GoogleTagsHead";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Playfair_Display, Jost, Fraunces, Manrope } from "next/font/google";
@@ -104,6 +105,11 @@ export default async function RootLayout({
       lang="en"
       className={`${playfair.variable} ${jost.variable} ${fraunces.variable} ${manrope.variable} antialiased`}
     >
+      {gaMeasurementId && (
+        <head>
+          <GoogleTagsHead ga4Id={gaMeasurementId} />
+        </head>
+      )}
       <body className="min-h-screen flex flex-col">
         {/* NailSalon structured data — real, visible facts only (name/address/phone/hours are
             all rendered on the page; sameAs is the business's real public Instagram). No
@@ -112,29 +118,6 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
         />
-        {gaMeasurementId && (
-          <>
-            {/* lazyOnload, not afterInteractive — found live 2026-09-07: PageSpeed's mobile LCP
-                lab run showed the LCP element (the hero H1 text, no image involved) held up by
-                ~1.5s of "element render delay", correlating with GTM/Clarity consuming real
-                main-thread time early in the page lifecycle (158ms/71ms respectively, amplified
-                by Lighthouse's mobile CPU throttling). Neither script needs to load before the
-                page is idle — analytics firing a few hundred ms later than "as soon as possible"
-                has no user-facing effect, unlike the hero text painting late. */}
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
-              strategy="lazyOnload"
-            />
-            <Script id="ga4-init" strategy="lazyOnload">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${gaMeasurementId}');
-              `}
-            </Script>
-          </>
-        )}
         {clarityProjectId && (
           <Script id="clarity-init" strategy="lazyOnload">
             {`
