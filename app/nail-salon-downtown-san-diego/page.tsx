@@ -54,6 +54,10 @@ const FAQ = [
     a: "No. We work with gel only and never use acrylic, on any service.",
   },
   {
+    q: "Do you do Gel-X nails?",
+    a: "We no longer offer Gel-X as a separate service. The closest thing we do is the Gel Nail Extension: traditional gel extensions with added length, finished with gel polish. If you are wearing a Gel-X set now, we can remove it; choose the Gel X removal option when you book.",
+  },
+  {
     q: "Is your pedicure done in water?",
     a: "No. It is a dry pedicure: there is no water soak or foot bath. The skin and cuticles are prepared dry.",
   },

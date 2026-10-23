@@ -184,7 +184,8 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
     faq: [
       { q: "Do you use acrylic for extensions?", a: "No. Length is built with a gel tip or a sculpted gel form. No acrylic is used at any point." },
       { q: "How often do extensions need a fill?", a: "Plan a fill appointment every 2 to 3 weeks, as your natural nail grows out." },
-      { q: "Can you take off my old set?", a: "Yes. Add a removal when you book, so we have time to take it off properly." },
+      { q: "Can you take off my old set?", a: "Yes. Add a removal when you book, so we have time to take it off properly. This includes Gel-X sets: choose the Gel X removal option when you book." },
+      { q: "Do you do Gel-X nails?", a: "We no longer offer Gel-X as a separate service. The closest thing we do is the Gel Nail Extension: traditional gel extensions, where length is built with a gel tip or a sculpted gel form over your natural nail and finished with gel polish. If you want added length with a gel finish, this is the service to book. Not sure which fits your nails? Tell your technician what you like about Gel-X and she will suggest the shape and length." },
       { q: "What if something isn't right after my visit?", a: "Every set is covered by our 14-day guarantee: if something isn't right, we fix it free." },
     ],
     reviewKeywords: ["extension", "length"],
