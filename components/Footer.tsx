@@ -12,6 +12,7 @@ export default function Footer() {
             <Link href="/gel-manicure" className="hover:text-[var(--color-ink)]">Gel Manicure</Link>
             <Link href="/russian-pedicure" className="hover:text-[var(--color-ink)]">Russian Pedicure</Link>
             <Link href="/gel-nail-extensions" className="hover:text-[var(--color-ink)]">Gel Extensions</Link>
+            <Link href="/nail-salon-downtown-san-diego" className="hover:text-[var(--color-ink)]">Downtown Salon</Link>
             <Link href="/about" className="hover:text-[var(--color-ink)]">About</Link>
             <Link href="/blog" className="hover:text-[var(--color-ink)]">Blog</Link>
             <Link href="/privacy-policy" className="hover:text-[var(--color-ink)]">Privacy Policy</Link>
