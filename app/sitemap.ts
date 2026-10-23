@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.9,
     })),
+    { url: `${SITE_URL}/nail-salon-downtown-san-diego`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/blog`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE_URL}/terms`, changeFrequency: "yearly", priority: 0.2 },
