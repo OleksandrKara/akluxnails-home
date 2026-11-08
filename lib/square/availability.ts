@@ -1,5 +1,47 @@
 import { getSquareClient, locationId } from "./client";
 
+const MANAGER_SHIFT_START_HOUR = 8;
+const MANAGER_SHIFT_END_HOUR = 20;
+const CONFIRMATION_GAP_MS = 2 * 3600 * 1000;
+
+function laParts(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+  }).formatToParts(date);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  return { y: get("year"), m: get("month"), d: get("day"), h: get("hour") };
+}
+
+/** Los Angeles wall-clock time (hour 0-23) to a real instant, DST-safe. */
+function laToInstant(y: number, m: number, d: number, h: number): Date {
+  let guess = Date.UTC(y, m - 1, d, h);
+  for (let i = 0; i < 2; i++) {
+    const p = laParts(new Date(guess));
+    guess += Date.UTC(y, m - 1, d, h) - Date.UTC(p.y, p.m - 1, p.d, p.h);
+  }
+  return new Date(guess);
+}
+
+/**
+ * Managers work 08:00-20:00 PT. A booking made outside that shift may not start until two hours
+ * after the next shift opens (10:00), so someone can confirm it with the technician (2026-11-08:
+ * an overnight booking for 8:00 reached the technician only that morning). Bookings made during
+ * the shift are unrestricted here; Square's own minimum lead time still applies.
+ */
+export function earliestBookableStart(now: Date): Date {
+  const { y, m, d, h } = laParts(now);
+  if (h >= MANAGER_SHIFT_START_HOUR && h < MANAGER_SHIFT_END_HOUR) return now;
+  const nextDay = h >= MANAGER_SHIFT_END_HOUR ? 1 : 0;
+  const base = new Date(Date.UTC(y, m - 1, d + nextDay));
+  const opens = laToInstant(base.getUTCFullYear(), base.getUTCMonth() + 1, base.getUTCDate(), MANAGER_SHIFT_START_HOUR);
+  return new Date(opens.getTime() + CONFIRMATION_GAP_MS);
+}
+
 export interface SlotSegment {
   teamMemberId: string;
   serviceVariationId: string;
@@ -41,7 +83,7 @@ export async function searchAvailability(
     query: {
       filter: {
         startAtRange: {
-          startAt: now.toISOString(),
+          startAt: earliestBookableStart(now).toISOString(),
           endAt: end.toISOString(),
         },
         locationId: locationId(),
