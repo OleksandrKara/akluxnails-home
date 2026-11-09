@@ -96,9 +96,10 @@ export const SERVICE_PAGES: Record<string, ServicePageConfig> = {
     slug: "gel-manicure",
     itemNames: ["Russian Gel-Overlay Manicure", "Manicure (No Polish)"],
     menuGroupTitle: "Manicures",
-    metaTitle: "Gel Manicure in Downtown San Diego",
+    // "Russian Manicure" added 2026-11-09 (REG-83): the homepage ranks ~5.6 and /prices ~15.7 for "russian manicure san diego", the salon's main query, while this page is the Russian gel-overlay manicure itself.
+    metaTitle: "Russian Manicure & Gel Manicure in Downtown San Diego",
     metaDescription:
-      "Gel manicure with dry Russian cuticle work at AK.LUX.NAILS, 1357 Seventh Ave, Downtown San Diego. Gel only, no acrylic. Current prices, appointment length, and online booking.",
+      "Russian gel manicure with dry cuticle work at AK.LUX.NAILS, 1357 Seventh Ave, Downtown San Diego. Gel only, no acrylic. Current prices, appointment length, and online booking.",
     h1: "Gel Manicure in Downtown San Diego",
     intro: [
       "Our gel manicure is a Russian gel-overlay manicure: the cuticle and sidewall area is cleaned dry with an e-file and fine bits, then the nails are shaped and finished with a base coat, gel overlay in your color, and a top coat.",
