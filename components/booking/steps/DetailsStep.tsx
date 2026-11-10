@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { NO_SHOW_POLICY_SUMMARY, SMS_CONSENT_TEXT } from "@/lib/siteData";
 import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import type { BookingFlow } from "../useBookingFlow";
 import CancellationPolicyModal from "../CancellationPolicyModal";
 import dynamic from "next/dynamic";
+import EmailTypoHint, { useEmailTypo } from "../EmailTypoHint";
 import { emptyPhone, type PhoneState } from "@/lib/phoneState";
 import { trackClarityBookingEvent } from "@/lib/clarityBookingEvents";
 import { SALON_TZ } from "@/lib/salonTime";
@@ -88,6 +89,8 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
   const [emailAddress, setEmailAddress] = useState(flow.state.contact.emailAddress);
   const [submitting, setSubmitting] = useState(false);
   const [triedSubmit, setTriedSubmit] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const emailTypo = useEmailTypo(emailAddress, setEmailAddress, emailRef);
   const [error, setError] = useState<string | null>(null);
   const [showPolicy, setShowPolicy] = useState(false);
   const [returningCustomer, setReturningCustomer] = useState<ReturningCustomer | null>(null);
@@ -148,6 +151,7 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
     e.preventDefault();
     setTriedSubmit(true);
     if (!canSubmit || !phone.valid) return;
+    if (emailTypo.blocksSubmit()) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -282,10 +286,22 @@ export default function DetailsStep({ flow }: { flow: BookingFlow }) {
         <input
           type="email"
           placeholder="Email (optional)"
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="off"
+          spellCheck={false}
+          ref={emailRef}
           value={emailAddress}
-          onChange={(e) => setEmailAddress(e.target.value)}
+          onChange={(e) => emailTypo.onChange(e.target.value)}
+          onBlur={emailTypo.onBlur}
+          aria-describedby={emailTypo.visible ? "details-email-hint" : undefined}
           className="rounded-[var(--radius-sm)] border border-[var(--color-border)] px-3 py-2"
         />
+        {emailTypo.visible && emailTypo.suggestion ? (
+          <div className="sm:col-span-2">
+            <EmailTypoHint id="details-email-hint" suggestion={emailTypo.suggestion} onAccept={emailTypo.accept} onKeep={emailTypo.keep} />
+          </div>
+        ) : null}
       </div>
 
       {welcomeBackMessage && (

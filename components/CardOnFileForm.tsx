@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useSquareCard } from "./booking/useSquarePayments";
+import EmailTypoHint, { useEmailTypo } from "./booking/EmailTypoHint";
 import PhoneInput from "./PhoneInput";
 import { emptyPhone, type PhoneState } from "@/lib/phoneState";
 import CancellationPolicyModal from "./booking/CancellationPolicyModal";
@@ -33,6 +34,8 @@ export default function CardOnFileForm() {
   const [phone, setPhone] = useState<PhoneState>(emptyPhone());
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [email, setEmail] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
+  const emailTypo = useEmailTypo(email, setEmail, emailRef);
   const [website, setWebsite] = useState("");
   const [authorized, setAuthorized] = useState(false);
   const [showPolicy, setShowPolicy] = useState(false);
@@ -46,6 +49,7 @@ export default function CardOnFileForm() {
     e.preventDefault();
     setTriedSubmit(true);
     if (!card || !ready || submitting) return;
+    if (emailTypo.blocksSubmit()) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -178,8 +182,23 @@ export default function CardOnFileForm() {
           </div>
           <label className="block text-sm font-medium text-[var(--color-ink)]">
             Email <span className="font-normal text-[var(--color-muted-2)]">(optional)</span>
-            <input className={inputClass} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              ref={emailRef}
+              className={inputClass}
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="off"
+              spellCheck={false}
+              value={email}
+              onChange={(e) => emailTypo.onChange(e.target.value)}
+              onBlur={emailTypo.onBlur}
+              aria-describedby={emailTypo.visible ? "card-email-hint" : undefined}
+            />
           </label>
+          {emailTypo.visible && emailTypo.suggestion ? (
+            <EmailTypoHint id="card-email-hint" suggestion={emailTypo.suggestion} onAccept={emailTypo.accept} onKeep={emailTypo.keep} />
+          ) : null}
           {/* Honeypot: hidden from people and screen readers, bots tend to fill it in. */}
           <input
             type="text"
