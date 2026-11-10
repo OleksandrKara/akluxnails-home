@@ -163,7 +163,7 @@ export const NEARBY_AREAS = [
 export const LOCAL_AREA_NOTE =
   "We're in the Core-Columbia district of Downtown San Diego, about a 5-minute drive from Balboa Park.";
 
-export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://mani.akluxnails.com";
+export const BOOKING_URL = process.env.NEXT_PUBLIC_BOOKING_URL ?? "https://akluxnails.com/mani";
 
 // NailSalon (a schema.org LocalBusiness subtype) structured data — every field here is a real,
 // visible fact (name/address/phone/hours are all rendered on the page; sameAs links the business's

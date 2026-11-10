@@ -11,7 +11,7 @@ CI/CD pipeline, so a change here (a blog post, a copy edit) can never affect the
 - Next.js (App Router), design tokens ported from salonLandings for visual consistency
 - A/B variants resolved server-side in `proxy.ts` (cookie-based, no client-side localStorage)
 - Blog: file-based MDX posts under `content/blog/`
-- "Book Now" links out to mani.akluxnails.com's existing booking flow
+- "Book Now" links out to akluxnails.com/mani (the existing booking flow)
 
 ## Local development
 
