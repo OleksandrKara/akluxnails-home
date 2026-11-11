@@ -169,6 +169,13 @@ export function firstSeen(): Attribution {
   return rest;
 }
 
+/** GA4 session id from the _ga_<ID> cookie (GS1.1.<session>.<n>... or GS2.1.s<session>$o...). */
+export function gaSessionId(): string | undefined {
+  const raw = document.cookie.match(/(?:^|;\s*)_ga_[A-Z0-9]+=([^;]+)/)?.[1];
+  if (!raw) return undefined;
+  return raw.startsWith("GS2") ? raw.match(/s(\d+)/)?.[1] : raw.split(".")[2];
+}
+
 export function gaClientId(): string | undefined {
   return document.cookie.match(/(?:^|;\s*)_ga=GA\d\.\d\.(\d+\.\d+)/)?.[1];
 }

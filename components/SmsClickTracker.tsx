@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { beacon, firstTouch, gaClientId, pageTopic, pushDataLayer } from "@/lib/smsAttribution";
+import { beacon, firstTouch, gaClientId, gaSessionId, pageTopic, pushDataLayer } from "@/lib/smsAttribution";
 
 /** Every texting link on the site goes to the nails Twilio number (owner 2026-10-15), so texts
  * land in salaryReview with a traffic source. One listener for all of them (header, hero, gift
@@ -27,6 +27,7 @@ export default function SmsClickTracker() {
         topic: pageTopic(pathname).topic,
         ...firstTouch(),
         ga_client_id: gaClientId(),
+        ga_session_id: gaSessionId(),
       });
     }
     document.addEventListener("click", onClick, true);
