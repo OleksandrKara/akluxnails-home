@@ -16,6 +16,9 @@ interface Attribution {
   referrer: string | null;
   fbclid: string | null;
   gclid: string | null;
+  gbraid: string | null;
+  wbraid: string | null;
+  msclkid: string | null;
 }
 
 /** Mirrors salonLandings' classify_traffic_source exactly — a paid-click id always wins the
@@ -34,6 +37,8 @@ function classifyTrafficSource(a: Attribution | null): string {
 
   if (a.fbclid) return utmDetail ? `Meta Ads (${utmDetail})` : "Meta Ads (click)";
   if (a.gclid) return utmDetail ? `Google Ads (${utmDetail})` : "Google Ads (click)";
+  if (a.gbraid || a.wbraid) return utmDetail ? `Google Ads (${utmDetail})` : "Google Ads (click)";
+  if (a.msclkid) return utmDetail ? `Bing Ads (${utmDetail})` : "Bing Ads (click)";
   if (utmDetail) return utmDetail;
 
   const referrer = (a.referrer ?? "").toLowerCase();
@@ -58,7 +63,7 @@ interface VisitAttribution extends Attribution {
 
 /** This app never persists a tracking snapshot client-side the way salonLandings' frontend does
  * (see that repo's services/identity.py) — instead the original UTM/referrer captured at page-load
- * time (see app/page.tsx's recordPageView call) already lives in marketing.visits keyed by
+ * time (see SitePageViewTracker and /api/track/page) already lives in marketing.visits keyed by
  * visitor_id, so it's looked up here rather than plumbed through the whole booking flow. Earliest
  * row = first-touch (original_traffic_source); latest row = most recent touch
  * (marketing_traffic_source) — same first-vs-latest split salonLandings' contacts table makes,
@@ -75,9 +80,12 @@ async function fetchAttribution(
     referrer: string | null;
     fbclid: string | null;
     gclid: string | null;
+    gbraid: string | null;
+    wbraid: string | null;
+    msclkid: string | null;
     landing_path: string | null;
   }>(
-    `SELECT utm_source, utm_medium, utm_campaign, referrer, fbclid, gclid, landing_path
+    `SELECT utm_source, utm_medium, utm_campaign, referrer, fbclid, gclid, gbraid, wbraid, msclkid, landing_path
        FROM marketing.visits WHERE visitor_id = $1 ORDER BY occurred_at ASC`,
     [visitorId],
   );
@@ -89,9 +97,17 @@ async function fetchAttribution(
     referrer: r.referrer,
     fbclid: r.fbclid,
     gclid: r.gclid,
+    gbraid: r.gbraid,
+    wbraid: r.wbraid,
+    msclkid: r.msclkid,
     landingPath: r.landing_path,
   });
-  return { first: toAttr(rows[0]), latest: toAttr(rows[rows.length - 1]) };
+  // Latest touch = the latest visit that carries any source; plain inner-page visits would
+  // otherwise blank it out now that every page records a visit.
+  const sourced = [...rows].reverse().find(
+    (r) => r.utm_source || r.gclid || r.gbraid || r.wbraid || r.fbclid || r.msclkid || r.referrer,
+  );
+  return { first: toAttr(rows[0]), latest: toAttr(sourced ?? rows[rows.length - 1]) };
 }
 
 /** Denormalizes the opaque landing_page_id/variant_id (from the vid/variant cookies) into
