@@ -13,8 +13,8 @@ import { recordEvent } from "@/lib/tracking";
 // the text that follows its traffic source. The homepage's own marketing.visits row, when there is
 // one, wins over the browser-kept first touch.
 const PASS_THROUGH = [
-  "source", "path", "topic", "utm_source", "utm_medium", "utm_campaign", "gclid", "gbraid", "wbraid", "fbclid", "msclkid", "referrer",
-  "landing_path", "ga_client_id", "ga_session_id",
+  "source", "path", "topic", "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "gbraid", "wbraid", "fbclid", "msclkid", "referrer",
+  "landing_path", "landing_url", "ga_client_id", "ga_session_id",
 ] as const;
 
 export async function POST(req: Request) {
@@ -31,17 +31,17 @@ export async function POST(req: Request) {
     const metadata: Record<string, string> = { target: typeof body?.target === "string" ? body.target.slice(0, 40) : "unknown" };
     for (const k of PASS_THROUGH) {
       const v = body?.[k];
-      if (typeof v === "string" && v) metadata[k] = v.slice(0, k === "referrer" ? 500 : 200);
+      if (typeof v === "string" && v) metadata[k] = v.slice(0, k === "referrer" || k === "landing_url" ? 500 : 200);
     }
     if (metadata.target === "sms") {
       const { rows } = await getPool().query(
-        `SELECT utm_source, utm_medium, utm_campaign, gclid, fbclid, referrer, landing_path
+        `SELECT utm_source, utm_medium, utm_campaign, utm_term, utm_content, gclid, gbraid, wbraid, msclkid, fbclid, referrer, landing_path, landing_url
            FROM marketing.visits WHERE visitor_id = $1 AND business_id = $2 ORDER BY occurred_at ASC LIMIT 1`,
         [visitorId, MARKETING_BUSINESS_ID],
       );
       const first = rows[0];
-      if (first && (first.utm_source || first.gclid || first.fbclid || first.referrer)) {
-        for (const k of ["utm_source", "utm_medium", "utm_campaign", "gclid", "fbclid", "referrer", "landing_path"] as const) {
+      if (first && (first.utm_source || first.gclid || first.gbraid || first.wbraid || first.msclkid || first.fbclid || first.referrer)) {
+        for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "gclid", "gbraid", "wbraid", "msclkid", "fbclid", "referrer", "landing_path", "landing_url"] as const) {
           if (first[k]) metadata[k] = String(first[k]);
           else delete metadata[k];
         }
