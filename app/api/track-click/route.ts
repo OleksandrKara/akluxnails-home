@@ -14,7 +14,7 @@ import { recordEvent } from "@/lib/tracking";
 // one, wins over the browser-kept first touch.
 const PASS_THROUGH = [
   "source", "path", "topic", "utm_source", "utm_medium", "utm_campaign", "gclid", "gbraid", "wbraid", "fbclid", "msclkid", "referrer",
-  "landing_path", "ga_client_id",
+  "landing_path", "ga_client_id", "ga_session_id",
 ] as const;
 
 export async function POST(req: Request) {
