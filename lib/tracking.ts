@@ -9,49 +9,63 @@ export interface UtmParams {
   utmContent?: string;
   fbclid?: string;
   gclid?: string;
+  gbraid?: string;
+  wbraid?: string;
+  msclkid?: string;
 }
 
-/** Records one page view: a marketing.visits row (this visitor's touch, with UTM/referrer/device
- * context) plus a marketing.events row (page_view, tied to the resolved landing page + variant).
- * Never throws — analytics must never break the page render, matching the same guarantee
- * salonLandings' tracking_service.py makes for the mani funnel.
+/** Records one page view: a marketing.events page_view row (tied to the resolved landing page +
+ * variant, metadata = path and tracked query) and, when `visit` is set (first page of a browser
+ * session or a fresh ad click), a marketing.visits row with this visitor's touch (UTM, click ids,
+ * referrer, device context). Never throws: analytics must never break the page.
  */
 export async function recordPageView(params: {
   visitorId: string;
   landingPageId: string;
   variantId: string;
-  landingPath: string;
-  referrer: string | null;
-  utm: UtmParams;
-  /** Must be passed when called from inside after(): deriveClientContext() reads headers(),
-   * which Next.js forbids there. Until 2026-09-29 the homepage called this from after() without
-   * it, so every homepage visit since PR #75 (2026-09-04) threw and was never recorded, which in
-   * turn made every new booking's original_traffic_source fall back to "Direct / Unknown". */
+  path: string;
+  query: string;
+  visit?: {
+    landingUrl: string | null;
+    referrer: string | null;
+    visitReferrer: string | null;
+    isFirstVisit: boolean;
+    utm: UtmParams;
+  };
   clientContext?: ClientContext;
 }): Promise<void> {
   try {
     const ctx = params.clientContext ?? (await deriveClientContext());
     if (await isTrackingNoise(ctx)) return;
     const pool = getPool();
-    await pool.query(
-      `INSERT INTO marketing.visits
-         (visitor_id, landing_path, referrer, utm_source, utm_medium, utm_campaign, utm_term,
-          utm_content, fbclid, gclid, user_agent, device_type, os_name, os_version, browser_name,
-          browser_version, ip_address, business_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
-      [
-        params.visitorId, params.landingPath, params.referrer,
-        params.utm.utmSource ?? null, params.utm.utmMedium ?? null, params.utm.utmCampaign ?? null,
-        params.utm.utmTerm ?? null, params.utm.utmContent ?? null,
-        params.utm.fbclid ?? null, params.utm.gclid ?? null,
-        ctx.userAgent, ctx.deviceType, ctx.osName, ctx.osVersion, ctx.browserName, ctx.browserVersion,
-        ctx.ipAddress, MARKETING_BUSINESS_ID,
-      ],
-    );
+    const v = params.visit;
+    if (v) {
+      await pool.query(
+        `INSERT INTO marketing.visits
+           (visitor_id, landing_path, referrer, utm_source, utm_medium, utm_campaign, utm_term,
+            utm_content, fbclid, gclid, gbraid, wbraid, msclkid, landing_url, visit_referrer,
+            is_first_visit, user_agent, device_type, os_name, os_version, browser_name,
+            browser_version, ip_address, business_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)`,
+        [
+          params.visitorId, params.path, v.referrer,
+          v.utm.utmSource ?? null, v.utm.utmMedium ?? null, v.utm.utmCampaign ?? null,
+          v.utm.utmTerm ?? null, v.utm.utmContent ?? null,
+          v.utm.fbclid ?? null, v.utm.gclid ?? null,
+          v.utm.gbraid ?? null, v.utm.wbraid ?? null, v.utm.msclkid ?? null,
+          v.landingUrl, v.visitReferrer, v.isFirstVisit,
+          ctx.userAgent, ctx.deviceType, ctx.osName, ctx.osVersion, ctx.browserName, ctx.browserVersion,
+          ctx.ipAddress, MARKETING_BUSINESS_ID,
+        ],
+      );
+    }
     await pool.query(
       `INSERT INTO marketing.events (session_id, landing_page_id, variant_id, event_type, metadata, business_id)
-       VALUES ($1,$2,$3,'page_view','{}'::jsonb,$4)`,
-      [params.visitorId, params.landingPageId, params.variantId, MARKETING_BUSINESS_ID],
+       VALUES ($1,$2,$3,'page_view',$4::jsonb,$5)`,
+      [
+        params.visitorId, params.landingPageId, params.variantId,
+        JSON.stringify({ path: params.path, query: params.query }), MARKETING_BUSINESS_ID,
+      ],
     );
   } catch (err) {
     console.error("Failed to record page view", err);

@@ -1,5 +1,4 @@
 import { headers } from "next/headers";
-import { after } from "next/server";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
@@ -13,8 +12,6 @@ import HomePageV4 from "@/components/v4/HomePageV4";
 import RebookingPromoBanner from "@/components/RebookingPromoBanner";
 import RebookingPromoModal from "@/components/RebookingPromoModal";
 import { getVariantById } from "@/lib/variant";
-import { recordPageView } from "@/lib/tracking";
-import { deriveClientContext } from "@/lib/requestContext";
 import { accentPaletteToCssVars, deriveAccentPalette } from "@/lib/theme";
 import { verifyRebookingPromoSignature } from "@/lib/rebookingPromo";
 import type { CSSProperties } from "react";
@@ -31,7 +28,6 @@ export default async function HomePage({
 }) {
   const h = await headers();
   const sp = await searchParams;
-  const visitorId = h.get("x-visitor-id");
   const variantId = h.get("x-variant-id");
 
   const variant = variantId ? await getVariantById(variantId) : null;
@@ -52,53 +48,8 @@ export default async function HomePage({
     Number.isFinite(promoExpEpochSeconds) &&
     verifyRebookingPromoSignature(promoCode!, promoExpEpochSeconds, promoSignature ?? null);
 
-  // Fired via after() rather than awaited: this write's result feeds nothing in the render below,
-  // but two sequential DB round-trips (see recordPageView) were sitting directly in front of TTFB
-  // on every single homepage visit — a real, measurable contributor to the mobile LCP regression
-  // flagged by the SEO dashboard (2026-09-02, 3.3s vs Google's 2.5s 'good' bar). after() runs this
-  // once the response has already been sent, so tracking no longer delays the hero paint. All
-  // request-time values it needs (visitorId, variant, referrer, utm) are read above during render,
-  // not inside the callback — Server Components can't call headers()/searchParams() from within
-  // after() itself (see next/server docs), so everything is captured by closure instead.
-  if (visitorId && variant) {
-    const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-    const referrer = h.get("referer");
-    const utm = {
-      utmSource: first(sp.utm_source),
-      utmMedium: first(sp.utm_medium),
-      utmCampaign: first(sp.utm_campaign),
-      utmTerm: first(sp.utm_term),
-      utmContent: first(sp.utm_content),
-      fbclid: first(sp.fbclid),
-      gclid: first(sp.gclid),
-    };
-    // Links that carry no UTM tags but do say where they came from (Notion #51, 2026-10-14):
-    // Reserve with Google adds rwg_token, our own SMS promos add ?promo=CODE. Without this both
-    // land in "Direct". Saved as UTM so Marketing shows them as their own sources.
-    if (!utm.utmSource && !utm.gclid && !utm.fbclid) {
-      if (first(sp.rwg_token)) {
-        utm.utmSource = "google";
-        utm.utmMedium = "reserve_with_google";
-      } else if (promoCode) {
-        utm.utmSource = "sms";
-        utm.utmMedium = "promo";
-        utm.utmCampaign = promoCode;
-      }
-    }
-    // Also read here, not inside after(): it calls headers() (see recordPageView's clientContext).
-    const clientContext = await deriveClientContext();
-    after(() => {
-      recordPageView({
-        visitorId,
-        landingPageId: variant.landingPageId,
-        variantId: variant.variantId,
-        landingPath: "/",
-        referrer,
-        utm,
-        clientContext,
-      });
-    });
-  }
+  // Page views and visits are recorded for every page by SitePageViewTracker (app/layout.tsx)
+  // through /api/track/page, so the homepage no longer writes its own.
 
   // A variant can point at an entirely different page template instead of a content override —
   // Homepage V4 (and any later variant reusing that same template with different copy, e.g.

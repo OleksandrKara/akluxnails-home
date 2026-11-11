@@ -2,21 +2,17 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { beacon, captureFirstTouch, firstTouch, gaClientId, pageTopic, pushDataLayer } from "@/lib/smsAttribution";
+import { beacon, firstTouch, gaClientId, pageTopic, pushDataLayer } from "@/lib/smsAttribution";
 
 /** Every texting link on the site goes to the nails Twilio number (owner 2026-10-15), so texts
  * land in salaryReview with a traffic source. One listener for all of them (header, hero, gift
  * card, prepay, group booking, refer a friend, VIP, the chat button): a tap is sent to
  * /api/track-click as a `target: "sms"` click with where on the page it was (`source`, from the
  * nearest `data-track`, else "content"), the page, its topic and the visitor's first-touch
- * attribution; it also pushes `sms_click` to the dataLayer. Also captures that first touch on the
- * first page of the visit. */
+ * attribution; it also pushes `sms_click` to the dataLayer. The first touch itself is captured by
+ * SitePageViewTracker. */
 export default function SmsClickTracker() {
   const pathname = usePathname() ?? "/";
-
-  useEffect(() => {
-    captureFirstTouch();
-  }, []);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {

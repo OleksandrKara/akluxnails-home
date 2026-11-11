@@ -13,7 +13,7 @@ import { recordEvent } from "@/lib/tracking";
 // the text that follows its traffic source. The homepage's own marketing.visits row, when there is
 // one, wins over the browser-kept first touch.
 const PASS_THROUGH = [
-  "source", "path", "topic", "utm_source", "utm_medium", "utm_campaign", "gclid", "fbclid", "referrer",
+  "source", "path", "topic", "utm_source", "utm_medium", "utm_campaign", "gclid", "gbraid", "wbraid", "fbclid", "msclkid", "referrer",
   "landing_path", "ga_client_id",
 ] as const;
 

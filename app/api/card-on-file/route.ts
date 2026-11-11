@@ -6,6 +6,9 @@ import { storeCardOnFileDetailed, type SavedCardInfo } from "@/lib/square/cards"
 import { friendlyCardErrorMessage, squareErrorCode, staffCardErrorReason } from "@/lib/square/cardErrors";
 import { notifyCardOnFile } from "@/lib/telegram";
 import { CARD_AUTHORIZATION_VERSION } from "@/lib/siteData";
+import { resolveBookingIdentity } from "@/lib/bookingIdentity";
+import { recordStep1Contact } from "@/lib/marketingContacts";
+import { getDefaultLandingPageId } from "@/lib/variant";
 import { failuresForPhone, ipOverLimit, isPaused, phoneOverLimit, recordFailure } from "@/lib/cardOnFileGuard";
 
 /**
@@ -184,6 +187,19 @@ export async function POST(request: NextRequest) {
     cardType: card.cardType,
     expiry: expiry(card),
     warnings,
+  });
+
+  // The client shows up in marketing.contacts with the traffic source of their visits, like a
+  // booking does (never throws).
+  const identity = await resolveBookingIdentity(request);
+  await recordStep1Contact({
+    givenName,
+    phoneNumber: phone,
+    emailAddress: email || null,
+    squareCustomerId: customerId,
+    visitorId: identity.visitorId,
+    landingPageId: identity.landingPageId ?? (await getDefaultLandingPageId().catch(() => null)),
+    variantId: identity.variantId,
   });
 
   return NextResponse.json({ ok: true, brand: card.brand ?? null, last4: card.last4 ?? null });
