@@ -5,7 +5,8 @@ import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import BookNowButton from "@/components/BookNowButton";
 import { getCuratedMenu, type CuratedMenu } from "@/lib/square/catalog";
 import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/lib/services-config";
-import { LOCATION } from "@/lib/siteData";
+import { FAQS, faqAnswerText } from "@/lib/faq";
+import { GOOGLE_REVIEW_COUNT, GOOGLE_REVIEW_RATING, LOCATION, REVIEWS } from "@/lib/siteData";
 
 const SITE_URL = "https://akluxnails.com";
 
@@ -73,8 +74,53 @@ export default async function PricesPage() {
     ),
   };
 
+  // Blocks competitors' pages had and ours didn't (REG-43, 2026-11-16 comparison): questions with
+  // FAQPage data (same answers as the homepage, plus live-price answers) and real Google reviews.
+  const allServices = menu.groups.flatMap((g) => g.services);
+  const fromPrice = (name: string) => {
+    const item = allServices.find((s) => s.name === name);
+    return item ? Math.min(...item.variations.map((v) => v.priceCents)) : undefined;
+  };
+  const manicureFrom = fromPrice("Russian Gel-Overlay Manicure");
+  const pedicureFrom = fromPrice("Regular Pedicure Gel-Overlay (Dry)");
+  const extensionsFrom = fromPrice("Gel Nail Extension");
+  const faq = [
+    ...(manicureFrom !== undefined
+      ? [
+          {
+            q: "How much does a Russian manicure cost in Downtown San Diego?",
+            a: `A Russian gel-overlay manicure starts at ${formatPrice(manicureFrom)} at AK.LUX.NAILS, ${LOCATION.address}. The price depends on the nail artist's level, and every price is listed on this page.`,
+          },
+        ]
+      : []),
+    ...(pedicureFrom !== undefined
+      ? [
+          {
+            q: "How much is a Russian pedicure?",
+            a: `A gel-overlay pedicure (always dry, no soaking) starts at ${formatPrice(pedicureFrom)}.`,
+          },
+        ]
+      : []),
+    ...(extensionsFrom !== undefined
+      ? [
+          {
+            q: "How much do gel nail extensions cost?",
+            a: `Gel nail extensions start at ${formatPrice(extensionsFrom)}. We use gel only, no acrylic.`,
+          },
+        ]
+      : []),
+    ...FAQS.map((f) => ({ q: f.question, a: faqAnswerText(f.answer, SITE_URL) })),
+  ];
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  };
+  const reviews = REVIEWS.filter((r) => r.text.length > 60).slice(0, 3);
+
   return (
     <div className="flex min-h-screen flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       {menu.groups.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offerCatalogJsonLd) }} />
       )}
@@ -153,10 +199,46 @@ export default async function PricesPage() {
           You choose when you pick a time.
         </p>
 
-        <div className="mt-8">
+        <section className="mt-12">
+          <h2 className="text-2xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+            What clients say
+          </h2>
+          <a href={LOCATION.googleProfileUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm text-[var(--color-accent)] hover:underline">
+            {GOOGLE_REVIEW_RATING} ★ from {GOOGLE_REVIEW_COUNT} Google reviews
+          </a>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {reviews.map((r) => (
+              <figure key={r.name + r.date} className="rounded-[var(--radius-lg)] bg-[var(--color-card)] p-4 ring-1 ring-[var(--color-border)]">
+                <blockquote className="text-sm leading-relaxed text-[var(--color-ink)]">“{r.text}”</blockquote>
+                <figcaption className="mt-2 text-xs text-[var(--color-muted)]">
+                  {r.name} · Google review · {r.date}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-12">
+          <h2 className="text-2xl text-[var(--color-ink)]" style={{ fontFamily: "var(--font-heading)" }}>
+            Questions
+          </h2>
+          <div className="mt-4 divide-y divide-[var(--color-border)]">
+            {faq.map((f) => (
+              <div key={f.q} className="py-3">
+                <h3 className="text-base font-medium text-[var(--color-ink)]">{f.q}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-[var(--color-muted)]">{f.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="mt-8 flex flex-wrap items-center gap-4">
           <BookNowButton className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]">
             Book Online
           </BookNowButton>
+          <a href={LOCATION.mapsUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-[var(--color-accent)] hover:underline">
+            Get directions
+          </a>
         </div>
       </main>
       <SiteFooter />
