@@ -79,6 +79,13 @@ export default async function BlogPostPage({
       <SiteHeader />
       <BlogHero title={post.title} date={post.date} updated={post.updated} tags={post.tags} image={post.heroImage} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12 sm:px-6">
+        <div className="not-prose mb-8 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-lg)] bg-[var(--color-card)] px-5 py-4 ring-1 ring-[var(--color-border)]">
+          <p className="text-sm text-[var(--color-ink)]">Ready to book? Pick a service and a time online.</p>
+          <BookNowButton className="inline-block rounded-[var(--radius-pill)] bg-[var(--color-accent)] px-5 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-accent-hover)]">
+            Book Your Appointment
+          </BookNowButton>
+        </div>
+
         <article className="prose prose-neutral max-w-none">
           <BlogPhotoLightbox>
             <MDXRemote
