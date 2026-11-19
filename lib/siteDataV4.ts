@@ -44,7 +44,7 @@ export const V4_VALUE_PROPS = [
 
 export const V4_GUARANTEE_HEADLINE = "The 14-Day Satisfaction Guarantee";
 export const V4_GUARANTEE_BODY =
-  "If a qualifying issue comes up with your set within 14 days of your appointment, bring it back and we'll fix it — no argument, no hassle.";
+  "If a qualifying issue comes up with your set within 14 days of your appointment, bring it back and we'll fix it. Covers workmanship and product issues; does not cover natural wear or client-caused damage.";
 
 export const V4_REFERRAL_HEADLINE = "Refer a Friend";
 export const V4_REFERRAL_BODY = "Send a friend our way: you get 10% off your next visit, and they get 15% off theirs.";

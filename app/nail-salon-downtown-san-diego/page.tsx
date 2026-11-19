@@ -63,7 +63,7 @@ const FAQ = [
   },
   {
     q: "What if something isn't right after my visit?",
-    a: "Every service is covered by our 14-day guarantee: if something isn't right, we fix it free.",
+    a: "Every service is covered by our 14-day guarantee: if there is a workmanship or product issue, we fix it free. Natural wear and client-caused damage are not covered.",
   },
   {
     q: "How do I book?",

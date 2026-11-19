@@ -43,7 +43,7 @@ export const CREDIBILITY_STATS = [
 export const TRUST_POINTS = [
   { no: "01", title: "No acrylics, ever", desc: "Hard gel & gel polish only — kinder to your natural nails." },
   { no: "02", title: "Russian cuticle work", desc: "Precise dry-cuticle technique for a clean, flawless finish." },
-  { no: "03", title: "2-week guarantee", desc: "Not happy? We fix it free within 14 days." },
+  { no: "03", title: "2-week guarantee", desc: "Workmanship issue? We fix it free within 14 days. Excludes natural wear and client-caused damage." },
   { no: "04", title: "Clean & hygienic", desc: "Sanitized tools and careful standards every single visit." },
 ];
 
@@ -185,7 +185,7 @@ export function getLocalBusinessJsonLd(siteUrl: string) {
     description:
       "Russian manicure studio in Downtown San Diego: Russian (dry, e-file) gel manicures, Russian pedicures, " +
       "gel nail extensions without acrylic, Japanese manicures and nail design. Tools sterilized after every client, " +
-      "2-week fix guarantee, open daily 8am to 9pm.",
+      "2-week fix guarantee (excludes natural wear and client-caused damage), open daily 8am to 9pm.",
     knowsAbout: ["Russian manicure", "Russian pedicure", "Gel nail extensions", "Japanese manicure", "Nail art"],
     image: `${siteUrl}/images/logo.png`,
     url: siteUrl,
@@ -246,7 +246,7 @@ export const NO_SHOW_POLICY_SUMMARY =
 // body (rather than one paragraph) so it reads as a scannable badge, not body copy nobody stops
 // to read.
 export const CARD_STEP_GUARANTEE_HEADLINE = "14-Day Guarantee";
-export const CARD_STEP_GUARANTEE_BODY = "Not happy? We'll fix it free — no hassle.";
+export const CARD_STEP_GUARANTEE_BODY = "Workmanship or product issue? We'll fix it free. Excludes natural wear and client-caused damage.";
 
 // Verbatim from salonLandings' designCopy.ts — the same policy text and SMS consent language
 // already in use (and legally reviewed) for the mani funnel's booking flow.
@@ -265,8 +265,9 @@ At AK.LUX.NAILS, we take great pride in the quality of our work and stand behind
 • We strongly encourage clients to communicate their preferences during the appointment to ensure the desired result.
 
 If you are not fully satisfied:
-• You must notify us within 48 hours of your appointment.
-• We offer a complimentary fix within 14 days.
+• You must notify us within 48 hours of noticing the issue, and always within 14 days of the appointment.
+• We offer a complimentary fix within 14 days for issues caused by our work, products or technique, such as lifting, peeling or early chipping at the edges.
+• The guarantee does not cover natural wear, or damage caused by the client, such as scratching, rubbing, catching or breaking a nail, or normal growth-out.
 
 Refunds will not be issued for dissatisfaction after the service has been completed.
 
@@ -284,7 +285,7 @@ export const SMS_CONSENT_TEXT =
 // Standalone card-on-file page (akluxnails.com/card, 2026-10-01). The exact words the client
 // agrees to; the version is written into the Square customer note with each authorization, so if
 // this text ever changes, bump the version too.
-export const CARD_AUTHORIZATION_VERSION = "2026-10-01";
+export const CARD_AUTHORIZATION_VERSION = "2026-11-19";
 export const CARD_AUTHORIZATION_TEXT =
   "I authorize AK.LUX.NAILS to keep this card securely on file with Square and to charge it only " +
   "for a $25 fee if I miss an appointment or cancel with less than 24 hours' notice, as described in " +
