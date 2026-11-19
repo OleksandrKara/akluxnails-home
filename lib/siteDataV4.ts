@@ -12,7 +12,7 @@ export const V4_HEADLINE_LINE_3 = "You just found one.";
 export const V4_BADGE = "Downtown San Diego's Russian manicure studio";
 export const V4_SUBHEAD =
   "Russian manicure specialists in Downtown San Diego. Precision cuticle work, premium non-toxic gels, and a calm, modern studio — nail health first, always.";
-export const V4_PROMO_MICRO = "14-day guarantee · book online in seconds";
+export const V4_PROMO_MICRO = "14-day guarantee* · book online in seconds";
 
 export const V4_WHY_CHOOSE_US = [
   { title: "Russian Manicure specialists", desc: "Precise dry-cuticle technique, trained in the method — not a generic gel manicure." },
@@ -42,9 +42,11 @@ export const V4_VALUE_PROPS = [
   { title: "A genuinely luxury experience", desc: "From the studio to the service, every detail is considered." },
 ];
 
+export const V4_PROMO_FINE = "*Guarantee covers workmanship and product issues. Natural wear and client-caused damage are not covered.";
+
 export const V4_GUARANTEE_HEADLINE = "The 14-Day Satisfaction Guarantee";
 export const V4_GUARANTEE_BODY =
-  "If a qualifying issue comes up with your set within 14 days of your appointment, bring it back and we'll fix it. Covers workmanship and product issues; does not cover natural wear or client-caused damage.";
+  "If a qualifying issue comes up with your set within 14 days of your appointment, bring it back and we'll fix it.";
 
 export const V4_REFERRAL_HEADLINE = "Refer a Friend";
 export const V4_REFERRAL_BODY = "Send a friend our way: you get 10% off your next visit, and they get 15% off theirs.";

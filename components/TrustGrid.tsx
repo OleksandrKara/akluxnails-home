@@ -16,6 +16,7 @@ export default function TrustGrid() {
             <div>
               <h3 className="font-medium text-[var(--color-ink)]">{t.title}</h3>
               <p className="mt-1 text-sm text-[var(--color-muted)]">{t.desc}</p>
+              {t.fine && <p className="mt-1 text-[11px] leading-snug text-[var(--color-muted)] opacity-70">{t.fine}</p>}
             </div>
           </div>
         ))}

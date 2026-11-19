@@ -40,10 +40,12 @@ export const CREDIBILITY_STATS = [
   { value: "100%", label: "acrylic-free" },
 ];
 
-export const TRUST_POINTS = [
+export const GUARANTEE_FINE_PRINT = "Covers workmanship and product issues. Does not cover natural wear or client-caused damage.";
+
+export const TRUST_POINTS: { no: string; title: string; desc: string; fine?: string }[] = [
   { no: "01", title: "No acrylics, ever", desc: "Hard gel & gel polish only — kinder to your natural nails." },
   { no: "02", title: "Russian cuticle work", desc: "Precise dry-cuticle technique for a clean, flawless finish." },
-  { no: "03", title: "2-week guarantee", desc: "Workmanship issue? We fix it free within 14 days. Excludes natural wear and client-caused damage." },
+  { no: "03", title: "2-week guarantee", desc: "Not happy? We fix it free within 14 days.", fine: GUARANTEE_FINE_PRINT },
   { no: "04", title: "Clean & hygienic", desc: "Sanitized tools and careful standards every single visit." },
 ];
 
@@ -246,7 +248,7 @@ export const NO_SHOW_POLICY_SUMMARY =
 // body (rather than one paragraph) so it reads as a scannable badge, not body copy nobody stops
 // to read.
 export const CARD_STEP_GUARANTEE_HEADLINE = "14-Day Guarantee";
-export const CARD_STEP_GUARANTEE_BODY = "Workmanship or product issue? We'll fix it free. Excludes natural wear and client-caused damage.";
+export const CARD_STEP_GUARANTEE_BODY = "Not happy? We'll fix it free.";
 
 // Verbatim from salonLandings' designCopy.ts — the same policy text and SMS consent language
 // already in use (and legally reviewed) for the mani funnel's booking flow.
