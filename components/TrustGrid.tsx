@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TRUST_POINTS } from "@/lib/siteData";
 
 export default function TrustGrid() {
@@ -18,7 +19,7 @@ export default function TrustGrid() {
               <p className="mt-1 text-sm text-[var(--color-muted)]">{t.desc}</p>
               {t.fine && (
                 <p className="mt-1 text-[11px] leading-snug text-[var(--color-muted)]">
-                  <a href="/blog/2-week-guarantee-explained" className="underline underline-offset-2 opacity-80 hover:opacity-100">Guarantee terms</a>
+                  <Link href="/blog/2-week-guarantee-explained" className="underline underline-offset-2 opacity-80 hover:opacity-100">Guarantee terms</Link>
                 </p>
               )}
             </div>
