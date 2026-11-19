@@ -66,7 +66,7 @@ Rated ${GOOGLE_REVIEW_RATING} on Google from ${GOOGLE_REVIEW_COUNT} reviews: ${L
 ${REVIEWS.map((r) => `> "${r.text}" (${r.name}, Google review, ${r.date})`).join("\n\n")}
 
 ## Why clients choose us
-${TRUST_POINTS.map((t) => `- ${t.title}: ${t.desc}${t.fine ? " " + t.fine : ""}`).join("\n")}
+${TRUST_POINTS.map((t) => `- ${t.title}: ${t.desc}${t.fine ? " Terms: https://akluxnails.com/blog/2-week-guarantee-explained" : ""}`).join("\n")}
 
 ## Services in detail
 ${Object.values(SERVICE_PAGES)

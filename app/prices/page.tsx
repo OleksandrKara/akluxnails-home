@@ -131,7 +131,8 @@ export default async function PricesPage() {
         </h1>
         <p className="mt-3 text-base text-[var(--color-muted)]">
           Current prices at AK.LUX.NAILS, {LOCATION.address}. Gel only, no acrylic on any service.
-          Manicures, pedicures, and extensions come with our 14-day guarantee (workmanship and product issues; natural wear and client-caused damage are not covered).
+          Manicures, pedicures, and extensions come with our 14-day guarantee{" "}
+          (<Link href="/blog/2-week-guarantee-explained" className="underline underline-offset-2">terms</Link>).
         </p>
 
         {menu.groups.length === 0 && (

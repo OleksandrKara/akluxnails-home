@@ -7,7 +7,7 @@ import { FOUR_HANDS_DISPLAY_PRICE_CENTS, FOUR_HANDS_REQUEST_ITEM_NAME } from "@/
 import { useSquareCard } from "../useSquarePayments";
 import { friendlyTokenizeErrorMessage } from "@/lib/square/tokenizeErrors";
 import ShieldCheckIcon from "@/components/icons/ShieldCheckIcon";
-import { GUARANTEE_FINE_PRINT, CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE } from "@/lib/siteData";
+import { CARD_STEP_GUARANTEE_BODY, CARD_STEP_GUARANTEE_HEADLINE } from "@/lib/siteData";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import { SALON_TZ } from "@/lib/salonTime";
 
@@ -161,7 +161,8 @@ function SecureAppointmentCard({
           security ask instead of competing with it for attention. */}
       <p className="mt-3 text-xs text-[var(--color-muted)]">
         <strong className="text-[var(--color-accent-dark)]">{CARD_STEP_GUARANTEE_HEADLINE}:</strong> {CARD_STEP_GUARANTEE_BODY}
-        <span className="mt-1 block text-[11px] leading-snug opacity-70">{GUARANTEE_FINE_PRINT}</span>
+        {" "}
+        <a href="/blog/2-week-guarantee-explained" target="_blank" rel="noopener" className="whitespace-nowrap text-[11px] underline underline-offset-2 opacity-70 hover:opacity-100">Guarantee terms</a>
       </p>
     </div>
   );
