@@ -1,4 +1,5 @@
 import { V4_GUARANTEE_HEADLINE, V4_GUARANTEE_BODY } from "@/lib/siteDataV4";
+import { GUARANTEE_TERMS_HREF } from "@/lib/siteDataV4";
 import FadeUp from "./FadeUp";
 
 export default function GuaranteeV4() {
@@ -15,6 +16,9 @@ export default function GuaranteeV4() {
           {V4_GUARANTEE_HEADLINE}
         </h2>
         <p className="mx-auto mt-5 max-w-lg text-[var(--color-muted)]">{V4_GUARANTEE_BODY}</p>
+        <p className="mx-auto mt-3 text-xs text-[var(--color-muted)]">
+          <a href={GUARANTEE_TERMS_HREF} className="underline underline-offset-2 opacity-80 hover:opacity-100">Guarantee terms</a>
+        </p>
       </FadeUp>
     </section>
   );

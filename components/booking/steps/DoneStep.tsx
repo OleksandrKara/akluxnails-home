@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 import type { BookingFlow } from "../useBookingFlow";
 import { googleCalendarUrl, icsDataUrl } from "../calendarLinks";
@@ -161,6 +163,8 @@ function SecureAppointmentCard({
           security ask instead of competing with it for attention. */}
       <p className="mt-3 text-xs text-[var(--color-muted)]">
         <strong className="text-[var(--color-accent-dark)]">{CARD_STEP_GUARANTEE_HEADLINE}:</strong> {CARD_STEP_GUARANTEE_BODY}
+        {" "}
+        <Link href="/blog/2-week-guarantee-explained" target="_blank" rel="noopener" className="whitespace-nowrap text-[11px] underline underline-offset-2 opacity-70 hover:opacity-100">Guarantee terms</Link>
       </p>
     </div>
   );

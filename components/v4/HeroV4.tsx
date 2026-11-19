@@ -7,6 +7,8 @@ import {
   V4_BADGE,
   V4_SUBHEAD,
   V4_PROMO_MICRO,
+  V4_PROMO_MICRO_TAIL,
+  GUARANTEE_TERMS_HREF,
 } from "@/lib/siteDataV4";
 
 /** Closely mirrors svitnail.com's actual hero: full-bleed photo with a dark overlay for
@@ -82,7 +84,16 @@ export default function HeroV4({
 
         <div className="mt-8 flex items-center gap-3 text-[11px] font-bold tracking-[0.1em] text-white/70 uppercase">
           <span className="h-px w-8 bg-white/40" />
-          {V4_PROMO_MICRO}
+          <span>
+            {V4_PROMO_MICRO}{" "}
+            <a
+              href={GUARANTEE_TERMS_HREF}
+              className="font-medium tracking-normal text-white/60 normal-case underline decoration-white/30 underline-offset-2 hover:text-white/90"
+            >
+              terms
+            </a>{" "}
+            · {V4_PROMO_MICRO_TAIL}
+          </span>
         </div>
       </div>
 

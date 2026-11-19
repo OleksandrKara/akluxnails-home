@@ -25,7 +25,7 @@ export const FAQS: FaqItem[] = [
   {
     question: "What if I'm not happy with my manicure?",
     answer: {
-      before: "Let us know within 48 hours and we'll fix it free within 14 days of your appointment — no argument, no hassle. See our ",
+      before: "If it's a workmanship or product issue (lifting, peeling, early chipping at the edges), let us know within 48 hours of noticing it and we'll fix it free within 14 days of your appointment. Natural wear and client-caused damage are not covered. See our ",
       link: { href: "/blog/2-week-guarantee-explained", label: "full guarantee policy" },
       after: " for exactly how it works.",
     },
