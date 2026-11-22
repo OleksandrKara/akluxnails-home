@@ -101,7 +101,7 @@ export const TRAINING = {
     },
     {
       q: "When is the next course?",
-      a: "Send us a text. Anastasia, our course curator, handles enrollment: she tells you the next date and the places that are open and sends the enrollment agreement.",
+      a: "Send us a text. Anastasia, our course curator, answers your questions and helps you enroll: she tells you the next date and the places that are open and sends the enrollment agreement.",
     },
   ],
 } as const;
