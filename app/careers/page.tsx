@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: CAREERS.metaTitle,
   description: CAREERS.metaDescription,
   alternates: { canonical: `/${CAREERS.slug}` },
-  openGraph: { title: CAREERS.metaTitle, description: CAREERS.metaDescription, url: `/${CAREERS.slug}`, images: [{ url: "/images/careers/studio-front.jpg" }] },
+  openGraph: { title: CAREERS.metaTitle, description: CAREERS.metaDescription, url: `/${CAREERS.slug}`, images: [{ url: "/images/careers/studio-front-warm.jpg" }] },
 };
 
 const heading = { fontFamily: "var(--font-heading)" } as const;
@@ -94,7 +94,7 @@ export default function Page() {
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/careers/studio-front.jpg"
+            src="/images/careers/studio-front-warm.jpg"
             alt="The AK.LUX.NAILS studio in Downtown San Diego: a bright room with the AK.LUX.NAILS sign and copper pendant lamps"
             width={1100}
             height={1467}
@@ -197,7 +197,7 @@ export default function Page() {
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/careers/studio-lounge.jpg"
+            src="/images/careers/studio-lounge-warm.jpg"
             alt="The AK.LUX.NAILS waiting area with two white armchairs, plants and tall windows"
             width={1100}
             height={1467}
