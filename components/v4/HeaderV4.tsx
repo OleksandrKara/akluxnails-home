@@ -16,6 +16,7 @@ const NAV_LINKS = [
   { href: "#why-choose-us", label: "Why Us" },
   { href: "#reviews", label: "Reviews" },
   { href: "#gift-cards", label: "Gift Cards" },
+  { href: "/russian-manicure-course", label: "Training" },
   { href: "#location", label: "Location" },
 ];
 
@@ -147,7 +148,7 @@ export default function HeaderV4({
           </Link>
 
           <nav
-            className="hidden flex-1 items-center justify-center gap-6 whitespace-nowrap text-xs font-bold tracking-[0.12em] text-white/85 uppercase lg:flex"
+            className="hidden flex-1 items-center justify-center gap-4 whitespace-nowrap text-xs font-bold tracking-[0.12em] text-white/85 uppercase lg:flex xl:gap-6"
             style={{ fontFamily: "var(--font-body)" }}
           >
             {NAV_LINKS.map((link) => (
@@ -180,7 +181,7 @@ export default function HeaderV4({
 
       <div
         className={`relative z-10 mx-4 overflow-hidden transition-[max-height,opacity] duration-300 lg:hidden ${
-          menuOpen ? "mt-2 max-h-96 opacity-100" : "max-h-0 opacity-0"
+          menuOpen ? "mt-2 max-h-[34rem] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <nav
