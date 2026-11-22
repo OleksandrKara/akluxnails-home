@@ -18,11 +18,14 @@ export const TRAINING = {
     "A 3-day course for people who have never done nails. You learn Russian (dry, e-file) manicure at AK.LUX.NAILS, our working nail studio in Downtown San Diego. We start with the basics: what goes where, and why. Then you practice, first on mock shells, then on two live models.",
     "You finish with a Certificate of Completion. For 1 month after the course you can ask us questions and send your work for feedback.",
   ],
-  facts: [
-    { label: "Length", value: "3 days, in person" },
-    { label: "Price", value: "$2,470" },
-    { label: "Deposit", value: "$1,000 saves your spot" },
-    { label: "Experience", value: "None needed" },
+  chips: ["3 days", "In person, San Diego", "Beginners", "Certificate"],
+  priceNote: "A $1,000 deposit saves your spot. The rest is paid two weeks before the course.",
+  included: [
+    "3 days of training in our working nail studio",
+    "Practice on mock shells and two live models",
+    "Photos for your portfolio",
+    "Certificate of Completion",
+    "1 month of questions and feedback after the course",
   ],
   days: [
     {
@@ -98,7 +101,7 @@ export const TRAINING = {
     },
     {
       q: "When is the next course?",
-      a: "Send us a text and we will tell you the next date and the places that are open.",
+      a: "Send us a text. Anastasia, our course curator, handles enrollment: she tells you the next date and the places that are open and sends the enrollment agreement.",
     },
   ],
 } as const;
