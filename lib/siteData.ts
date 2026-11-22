@@ -138,6 +138,7 @@ export const LOCATION = {
   // goes to the Twilio number (SMS_NUMBER, owner 2026-10-15) so texts land in salaryReview with
   // their traffic source (components/SmsClickTracker.tsx).
   smsHref: `sms:${SMS_NUMBER}?&body=Hi!%20I%20have%20a%20question%20for%20AK.LUX.NAILS.%20`,
+  trainingSmsHref: `sms:${SMS_NUMBER}?&body=Hi!%20I%20have%20a%20question%20about%20the%20Russian%20manicure%20course.`,
   groupBookingSmsHref:
     `sms:${SMS_NUMBER}?&body=Hi!%20I%27d%20like%20to%20book%20for%20a%20group%20at%20AK.LUX.NAILS.%20We%20are%20___%20people%2C%20looking%20for%20___.`,
   giftCardSmsHref:
