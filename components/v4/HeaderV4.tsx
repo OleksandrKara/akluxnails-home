@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { href: "#gift-cards", label: "Gift Cards" },
   { href: "/russian-manicure-course", label: "Training" },
   { href: "#location", label: "Location" },
+  { href: "/careers", label: "Careers" },
 ];
 
 function MenuIcon({ open }: { open: boolean }) {
