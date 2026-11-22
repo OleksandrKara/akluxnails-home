@@ -86,7 +86,9 @@ export function PaymentBreakdown() {
       </div>
       <div className="mt-4 rounded-[var(--radius-md)] bg-[var(--color-accent-tint-2)] p-4">
         <p className="text-sm text-[var(--color-ink)]">
-          Or pay over time: as low as <strong className="text-lg">${klarnaMonthly(p.total).toFixed(2)}/mo</strong>* with Klarna
+          Or pay over time: as low as <strong className="text-lg">${klarnaMonthly(p.total).toFixed(2)}/mo</strong>* with{" "}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/training/klarna-badge.svg" alt="Klarna" width={45} height={19} className="inline-block h-[19px] w-auto align-[-4px]" />
         </p>
         <p className="mt-1 text-xs text-[var(--color-muted)]">Payment plans are available with {p.options.join(", ")}.</p>
       </div>
@@ -116,15 +118,23 @@ export function Objections() {
 }
 
 /** Questions as a native accordion (no script): the first one open, every answer one tap away. */
-export function FaqAccordion() {
+export function FaqAccordion({
+  items = TRAINING.faq,
+  eyebrow = "Questions",
+  title = "Everything about the course",
+}: {
+  items?: ReadonlyArray<{ readonly q: string; readonly a: string }>;
+  eyebrow?: string;
+  title?: string;
+} = {}) {
   return (
     <section className="mt-20" aria-labelledby="faq-title">
-      <Eyebrow>Questions</Eyebrow>
+      <Eyebrow>{eyebrow}</Eyebrow>
       <h2 id="faq-title" className={`mt-1 ${h2}`} style={heading}>
-        Everything about the course
+        {title}
       </h2>
       <div className="mt-6 divide-y divide-[var(--color-border)] overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-card)] ring-1 ring-[var(--color-border)]">
-        {TRAINING.faq.map((f, i) => (
+        {items.map((f, i) => (
           <details key={f.q} open={i === 0} className="group px-5 py-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-medium text-[var(--color-ink)] [&::-webkit-details-marker]:hidden">
               {f.q}
