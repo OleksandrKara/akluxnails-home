@@ -15,6 +15,7 @@ import {
   YELP_URL,
 } from "@/lib/siteData";
 import { SERVICE_PAGES } from "@/lib/servicePages";
+import { TRAINING } from "@/lib/trainingCourse";
 import { FAQS, faqAnswerText } from "@/lib/faq";
 import { getAllPosts } from "@/lib/blog";
 
@@ -92,6 +93,7 @@ ${FAQS.map((f) => `### ${f.question}\n${faqAnswerText(f.answer, SITE_URL)}`).joi
 ${Object.values(SERVICE_PAGES)
   .map((p) => `- [${p.h1}](${SITE_URL}/${p.slug})`)
   .join("\n")}
+- [${TRAINING.title}](${SITE_URL}/${TRAINING.slug}): 3-day beginner course, ${TRAINING.price}, not a state licensing program
 - [What is a Russian manicure?](${SITE_URL}/blog/russian-manicure-explained)
 - [Why we never use acrylic](${SITE_URL}/blog/no-acrylics-nail-health)
 - [The 14-day guarantee](${SITE_URL}/blog/2-week-guarantee-explained)
