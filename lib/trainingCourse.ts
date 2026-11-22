@@ -2,7 +2,7 @@
  * The Russian manicure course (owner request 2026-11-22), taught at the studio. Every fact here
  * comes from the owner's own course outline. It is a skills course, not a state licensing
  * program, and the page says so plainly (California requires a Board of Barbering and Cosmetology
- * license to work on paying clients). The program is run by Anna Kara's Permanent Makeup Academy
+ * license to work on paying clients). The program is offered by Anna Kara's Brow Studio LLC
  * (BPPE exemption 94874(f): every program is $2,500 or less), so the price here must stay at or
  * below $2,500 and match the Academy's own course list.
  */

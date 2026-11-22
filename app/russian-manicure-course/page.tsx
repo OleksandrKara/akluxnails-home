@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import ReviewsSection from "@/components/ReviewsSection";
 import TrainingCarousel from "@/components/training/TrainingCarousel";
-import { EnrollmentSteps, Eyebrow, FaqAccordion, Objections, PaymentBreakdown } from "@/components/training/TrainingBlocks";
+import { Check, EnrollmentSteps, Eyebrow, FaqAccordion, Objections, PaymentBreakdown } from "@/components/training/TrainingBlocks";
 import { BUSINESS_HOURS, LOCATION } from "@/lib/siteData";
 import { TRAINING } from "@/lib/trainingCourse";
 
@@ -55,10 +55,17 @@ export default function Page() {
           {TRAINING.title}
         </h1>
 
+        <p className="mt-3 text-base text-[var(--color-ink-soft)]">
+          <strong className="font-medium text-[var(--color-ink)]">{TRAINING.price}</strong> · 3 days in person · Certificate of Completion
+        </p>
+
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,520px)_1fr] lg:gap-12">
-          <div className="lg:sticky lg:top-32 lg:self-start">
-            <TrainingCarousel photos={photos} />
-            <p className="mt-2 text-center text-xs text-[var(--color-muted-2)]">Student work on live models.</p>
+          <div className="flex flex-col gap-5">
+            <div>
+              <TrainingCarousel photos={photos} />
+              <p className="mt-2 text-center text-xs text-[var(--color-muted-2)]">Student work on live models.</p>
+            </div>
+            <PaymentBreakdown />
           </div>
           <div>
             <div className="rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-5 ring-1 ring-[var(--color-border)] sm:p-7" data-track="training">
@@ -66,9 +73,10 @@ export default function Page() {
                 {TRAINING.price}
               </p>
               <p className="mt-1 text-sm leading-snug text-[var(--color-muted)]">{TRAINING.priceNote}</p>
-              <ul className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-wide text-[var(--color-ink-soft)]">
+              <ul className="mt-4 grid grid-cols-2 gap-2 text-sm text-[var(--color-ink-soft)]">
                 {TRAINING.chips.map((c) => (
-                  <li key={c} className="rounded-full bg-[var(--color-card)] px-3 py-1.5 ring-1 ring-[var(--color-border)]">
+                  <li key={c} className="flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-card)] px-3 py-2 ring-1 ring-[var(--color-border)]">
+                    <Check />
                     {c}
                   </li>
                 ))}
@@ -90,30 +98,38 @@ export default function Page() {
             <h2 className="mt-8 text-xl text-[var(--color-ink)]" style={heading}>
               What is included
             </h2>
-            <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[var(--color-muted)]">
+            <ul className="mt-3 space-y-2 text-[var(--color-muted)]">
               {TRAINING.included.map((i) => (
-                <li key={i}>{i}</li>
+                <li key={i} className="flex gap-2.5">
+                  <Check />
+                  <span>{i}</span>
+                </li>
               ))}
             </ul>
             <p className="mt-3 text-sm text-[var(--color-muted-2)]">{TRAINING.notIncluded}</p>
           </div>
         </div>
 
-        <section className="mt-16" aria-labelledby="learn-title">
+        <section className="mt-20" aria-labelledby="learn-title">
           <Eyebrow>The program</Eyebrow>
           <h2 id="learn-title" className="mt-1 text-2xl text-[var(--color-ink)] sm:text-3xl" style={heading}>
             What you learn in 3 days
           </h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             {TRAINING.days.map((d) => {
               const [day, ...rest] = d.title.split(": ");
               return (
-                <div key={d.title} className="rounded-[var(--radius-lg)] bg-[var(--color-card)] p-5 ring-1 ring-[var(--color-border)]">
-                  <p className="text-3xl text-[var(--color-accent)]" style={heading}>{day}</p>
-                  <h3 className="mt-1 text-base font-medium text-[var(--color-ink)]">{rest.join(": ")}</h3>
-                  <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-[var(--color-muted)]">
+                <div key={d.title} className="flex flex-col overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-card)] ring-1 ring-[var(--color-border)]">
+                  <div className="bg-[var(--color-accent-tint-2)] px-5 py-4 sm:px-6">
+                    <p className="text-3xl text-[var(--color-accent)]" style={heading}>{day}</p>
+                    <h3 className="mt-1 text-base font-medium leading-snug text-[var(--color-ink)]">{rest.join(": ")}</h3>
+                  </div>
+                  <ul className="space-y-2.5 px-5 py-5 text-sm text-[var(--color-muted)] sm:px-6">
                     {d.points.map((p) => (
-                      <li key={p}>{p}</li>
+                      <li key={p} className="flex gap-2">
+                        <Check />
+                        <span>{p}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -123,9 +139,8 @@ export default function Page() {
         </section>
 
         <EnrollmentSteps />
-        <PaymentBreakdown />
 
-        <section className="mt-16 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-border)]" aria-labelledby="license-title">
+        <section className="mt-20 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-border)] sm:p-8" aria-labelledby="license-title">
           <h2 id="license-title" className="text-xl text-[var(--color-ink)]" style={heading}>
             Before you enroll
           </h2>
@@ -135,9 +150,9 @@ export default function Page() {
 
         <Objections />
 
-        <section className="mt-16 grid items-center gap-6 sm:grid-cols-[240px_1fr]">
+        <section className="mt-20 grid items-center gap-6 sm:grid-cols-[260px_1fr] sm:gap-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={TRAINING.graduate.src} alt={TRAINING.graduate.alt} loading="lazy" decoding="async" className="aspect-[3/4] w-full rounded-lg object-cover" />
+          <img src={TRAINING.graduate.src} alt={TRAINING.graduate.alt} loading="lazy" decoding="async" className="aspect-[3/4] w-full rounded-[var(--radius-lg)] object-cover ring-1 ring-[var(--color-border)]" />
           <div>
             <h2 className="text-2xl text-[var(--color-ink)] sm:text-3xl" style={heading}>
               After the course
@@ -152,7 +167,24 @@ export default function Page() {
 
         <FaqAccordion />
 
-        <section className="mt-16 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-border)]" data-track="training">
+        <section className="mt-20 rounded-[var(--radius-lg)] bg-[var(--color-accent-tint-2)] p-6 text-center ring-1 ring-[var(--color-border)] sm:p-10" data-track="training" aria-labelledby="cta-title">
+          <h2 id="cta-title" className="text-2xl text-[var(--color-ink)] sm:text-3xl" style={heading}>
+            Ready to start from zero?
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-base text-[var(--color-muted)]">
+            Send us a text. Anastasia, our course curator, tells you the next date, answers your questions and helps you enroll.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <a href={LOCATION.trainingSmsHref} className={buttonClass}>
+              Text us about the course
+            </a>
+            <a href={LOCATION.phoneHref} className="inline-block rounded-[var(--radius-pill)] px-6 py-3 text-sm font-medium text-[var(--color-accent)] ring-1 ring-[var(--color-accent)] hover:bg-[var(--color-card)]">
+              Call {LOCATION.phone}
+            </a>
+          </div>
+        </section>
+
+        <section className="mt-12 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-border)]" data-track="training">
           <h2 className="text-xl text-[var(--color-ink)]" style={heading}>
             Where we teach
           </h2>
