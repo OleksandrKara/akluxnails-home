@@ -60,7 +60,7 @@ function MenuIcon({ open }: { open: boolean }) {
  * the button group, regardless of how wide either of those is, rather than just being whatever's
  * left over after a plain justify-between (which does not guarantee that).
  *
- * On mobile the inline nav (desktop-only, lg:flex; below 1024px the six links no longer fit on one line) is replaced by a hamburger button next to a
+ * On mobile the inline nav (desktop-only, xl:flex; below 1280px the eight links no longer fit on one line) is replaced by a hamburger button next to a
  * Book Now button — previously there was no way at all to reach these links on a phone. The
  * hamburger opens a dropdown panel with the same links; Book Now already sits right next to the
  * hamburger at all times, so repeating it inside the panel too would be redundant — instead the
@@ -120,7 +120,7 @@ export default function HeaderV4({
           the topbar/panel below, which both get relative+z-10 to stay clickable above it. */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-black/40 lg:hidden"
+          className="fixed inset-0 bg-black/40 xl:hidden"
           onClick={closeMenu}
           aria-hidden
         />
@@ -149,7 +149,7 @@ export default function HeaderV4({
           </Link>
 
           <nav
-            className="hidden flex-1 items-center justify-center gap-4 whitespace-nowrap text-xs font-bold tracking-[0.12em] text-white/85 uppercase lg:flex xl:gap-6"
+            className="hidden flex-1 items-center justify-center gap-5 whitespace-nowrap text-xs font-bold tracking-[0.12em] text-white/85 uppercase xl:flex 2xl:gap-6"
             style={{ fontFamily: "var(--font-body)" }}
           >
             {NAV_LINKS.map((link) => (
@@ -172,7 +172,7 @@ export default function HeaderV4({
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
               aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 xl:hidden"
             >
               <MenuIcon open={menuOpen} />
             </button>
@@ -181,7 +181,7 @@ export default function HeaderV4({
       </div>
 
       <div
-        className={`relative z-10 mx-4 overflow-hidden transition-[max-height,opacity] duration-300 lg:hidden ${
+        className={`relative z-10 mx-4 overflow-hidden transition-[max-height,opacity] duration-300 xl:hidden ${
           menuOpen ? "mt-2 max-h-[34rem] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
