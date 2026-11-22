@@ -125,12 +125,12 @@ export default function Page() {
         <EnrollmentSteps />
         <PaymentBreakdown />
 
-        <section className="mt-16 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-accent)] sm:p-8" aria-labelledby="license-title">
-          <h2 id="license-title" className="text-xl text-[var(--color-ink)] sm:text-2xl" style={heading}>
+        <section className="mt-16 rounded-[var(--radius-lg)] bg-[var(--color-card)] p-6 ring-1 ring-[var(--color-border)]" aria-labelledby="license-title">
+          <h2 id="license-title" className="text-xl text-[var(--color-ink)]" style={heading}>
             Before you enroll
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--color-muted)]">{TRAINING.licenseNotice}</p>
-          <p className="mt-3 text-sm font-medium leading-relaxed text-[var(--color-ink)]">{TRAINING.licenseGuide}</p>
+          <p className="mt-2 text-base leading-relaxed text-[var(--color-ink-soft)]">{TRAINING.licenseGuide}</p>
+          <p className="mt-3 text-xs leading-relaxed text-[var(--color-muted-3)]">{TRAINING.licenseNotice}</p>
         </section>
 
         <Objections />
