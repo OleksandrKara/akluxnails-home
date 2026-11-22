@@ -73,6 +73,31 @@ export const TRAINING = {
   graduate: { src: "/images/training/graduate.jpg", alt: "A graduate of the Russian manicure course holding her framed certificate and flowers at the AK.LUX.NAILS studio" },
   licenseNotice:
     "This is a skills course, not a state licensing program. It does not give the training hours needed for a California manicurist license. To work on paying clients in California you need a license from the California Board of Barbering and Cosmetology.",
+  licenseGuide:
+    "We give every student a step-by-step guide to getting a California manicurist license, so you know what comes next after the course.",
+  steps: [
+    { title: "Talk to Anastasia", text: "Our course curator answers your questions and helps you enroll.", bullets: ["Ask anything about the course.", "She tells you the next date and the places that are open.", "She helps you decide if this course fits your level."] },
+    { title: "Deposit and agreement", text: "A $1,000 deposit saves your place.", bullets: ["We email you the enrollment agreement.", "You read and sign it before you pay anything further.", "Cancellation and refund terms are in the agreement, in advance."] },
+    { title: "Three days of training", text: "You move from theory to real work.", bullets: ["Day 1: anatomy, sanitation and products, practice on mock shells.", "Day 2: prep, e-file and your first live model.", "Day 3: French and glossy red on two live models, plus photos for your portfolio."] },
+    { title: "Certificate and support", text: "You leave with a Certificate of Completion.", bullets: ["1 month of questions and feedback on your work.", "A plan for what to learn next.", "A guide to getting your California manicurist license."] },
+  ],
+  payment: {
+    total: 2470,
+    deposit: 1000,
+    balanceNote: "Paid two weeks before the course starts.",
+    options: ["Affirm", "Klarna", "PayPal"],
+    klarna: { months: 24, apr: 19.99 },
+    disclosure:
+      "*Example: 24 monthly payments at 19.99% APR. Financing through Klarna is subject to credit approval; your rate and term may differ. Ask us about paying with Klarna when you send a request.",
+  },
+  objections: [
+    { q: "I have never done nails.", a: "That is who this course is for. It starts from zero with theory and sanitation, then mock shells, then a live model. An instructor is next to you." },
+    { q: "Will I be ready to work after 3 days?", a: "You will have the base: what to do, in what order and why. Nail extensions and pedicure are separate courses. You keep growing with practice, and for 1 month you can send us your work for feedback." },
+    { q: "Does the course give me a license?", a: "No. It is a skills course and does not give the hours for a California manicurist license. We give you a step-by-step guide to getting the license." },
+    { q: "Is hands-on practice enough?", a: "You practice on mock shells, on your own hand for cuticle work, and on two live models, with feedback from the instructor." },
+    { q: "Can I pay in parts?", a: "Yes. $1,000 saves your spot and the rest is paid two weeks before the course. You can also use Affirm, Klarna or PayPal." },
+    { q: "What if I change my mind?", a: "You see the cancellation and refund terms in the enrollment agreement before you pay anything further." },
+  ],
   faq: [
     {
       q: "Do I need experience for the Russian manicure course?",
