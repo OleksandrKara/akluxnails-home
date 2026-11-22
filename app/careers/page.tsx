@@ -103,6 +103,20 @@ export default function Page() {
           />
         </section>
 
+        <figure className="mt-12">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/careers/studio-hall.jpg"
+            alt="The AK.LUX.NAILS studio hall in Downtown San Diego: manicure stations with lamps and round lit mirrors, light wood floor, plants and a waiting area"
+            width={1600}
+            height={900}
+            loading="lazy"
+            decoding="async"
+            className="aspect-[16/9] w-full rounded-[var(--radius-lg)] object-cover ring-1 ring-[var(--color-border)]"
+          />
+          <figcaption className="mt-2 text-center text-xs text-[var(--color-muted-2)]">Our studio in Downtown San Diego: your station is bright, clean and fully equipped.</figcaption>
+        </figure>
+
         <section className="mt-12" aria-labelledby="glance-title">
           <h2 id="glance-title" className="sr-only">
             The job at a glance
