@@ -94,6 +94,7 @@ export default function Page() {
                 <li key={i}>{i}</li>
               ))}
             </ul>
+            <p className="mt-3 text-sm text-[var(--color-muted-2)]">{TRAINING.notIncluded}</p>
           </div>
         </div>
 

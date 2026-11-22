@@ -27,6 +27,7 @@ export const TRAINING = {
     "Certificate of Completion",
     "1 month of questions and feedback after the course",
   ],
+  notIncluded: "A take-home kit is not included. Travel, accommodation and lunches are not included either.",
   days: [
     {
       title: "Day 1: How a nail works, sanitation and products",
@@ -87,6 +88,10 @@ export const TRAINING = {
     {
       q: "Can I get my deposit back?",
       a: "The deposit and the final payment are non-refundable after the date stated in your enrollment agreement. You see these terms in the agreement before you pay. In case of a disaster, each situation is reviewed individually.",
+    },
+    {
+      q: "Is a kit included in the price?",
+      a: "No. A take-home kit is not included. In class you work with the studio's professional products and tools.",
     },
     {
       q: "What products do you teach with?",
