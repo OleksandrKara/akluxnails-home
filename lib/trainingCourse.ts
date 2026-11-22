@@ -72,7 +72,7 @@ export const TRAINING = {
   },
   graduate: { src: "/images/training/graduate.jpg", alt: "A graduate of the Russian manicure course holding her framed certificate and flowers at the AK.LUX.NAILS studio" },
   licenseNotice:
-    "This is a skills course, not a state licensing program. It does not give the training hours needed for a California manicurist license. To work on paying clients in California you need a license from the California Board of Barbering and Cosmetology.",
+    "The course is a skills course and is not a state licensing program. A California manicurist license from the Board of Barbering and Cosmetology is required to work on paying clients.",
   licenseGuide:
     "We give every student a step-by-step guide to getting a California manicurist license, so you know what comes next after the course.",
   steps: [
@@ -93,7 +93,7 @@ export const TRAINING = {
   objections: [
     { q: "I have never done nails.", a: "That is who this course is for. It starts from zero with theory and sanitation, then mock shells, then a live model. An instructor is next to you." },
     { q: "Will I be ready to work after 3 days?", a: "You will have the base: what to do, in what order and why. Nail extensions and pedicure are separate courses. You keep growing with practice, and for 1 month you can send us your work for feedback." },
-    { q: "Does the course give me a license?", a: "No. It is a skills course and does not give the hours for a California manicurist license. We give you a step-by-step guide to getting the license." },
+    { q: "How do I get my license?", a: "We give you a step-by-step guide to getting your California manicurist license. The license is a separate step, and the guide shows you what to do next." },
     { q: "Is hands-on practice enough?", a: "You practice on mock shells, on your own hand for cuticle work, and on two live models, with feedback from the instructor." },
     { q: "Can I pay in parts?", a: "Yes. $1,000 saves your spot and the rest is paid two weeks before the course. You can also use Affirm, Klarna or PayPal." },
     { q: "What if I change my mind?", a: "You see the cancellation and refund terms in the enrollment agreement before you pay anything further." },
@@ -104,8 +104,8 @@ export const TRAINING = {
       a: "No. The course starts from zero with theory and sanitation. You practice step by step before you work on a live model.",
     },
     {
-      q: "Does the course give me a California manicurist license?",
-      a: "No. It is a skills course with a Certificate of Completion. It is not a state licensing program and does not give the training hours needed for a California manicurist license. A license from the California Board of Barbering and Cosmetology is required to work on paying clients in California.",
+      q: "How do I get a California manicurist license?",
+      a: "We give every student a step-by-step guide to getting a California manicurist license. The license itself is a separate step with the California Board of Barbering and Cosmetology, and it is required to work on paying clients in California.",
     },
     {
       q: "How much does the course cost and how do I pay?",
