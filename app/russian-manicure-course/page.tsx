@@ -122,6 +122,19 @@ export default function Page() {
           <p className="mt-2 text-sm leading-relaxed text-[var(--color-muted)]">{TRAINING.licenseNotice}</p>
         </section>
 
+        <section className="mt-12 grid items-center gap-6 sm:grid-cols-[240px_1fr]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={TRAINING.graduate.src} alt={TRAINING.graduate.alt} loading="lazy" decoding="async" className="aspect-[3/4] w-full rounded-lg object-cover" />
+          <div>
+            <h2 className={h2} style={{ fontFamily: "var(--font-heading)" }}>
+              After the course
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-[var(--color-muted)]">
+              Every graduate gets a Certificate of Completion and 1 month of questions and feedback from us. Use it to plan what to learn next and to build your portfolio.
+            </p>
+          </div>
+        </section>
+
         <section className="mt-12">
           <h2 className={h2} style={{ fontFamily: "var(--font-heading)" }}>
             Questions

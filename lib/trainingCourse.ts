@@ -68,6 +68,7 @@ export const TRAINING = {
       { src: "/images/training/after-2.jpg", alt: "Student work on a live model: natural pink builder gel overlay" },
     ],
   },
+  graduate: { src: "/images/training/graduate.jpg", alt: "A graduate of the Russian manicure course holding her framed certificate and flowers at the AK.LUX.NAILS studio" },
   licenseNotice:
     "This is a skills course, not a state licensing program. It does not give the training hours needed for a California manicurist license. To work on paying clients in California you need a license from the California Board of Barbering and Cosmetology.",
   faq: [
