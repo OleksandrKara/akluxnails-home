@@ -65,7 +65,6 @@ export const TRAINING = {
       { src: "/images/training/before-2.jpg", alt: "A model's natural nails before the manicure, second hand" },
     ],
     after: [
-      { src: "/images/training/after-1.jpg", alt: "Student work on a live model: smooth light blue gel color on short natural nails" },
       { src: "/images/training/after-2.jpg", alt: "Student work on a live model: natural pink builder gel overlay" },
     ],
   },
