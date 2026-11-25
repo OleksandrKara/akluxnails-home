@@ -35,7 +35,18 @@ function classifyTrafficSource(a: Attribution | null): string {
     utmDetail = parts.join(" / ");
   }
 
-  if (a.fbclid) return utmDetail ? `Meta Ads (${utmDetail})` : "Meta Ads (click)";
+  // The Instagram and Facebook apps add an fbclid to organic link taps (bio link, stories), so a click id alone does not
+  // make a visit paid. With a social, organic, bio or referral medium it is an organic visit; any other medium (a placement
+  // such as Instagram_Reels, or paid) keeps the Meta Ads label. Same rule as salaryReview's TrafficSource.classify.
+  if (a.fbclid) {
+    const medium = (a.utmMedium ?? "").trim().toLowerCase();
+    const source = (a.utmSource ?? "").trim().toLowerCase();
+    if (utmDetail && ["social", "organic", "bio", "referral"].includes(medium)) {
+      if (["ig", "instagram", "insta"].includes(source)) return "Instagram (organic)";
+      if (["fb", "facebook", "meta"].includes(source)) return "Facebook (organic)";
+    }
+    return utmDetail ? `Meta Ads (${utmDetail})` : "Meta Ads (click)";
+  }
   if (a.gclid) return utmDetail ? `Google Ads (${utmDetail})` : "Google Ads (click)";
   if (a.gbraid || a.wbraid) return utmDetail ? `Google Ads (${utmDetail})` : "Google Ads (click)";
   if (a.msclkid) return utmDetail ? `Bing Ads (${utmDetail})` : "Bing Ads (click)";
